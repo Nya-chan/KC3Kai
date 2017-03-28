@@ -122,7 +122,6 @@
 				var targetBox = targetParent.find("."+targetName);
 				var expandedQualif = !$(origin).hasClass("sortie_toggle_in");
 				var expandedBefore = $(".sortie_toggle.active:not(.sortie_toggle_in)",$(origin).parent()).length;
-				var expandedAfter = $(".sortie_toggle.active:not(.sortie_toggle_in)",$(origin).parent()).length;
 				
 				if( $(origin).hasClass("active") ){
 					$(origin).removeClass("active");
@@ -146,6 +145,7 @@
 					});
 				}
 				
+				var expandedAfter = $(".sortie_toggle.active:not(.sortie_toggle_in)",$(origin).parent()).length;
 				if(expandedQualif && expandedAfter < 1)
 					targetParent.removeClass("expanded");
 			}
