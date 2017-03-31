@@ -199,12 +199,12 @@
 .tab_event .page_list .pagination {
 	margin:5px 0px 0px 0px;
 }
-.tab_event .sortie_count {
+.tab_event .page_list .sortie_count {
 	font-size:11px;
 	line-height:12px;
+	float: right;
 	display: inline-block;
-	margin: 5px 0px 0px 10px;
-	float: left;
+	margin: 5px 5px 0px 0px;
 }
 
 /* SORTIE SWITCHER
@@ -213,9 +213,8 @@
 	width: 165px;
 	line-height:40px;
 	padding: 0px 5px;
-	margin: 5px 10px 0px 0px;
+	margin: 5px 5px 0px 525px;
 	background: none;
-	float: right;
 }
 .tab_event .sortie_switcher:after {
 	content: "";
@@ -243,7 +242,6 @@
 .tab_event .sortie_list {
 	width:700px;
 	padding:10px;
-	clear: both;
 }
 
 .tab_event .sortie_list .sortie_box {

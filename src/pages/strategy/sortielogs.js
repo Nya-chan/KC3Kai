@@ -391,7 +391,7 @@
 				self.pageNum = 1;
 				self.showPage();
 				$(".tab_"+tabCode+" .page_list")
-					.after('<div class="sortie_count">Total pages: {0}, sorties: {1}</div>'
+					.prepend('<div class="sortie_count">Total pages: {0}, sorties: {1}</div>'
 						.format(countPages, countSorties));
 			}else{
 				$(".tab_"+tabCode+" .pagination").hide();
