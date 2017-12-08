@@ -2180,15 +2180,18 @@ ABYSS FLEET
 	white-space: nowrap;
 }
 .module.activity .activity_pvp .pvpFleetShip {
-	width: 50%;
+	width: calc(50% - 1px);
 	min-width: 83px;
 	height: 30px;
-	margin: 0px 2px 1px 0px;
+	margin: 0px 0px 1px 0px;
 	float: left;
 	font-size: 11px;
 	border: 1px solid #faa;
 	border-radius: 17px 5px 5px 17px;
 	background-color: #555;
+}
+.module.activity .activity_pvp .pvpFleetShip:nth-child(2n) {
+	margin-left: 2px;
 }
 .module.activity .activity_pvp .pvpFleetShip .pvp_fleet_ship_icon {
 	width: 28px;
@@ -2250,9 +2253,9 @@ ABYSS FLEET
 	white-space: nowrap;
 }
 .module.activity .activity_pvp .pvp_base_exp {
-	width: 50%;
+	width: calc(50% - 2px);
 	float: left;
-	margin: 0px 1px 0px 0px;
+	margin: 0px 2px 0px 0px;
 }
 .module.activity .activity_pvp .pvp_base_exp .i18n {
 	width: 50%;
