@@ -43,8 +43,9 @@ module.exports = function(grunt) {
 				cwd: 'build/tmp/',
 				src: [
 					'assets/img/**',
-					'!assets/img/useitems/pay*',
+					'!assets/img/payitems/**',
 					'!assets/img/shipseasonal/**',
+					'!assets/img/useitems_p2/**',
 					'assets/snd/**',
 					'assets/swf/**',
 					'assets/js/*.js',
@@ -306,6 +307,16 @@ module.exports = function(grunt) {
 									"assets/js/global.js",
 									"library/objects.js",
 									"library/injections/osapi.js"
+								],
+								"run_at": "document_end",
+								"all_frames": true
+							},
+							{
+								"matches": ["*://*/kcs2/index.php?api_root=/kcsapi*"],
+								"js": [
+									"assets/js/global.js",
+									"library/objects.js",
+									"library/injections/kcs2.js"
 								],
 								"run_at": "document_end",
 								"all_frames": true

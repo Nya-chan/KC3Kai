@@ -26,6 +26,7 @@
 			this.injectDMM();
 
 			chrome.runtime.onMessage.addListener(this.subtitlesOverlay());
+			chrome.runtime.onMessage.addListener(this.reloadMeta());
 			chrome.runtime.onMessage.addListener(this.clearOverlays());
 			chrome.runtime.onMessage.addListener(this.questOverlay());
 			chrome.runtime.onMessage.addListener(this.mapMarkersOverlay());
@@ -70,7 +71,7 @@
 		--------------------------------------*/
 		attachHTML: function(){
 			// Overlay screens
-			var overlays = $("<div>").addClass("overlays").appendTo("#area-game");
+			var overlays = $("<div>").addClass("overlays notranslate").appendTo("#area-game");
 
 			var overlay_quests = $("<div>").addClass("overlay_box overlay_quests");
 			overlays.append(overlay_quests);
@@ -117,14 +118,14 @@
 				'margin-left': 'auto',
 				'margin-right': 'auto',
 				padding: 0,
-				width: 800,
-				height: 480,
+				width: 1200,
+				height: 720,
 				position: 'relative',
 				zoom: this.gameZoomScale
 			});
 			$("#game_frame").css({
-				width: 800,
-				height: 480
+				width: 1200,
+				height: 720
 			});
 			$(".dmm-ntgnavi").hide();
 			$(".area-naviapp").hide();
@@ -142,17 +143,17 @@
 
 			var self = this;
 			this.resizeTimer = setInterval(function(){
-				if ($("#game_frame").width() != 800 || $("#game_frame").height() != 480) {
+				if ($("#game_frame").width() !== 1200 || $("#game_frame").height() !== 720) {
 					self.resizeGameFrame();
 				}
 			}, 10000);
 		},
-		// Resize game frame to 800x480
+		// Resize game frame to 1200x720
 		resizeGameFrame: function(){
-			console.log("Resizing game frame to 800x480");
+			console.log("Resizing game frame to 1200x720");
 			$("#game_frame").css({
-				width: 800,
-				height: 480
+				width: 1200,
+				height: 720
 			});
 		},
 		// Final process on document ready
@@ -187,7 +188,7 @@
 				$("body").css("min-height", visibleHeight);
 				// Prevent scrollbar shown if computed height not accurate but larger than game player
 				$("body").css("overflow-y", !$("#alert").is(":visible")
-					&& visibleHeight > self.gameZoomScale * 480 ? "hidden" : "auto");
+					&& visibleHeight > self.gameZoomScale * 720 ? "hidden" : "auto");
 			};
 			// Background
 			if(!config.api_bg_image){
@@ -453,6 +454,16 @@
 			};
 		},
 
+		// Live reloading meta data
+		reloadMeta: function(){
+			var self = this;
+			return function(request, sender, response){
+				if(request.action != "reloadMeta") return true;
+				meta = $.extend(true, KC3Meta, request.meta);
+				console.log(request.metaType, "reloaded");
+			};
+		},
+
 		/* QUEST OVERLAYS
 		On-screen translation on quest page
 		--------------------------------------*/
@@ -611,7 +622,8 @@
 			var self = this;
 			return function(request, sender, response){
 				if(request.action != "markersOverlay") return true;
-				if(!(request.ConfigManager || config).map_markers) {
+				var thisConfig = request.ConfigManager || config;
+				if(!thisConfig.map_markers && !thisConfig.map_letters) {
 					response({success:false}); return true;
 				}
 
@@ -626,9 +638,9 @@
 					var letters = meta.nodeLetters(request.worldId, request.mapId);
 					var lettersFound = (!!letters && Object.keys(letters).length > 0);
 					var icons = meta.nodeMarkers(request.worldId, request.mapId);
-					var iconsFound =  (!!icons.length && icons.length > 0);
+					var iconsFound = (!!icons.length && icons.length > 0);
 					$(".overlay_markers").hide().empty();
-					if(lettersFound){
+					if(lettersFound && thisConfig.map_letters){
 						// Show node letters
 						var l;
 						for(l in letters){
@@ -638,7 +650,7 @@
 							$(".overlay_markers").append(letterDiv);
 						}
 					}
-					if(iconsFound){
+					if(iconsFound && thisConfig.map_markers){
 						// Show some icon style markers
 						var i;
 						for(i in icons){

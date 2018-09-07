@@ -47,6 +47,21 @@
     }
   };
 
+  BP.analyzeBattlePartially = (battleData, playerDamecons, selectedPhases) => {
+    const { fleets, battle, formatResult } = KC3BattlePrediction;
+
+    try {
+      const initialFleets = fleets.getInitialState(battleData, playerDamecons);
+      const resultFleets = battle.simulateBattlePartially(battleData, initialFleets, selectedPhases);
+
+      return formatResult(initialFleets, resultFleets);
+    } catch (error) {
+      // Pass context explicitly, so it is recorded
+      KC3Log.error(error, error.data, { selectedPhases, battleData, playerDamecons });
+      throw error;
+    }
+  };
+
   BP.predictRank = (apiName, battleData, battleResult) => {
     const { parseStartJson, normalizeFleets, getRankPredictor } = KC3BattlePrediction.rank;
 
@@ -54,6 +69,18 @@
       normalizeFleets(parseStartJson(battleData), battleData),
       normalizeFleets(battleResult, battleData)
     );
+  };
+
+  BP.predictRankAndDamageGauge = (apiName, battleData, battleResult) => {
+    const { parseStartJson, normalizeFleets, getRankPredictor, getDamageGauge } = KC3BattlePrediction.rank;
+
+    const initialFleets = normalizeFleets(parseStartJson(battleData), battleData),
+      resultFleets = normalizeFleets(battleResult, battleData);
+
+    return [
+      getRankPredictor(apiName).predict(initialFleets, resultFleets),
+      getDamageGauge(initialFleets, resultFleets)
+    ];
   };
 
   BP.predictMvp = (dayResult, nightResult) => {
@@ -228,6 +255,17 @@
     )(battleData);
   };
 
+  battle.simulateBattlePartially = (battleData, initalFleets, battlePhases = []) => {
+    const { fleets: { simulateAttack } } = KC3BattlePrediction;
+    const { getPhaseParser } = KC3BattlePrediction.battle;
+
+    return pipe(
+      juxt(battlePhases.map(getPhaseParser)),
+      flatten,
+      reduce(simulateAttack, initalFleets)
+    )(battleData);
+  };
+
   /*--------------------------------------------------------*/
   /* ---------------------[ INTERNAL ]--------------------- */
   /*--------------------------------------------------------*/
@@ -380,7 +418,7 @@
   const Fleets = {};
   const { Side } = KC3BattlePrediction;
   const { pipe, juxt, map, zipWith, over } = KC3BattlePrediction;
-  const COMBINED_FLEET_MAIN_SIZE = 6;
+  const COMBINED_FLEET_MAIN_ALIGN = 6;
   /*--------------------------------------------------------*/
   /* --------------------[ PUBLIC API ]-------------------- */
   /*--------------------------------------------------------*/
@@ -466,7 +504,7 @@
     if (fleets[side].main[position]) {
       return `${side}.main.${position}`;
     }
-    const escortIndex = position - COMBINED_FLEET_MAIN_SIZE;
+    const escortIndex = position - COMBINED_FLEET_MAIN_ALIGN;
     if (fleets[side].escort[escortIndex]) {
       return `${side}.escort.${escortIndex}`;
     }
@@ -700,6 +738,7 @@
 
 // Parser for 航空 (aerial combat) phase
 (function () {
+  const COMBINED_FLEET_MAIN_ALIGN = 6;
   const Kouku = {};
   const { pipe, juxt, flatten, map, filter, Side } = KC3BattlePrediction;
   /*--------------------------------------------------------*/
@@ -709,14 +748,14 @@
   Kouku.parseKouku = (battleData) => {
     const { createAttack } = KC3BattlePrediction.battle;
     const {
-      mergeFleetDamageArrays,
+      normalizeFleetDamageArrays,
       parsePlayerJson,
       parseEnemyJson,
       isDamagingAttack,
     } = KC3BattlePrediction.battle.phases.kouku;
 
     return pipe(
-      mergeFleetDamageArrays,
+      normalizeFleetDamageArrays,
       juxt([parsePlayerJson, parseEnemyJson]),
       flatten,
       filter(isDamagingAttack),
@@ -728,18 +767,32 @@
   /* ---------------------[ INTERNAL ]--------------------- */
   /*--------------------------------------------------------*/
 
-  // Combine the damage arrays for main and escort fleets
-  Kouku.mergeFleetDamageArrays = ({ api_stage3, api_stage3_combined }) => ({
-    api_fdam: [].concat(
-      (api_stage3 && api_stage3.api_fdam) || [],
-      (api_stage3_combined && api_stage3_combined.api_fdam) || []
-    ),
-    api_edam: [].concat(
-      (api_stage3 && api_stage3.api_edam) || [],
-      (api_stage3_combined && api_stage3_combined.api_edam) || []
-    ),
-  });
 
+  Kouku.normalizeFleetDamageArrays = (battleData) => {
+    const { extractDamageArray, padDamageArray } = KC3BattlePrediction.battle.phases.kouku;
+
+    return pipe(
+      juxt([
+        extractDamageArray('api_stage3', 'api_fdam'),
+        extractDamageArray('api_stage3_combined', 'api_fdam'),
+        extractDamageArray('api_stage3', 'api_edam'),
+        extractDamageArray('api_stage3_combined', 'api_edam'),
+      ]),
+      map(padDamageArray),
+      ([playerMain, playerEscort, enemyMain, enemyEscort]) => ({
+        api_fdam: [].concat(playerMain, playerEscort),
+        api_edam: [].concat(enemyMain, enemyEscort),
+      })
+    )(battleData);
+  };
+
+  Kouku.extractDamageArray = (stageName, damageArrayName) => battleData =>
+    (battleData[stageName] && battleData[stageName][damageArrayName]) || [];
+
+  Kouku.padDamageArray = damageArray =>
+    (damageArray.length < COMBINED_FLEET_MAIN_ALIGN
+      ? damageArray.concat(new Array(COMBINED_FLEET_MAIN_ALIGN - damageArray.length).fill(0))
+      : damageArray);
 
   Kouku.parsePlayerJson = ({ api_fdam }) => api_fdam.map(
     (damage, position) => ({ damage, defender: { side: Side.PLAYER, position } })

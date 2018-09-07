@@ -15,8 +15,8 @@
 ---------------------------------*/
 .tab_event .world_list {
 	height:31px;
-	position:relative;
 	min-width:700px;
+	position:relative;
 	overflow:hidden;
 }
 .tab_event .world_box {
@@ -60,29 +60,29 @@
 }
 .tab_event .map_shift {
 	position:absolute;
-	top: 0;
-	width: 10px;
-	height: 95%;
-	display: flex;
-	align-items: center;
-	cursor: pointer;
+	top:0;
+	width:10px;
+	height:95%;
+	display:flex;
+	align-items:center;
+	cursor:pointer;
 }
 .tab_event .map_shift.left {
-	left: 0;
+	left:0;
 }
 .tab_event .map_shift.right {
-	right: 2px;
+	right:2px;
 }
 .tab_event .map_shift.disabled {
 	cursor:default;
-	color: #f0f8ff;
+	visibility:hidden;
 }
 .tab_event .map_list {
-	position: relative;
-	min-width: 800px;
-	margin: 0px 0px 0px 0px;
-	padding: 5px 10px;
-	margin-left: -97px;
+	position:relative;
+	min-width:800px;
+	margin:0px 0px 0px 0px;
+	padding:5px 10px;
+	margin-left:-97px;
 }
 .tab_event .map_box {
 	width:90px;
@@ -195,19 +195,33 @@
 	margin:5px 0px 0px 0px;
 }
 
-.tab_event .sortie_controls .sortie_count {
+.tab_event .sortie_controls .sortie_per_page {
+	float:left;
+	height:15px;
 	font-size:12px;
 	line-height:12px;
+	margin:4px 0px 4px 20px;
+}
+.tab_event .sortie_controls .sortie_per_page select {
 	float:left;
-	margin:4px 5px 5px 20px;
+	width:40px;
+	height:18px;
+	margin:-3px 4px 0px 0px;
+}
+.tab_event .sortie_controls .sortie_count {
+	float:left;
+	height:15px;
+	font-size:12px;
+	line-height:12px;
+	margin:4px 5px 4px 5px;
 }
 
 /* SORTIE SWITCHER
 ---------------------------------*/
 .tab_event .sortie_batch_toggles {
-	width:179px;
+	width:209px;
 	height:20px;
-	margin:5px 5px -5px 511px;
+	margin:5px 5px -5px 481px;
 	background:none;
 }
 .tab_event .sortie_batch_toggles .sortie_toggles {
@@ -271,6 +285,7 @@
 	font-weight:bold;
 	text-align:center;
 	float:left;
+	white-space:nowrap;
 }
 .tab_event .sortie_list .sortie_date {
 	width:50px;
@@ -279,6 +294,7 @@
 	font-size:12px;
 	text-align:center;
 	float:left;
+	white-space:nowrap;
 }
 
 /* Sortie Info: MAP */
@@ -309,6 +325,7 @@
 	width:30px;
 	height:30px;
 	vertical-align:top;
+	visibility:hidden;
 }
 .tab_event .sortie_list .seven_ships .sortie_ship {
 	margin:3px 5px 0px 0px;
@@ -340,6 +357,31 @@
 .tab_event .sortie_list .sortie_edges {
 	width:175px;
 	margin:0px 5px 0px 0px;
+}
+.tab_event .sortie_list .sortie_edges .shipstate {
+	position:relative;
+	margin:-15px 0px 0px 15px;
+	width:18px;
+	height:18px;
+	float:left;
+	overflow:hidden;
+}
+.tab_event .sortie_list .sortie_edges.two_lines .shipstate {
+	margin:-13px 0px 0px 19px;
+	width:14px;
+	height:14px;
+}
+.tab_event .sortie_list .sortie_edges.two_lines.more_edges .shipstate {
+	margin:-13px 0px 0px 9px;
+}
+.tab_event .sortie_list .sortie_edges .shipstate img {
+	width:18px;
+	height:18px;
+	vertical-align:top;
+}
+.tab_event .sortie_list .sortie_edges.two_lines .shipstate img {
+	width:14px;
+	height:14px;
 }
 .tab_event .sortie_list .nonodes {
 	height:30px;

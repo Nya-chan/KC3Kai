@@ -81,6 +81,10 @@
 		execute :function(){
 			const self = this;
 
+			$(".ship_tooltip .stat_icon img").each((_, img) => {
+				$(img).attr("src", KC3Meta.statIcon($(img).parent().data("stat")));
+			});
+
 			$("input#hist_query").on("keydown", function(e) {
 				if (e.which === 13) {
 					$("button#control_view").click();
@@ -148,8 +152,8 @@
 				console.log( "JSON to be exported", JSON.stringify( converted ) );
 				window.open("http://www.kancolle-calc.net/deckbuilder.html?predeck="+
 							encodeURI( JSON.stringify( converted )));
-
 			});
+
 			const updateHorizontal = () => {
 				if(this.horizontal) {
 					$(".fleet_ships").addClass("horizontal");
@@ -325,8 +329,8 @@
 							return;
 						}
 						shipObj.equipments.push( {id: gearId,
-							improve: shipData.stars ? shipData.stars[i] : 0,
-							ace: shipData.ace ? shipData.ace[i] : 0
+							improve: shipData.stars && shipData.stars[i] > 0 ? shipData.stars[i] : 0,
+							ace: shipData.ace ? shipData.ace[i] || 0 : 0
 						} );
 					});
 					while (shipObj.equipments.length < Math.max(slotnum + 1, 5))
@@ -363,9 +367,9 @@
 		showAllKCFleets: function(kcFleetArray) {
 			var self = this;
 			// Empty fleet list
-			$(".tab_fleet .fleet_list").hide().empty();
+			$(".tab_fleet .fleet_list").hide().html("");
 			$.each(kcFleetArray, function(ind, kcFleet) {
-				self.showKCFleet( kcFleet );
+				self.showKCFleet( kcFleet, ind + 1 );
 			});
 			// Show with duration and check if ship name overflow
 			$(".tab_fleet .fleet_list").createChildrenTooltips().show(100, () => {
@@ -378,14 +382,14 @@
 
 		/* Show single fleet
 		   --------------------------------------------*/
-		showKCFleet: function(kcFleet) {
+		showKCFleet: function(kcFleet, fleetNum) {
 			if (!kcFleet.active) return;
 			const self = this;
 
 			// Create fleet box
 			const fleetBox = $(".tab_fleet .factory .fleet_box").clone()
 				.appendTo(".tab_fleet .fleet_list");
-			// fleetBox.attr("id", "fleet_box"+index);
+			fleetBox.attr("data-fleet", fleetNum);
 			$(".fleet_name", fleetBox).text( kcFleet.name );
 
 			let maxSlots = 0;
@@ -406,16 +410,10 @@
 					KC3Meta.term("ExpedTotalLos"),
 					fstats.fp, fstats.aa, fstats.as, fstats.ls)
 				);
-			$(".detail_los .detail_icon img", fleetBox).attr("src", "../../../../assets/img/stats/los"+ConfigManager.elosFormula+".png" );
+			$(".detail_los .detail_icon img", fleetBox).attr("src", "/assets/img/stats/los"+ConfigManager.elosFormula+".png" );
 			$(".detail_los .detail_value", fleetBox).text( Math.qckInt("floor", kcFleet.eLoS(), 1) );
-			if(ConfigManager.elosFormula === 4) {
-				const f33Cn = [
-					Math.qckInt("floor", kcFleet.eLos4(), 1),
-					Math.qckInt("floor", kcFleet.eLos4(2), 1),
-					Math.qckInt("floor", kcFleet.eLos4(3), 1),
-					Math.qckInt("floor", kcFleet.eLos4(4), 1),
-					Math.qckInt("floor", kcFleet.eLos4(5), 1)
-				];
+			if(ConfigManager.elosFormula > 1) {
+				const f33Cn = Array.numbers(1, 5).map(cn => Math.qckInt("floor", kcFleet.eLos4(cn), 1));
 				$(".detail_los .detail_value", fleetBox).attr("title",
 					"Cn1: {0}\nCn3: {1}\nCn4: {2}".format(f33Cn[0], f33Cn[2], f33Cn[3]));
 			} else {
@@ -430,6 +428,60 @@
 				);
 			$(".detail_speed .detail_value", fleetBox).text( kcFleet.speed() );
 			$(".detail_support .detail_value", fleetBox).text( kcFleet.supportPower() );
+			$(".ss_button", fleetBox).on("click", function(e) {
+				const thisButton = $(this);
+				const thisFleetBox = thisButton.parent(), fleetBoxNative = thisFleetBox.get(0);
+				if(fleetBoxNative.scrollIntoViewIfNeeded)
+					fleetBoxNative.scrollIntoViewIfNeeded();
+				else if(fleetBoxNative.scrollIntoView)
+					fleetBoxNative.scrollIntoView();
+				thisButton.hide("fast", "linear", self.captureFleetBox.bind(self, thisFleetBox));
+			});
+		},
+
+		/**
+		 * Save fleet box screenshot
+		 */
+		captureFleetBox: function(fleetBox) {
+			const fleetNum = $(fleetBox).data("fleet") || 1;
+			const coords = {
+				x: $(fleetBox).offset().left,
+				y: $(fleetBox).offset().top,
+				w: $(fleetBox).width(),
+				h: $(fleetBox).height(),
+				t: $(document).scrollTop(),
+			};
+			const dpr = window.devicePixelRatio || 1;
+			chrome.tabs.getZoom(undefined, scale => {
+				if(scale !== 1 || dpr !== 1) Object.keys(coords).forEach(p => { coords[p] *= scale * dpr; });
+				chrome.tabs.captureVisibleTab(undefined, {format: "png"}, (dataUrl) => {
+					const canvas = document.createElement("canvas"), img = new Image();
+					img.onload = (e) => {
+						canvas.width = coords.w;
+						canvas.height = coords.h;
+						const ctx = canvas.getContext("2d");
+						ctx.imageSmoothingEnabled = false;
+						ctx.drawImage(img,
+							coords.x, coords.y - coords.t, coords.w, coords.h,
+							0, 0, coords.w, coords.h);
+						new KC3ImageExport(canvas, {
+							filename: "{0} #{1} ({2})".format(
+								$("#fleet_description").text(),
+								fleetNum, dateFormat("yyyy-mm-dd HHMM")
+							),
+						}).export((error, result) => {
+							if(error) {
+								console.error("Failed to screenshot fleet", error);
+								alert("Failed to generate fleet screenshot");
+							} else if(result && result.filename) {
+								alert("Saved to {0}".format(result.filename));
+							}
+							$(".ss_button", fleetBox).show();
+						});
+					};
+					img.src = dataUrl;
+				});
+			});
 		},
 
 		/* Show single ship
@@ -513,7 +565,8 @@
 			if(isExslot || KC3GearManager.carrierBasedAircraftType3Ids.indexOf(masterData.api_type[3]) < 0){
 				$(".slot_capacity", gearBox).addClass("unused");
 			}
-			$(".gear_icon img", gearBox).attr("src", "/assets/img/items/" + masterData.api_type[3] + ".png")
+			$(".gear_icon img", gearBox).attr("src", KC3Meta.itemIcon(masterData.api_type[3]))
+				.error(function() { $(this).unbind("error").attr("src", "/assets/img/ui/empty.png"); })
 				.attr("alt", masterData.api_id)
 				.click(function(){
 					KC3StrategyTabs.gotoTab("mstgear", $(this).attr("alt"));
@@ -580,12 +633,14 @@
 					if (!equipment) return;
 					var gear = new KC3Gear();
 					equipmentObjectArr.push( gear );
-					if(ind >= 4 && ind >= ship.slotnum)
+					if(ind >= 4 && ind >= ship.slotnum) {
 						ship.ex_item = equipmentObjectArr.length;
-					else
+						gear.itemId = ship.ex_item;
+					} else {
 						ship.items[ind] = equipmentObjectArr.length;
+						gear.itemId = ship.items[ind];
+					}
 					gear.masterId = equipment.id;
-					gear.itemId = ship.items[ind];
 					gear.stars = equipment.improve ? equipment.improve : 0;
 					gear.ace = equipment.ace ? equipment.ace : 0;
 				});
@@ -606,6 +661,9 @@
 				ship.ls[0] = shipObj.ls || ((noMasterStats.ls || ship.estimateNakedLoS()) + ship.equipmentTotalLoS());
 				ship.ev[0] = shipObj.ev || ((noMasterStats.ev || ship.estimateNakedEvasion()) + ship.equipmentTotalStats("houk"));
 				ship.as[0] = shipObj.as || ((noMasterStats.as || ship.estimateNakedAsw()) + ship.equipmentTotalStats("tais"));
+
+				// just fall back to master data, to avoid recompute ship speed by updating a table about speed up ship classes
+				ship.speed = shipObj.sp || noMasterStats.sp || masterData.api_soku;
 			});
 
 			return fleet;
@@ -654,6 +712,7 @@
 						as: ship.as[0],
 						fp: ship.fp[0],
 						tp: ship.tp[0],
+						sp: ship.speed,
 						mod: ship.mod,
 						equipments: convertEquipmentsOf(ship)
 					};

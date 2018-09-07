@@ -415,7 +415,7 @@
 			}
 		});
 		
-		// Resize window to 800x480
+		// Resize window to 1200x720
 		$(".module.controls .btn_resize").on("click", function(){
 			// Send fit-screen request to service to be forwarded to gameplay page
 			(new RMsg("service", "fitScreen", {
@@ -511,6 +511,7 @@
 		//Activate();
 		
 		// Start Network listener
+		KC3Network.initConfigs();
 		KC3Network.addGlobalListener(function(event, data){
 			if(isRunning || event == "HomeScreen" || event == "GameStart"){
 				if(typeof NatsuiroListeners[event] != "undefined"){
@@ -1041,7 +1042,7 @@
 					.filter ((shipId)   => shipId > 0)                 // Remove ID -1
 					.map    ((shipId)   => KC3ShipManager.get(shipId)) // Convert to Ship instance
 					.some   ((shipObj)  => { // Check if any ship is Taiha, not flee, no damecon found
-						return !shipObj.didFlee && shipObj.isTaiha()
+						return !shipObj.isAbsent() && shipObj.isTaiha()
 							&& (!ConfigManager.alert_taiha_damecon || shipObj.findDameCon().pos < 0);
 					})
 			) {
@@ -1139,7 +1140,6 @@
 						var totalKills = KC3Meta.gauge( thisMapId.replace("m","") );
 						//console.debug("wm", KC3SortieManager.map_world, KC3SortieManager.map_num);
 						//console.debug("thisMapId", thisMapId);
-						//console.debug("KC3Meta", KC3Meta._gauges);
 						//console.debug("totalKills", totalKills);
 						var killsLeft = totalKills - thisMap.kills;
 						if(totalKills){
@@ -1481,7 +1481,7 @@
 				var MasterItem = KC3Master.slotitem( data.itemMasterId );
 				var countExisting = KC3GearManager.countByMasterId( data.itemMasterId );
 				
-				icon = "../../../../assets/img/items/"+MasterItem.api_type[3]+".png";
+				icon = KC3Meta.itemIcon(MasterItem.api_type[3]);
 				$(".activity_crafting .equipIcon img").attr("src", icon);
 				$(".activity_crafting .equipName").text( PlayerItem.name() );
 				
@@ -1572,11 +1572,8 @@
 			clearBattleData();
 			$(".module.activity .map_world").text("PvP");
 			
-			// Process PvP Battle
-			var thisPvP = (new KC3Node(0, 0, Date.now())).defineAsBattle();
-			KC3SortieManager.appendNode(thisPvP);
-			thisPvP.isPvP = true;
-			thisPvP.engage( data.battle,data.fleetSent );
+			// Processed PvP Battle
+			var thisPvP = KC3SortieManager.currentNode();
 			
 			// Hide useless information
 			$(".module.activity .battle_support img").attr("src", "../../../../assets/img/ui/dark_support-x.png").css("visibility","hidden");
@@ -1856,13 +1853,13 @@
 		if(fcontactId > 0){
 			var fcpMaster = KC3Master.slotitem(fcontactId);
 			fContactIcon = $("<img />")
-				.attr("src", "../../../../assets/img/items/"+fcpMaster.api_type[3]+".png")
+				.attr("src", KC3Meta.itemIcon(fcpMaster.api_type[3]))
 				.attr("title", KC3Meta.gearName(fcpMaster.api_name));
 		}
 		if(econtactId > 0){
 			var ecpMaster = KC3Master.slotitem(econtactId);
 			eContactIcon = $("<img />")
-				.attr("src", "../../../../assets/img/items/"+ecpMaster.api_type[3]+".png")
+				.attr("src", KC3Meta.itemIcon(ecpMaster.api_type[3]))
 				.attr("title", KC3Meta.gearName(ecpMaster.api_name));
 		}
 		$(contactSpan)
@@ -1876,7 +1873,7 @@
 		if(parseInt(MasterItem["api_"+StatProperty], 10) !== 0){
 			var thisStatBox = $("#factory .equipStat").clone().appendTo(".module.activity .activity_crafting .equipStats");
 			
-			$("img", thisStatBox).attr("src", "../../../../assets/img/stats/"+Code+".png");
+			$("img", thisStatBox).attr("src", KC3Meta.statIcon(Code));
 			$(".equipStatText", thisStatBox).text( MasterItem["api_"+StatProperty] );
 		}
 	}

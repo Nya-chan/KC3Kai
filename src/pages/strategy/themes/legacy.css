@@ -171,9 +171,9 @@ body {
 	border-bottom-color:#fcfcfc;
 }
 .ui-tooltip-content .ship_tooltip .stat_icon img {
-	width:15px;
-	height:15px;
-	margin-top:-2px;
+	max-width:19px;
+	height:16px;
+	vertical-align:bottom;
 }
 .ui-tooltip-content .ship_tooltip .stat_name {
 	color:#a9a150;
@@ -367,7 +367,7 @@ body {
 -------------------------------*/
 #content {
 	width:700px;
-	min-height:1430px;
+	min-height:1460px;
 	float:left;
 	background:#fff;
 	border-radius:10px;
@@ -695,7 +695,8 @@ body {
 .tab_ships .control_buttons .hover:hover {
 	background:#cfc;
 }
-.tab_ships .show_name_filter .name_criteria {
+.tab_ships .show_name_filter .name_criteria,
+.tab_ships .ship_level_filter input {
 	border:1px solid #000;
 }
 .tab_ships .advanced_sorter .filter_box {
@@ -794,15 +795,24 @@ body {
 .tab_builds .color_baux {
 	background:#FF9933;
 }
+.tab_builds .filters .build_name,
+.tab_builds .filters .build_rsc {
+	border-color:#a9a9a9;
+	border-radius:2px;
+}
+.tab_builds .filters .build_rsc1,
 .tab_builds .build_item .build_rsc1 {
 	background:#C1FFC1;
 }
+.tab_builds .filters .build_rsc2,
 .tab_builds .build_item .build_rsc2 {
 	background:#DFD7B3;
 }
+.tab_builds .filters .build_rsc3,
 .tab_builds .build_item .build_rsc3 {
 	background:#ccc;
 }
+.tab_builds .filters .build_rsc4,
 .tab_builds .build_item .build_rsc4 {
 	background:#FFDCA8;
 }
@@ -822,18 +832,28 @@ body {
 .tab_lscs .color_baux {
 	background:#FF9933;
 }
+.tab_lscs .filters .build_name,
+.tab_lscs .filters .build_rsc {
+	border-color:#a9a9a9;
+	border-radius:2px;
+}
+.tab_lscs .filters .build_rsc1,
 .tab_lscs .build_item .build_rsc1 {
 	background:#C1FFC1;
 }
+.tab_lscs .filters .build_rsc2,
 .tab_lscs .build_item .build_rsc2 {
 	background:#DFD7B3;
 }
+.tab_lscs .filters .build_rsc3,
 .tab_lscs .build_item .build_rsc3 {
 	background:#ccc;
 }
+.tab_lscs .filters .build_rsc4,
 .tab_lscs .build_item .build_rsc4 {
 	background:#FFDCA8;
 }
+.tab_lscs .filters .build_devmat,
 .tab_lscs .build_item .build_devmat {
 	background:#009999;
 	color:#fff;
@@ -1000,18 +1020,27 @@ body {
 .tab_crafts .build_item {
 	background:#eee;
 }
+.tab_crafts .filters .build_name,
+.tab_crafts .filters .build_rsc {
+	border-color:#a9a9a9;
+	border-radius:2px;
+}
 .tab_crafts .build_item .build_rsc {
 	font-size:12px;
 }
+.tab_crafts .filters .build_rsc1,
 .tab_crafts .build_item .build_rsc1 {
 	background:#C1FFC1;
 }
+.tab_crafts .filters .build_rsc2,
 .tab_crafts .build_item .build_rsc2 {
 	background:#DFD7B3;
 }
+.tab_crafts .filters .build_rsc3,
 .tab_crafts .build_item .build_rsc3 {
 	background:#ccc;
 }
+.tab_crafts .filters .build_rsc4,
 .tab_crafts .build_item .build_rsc4 {
 	background:#FFDCA8;
 }
@@ -1371,6 +1400,10 @@ body {
 .tab_locking .ship_list .ship_item .ship_equip .slot_open {
 	background:#b7b7b7;
 }
+.tab_locking .lock_mode .lship .level {
+	color:#333;
+	background:#ace;
+}
 
 /* QUEST FLOWCHART
 --------------------------------*/
@@ -1440,7 +1473,9 @@ body {
 
 /* MAPS
 --------------------------------*/
+.tab_event .sortie_controls .sortie_per_page,
 .tab_event .sortie_controls .sortie_count,
+.tab_maps .sortie_controls .sortie_per_page,
 .tab_maps .sortie_controls .sortie_count {
 	color:#337ab7;
 }
@@ -1664,6 +1699,15 @@ body {
 	background:#ffc;
 	border:1px solid #ace;
 }
+/* SHIPS LIBRARY
+--------------------------------*/
+.tab_mstship .shipInfo .equipSlots .equippableType {
+	background:#ddd;
+}
+.tab_mstship .shipInfo .equipExSlot .equippableType {
+	background:#ccc;
+}
+
 /* QUOTES
 --------------------------------*/
 .tab_quotes .ship_list {
@@ -1829,6 +1873,9 @@ body {
 	background:#F0F5FF;
 	border-radius:5px;
 }
+.tab_shipdrop .content_root .node_drop .useitem {
+	background:#D0F5EE;
+}
 .tab_shipdrop .ship_filter_type .filter_box {
 	border:1px solid #000;
 }
@@ -1846,4 +1893,7 @@ body {
 .tab_shipdrop .massSelect .hover.on {
 	color:#fff;
 	background: hsl(220, 100%, 60%);
+}
+.tab_shipdrop .filters .time_input input {
+	border:1px solid #aaa;
 }

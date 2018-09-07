@@ -95,7 +95,18 @@
 		 * Load map info from localStorage as usual.
 		 */
 		loadMapsFromStorage: function() {
-			this.maps = localStorage.getObject("maps") || {};
+			const maps = localStorage.getObject("maps") || {};
+			this.maps = {};
+			Object.keys(maps)
+				.sort((id1, id2) => {
+					const m1 = id1.slice(-1), m2 = id2.slice(-1);
+					let w1 = id1.slice(1, -1), w2 = id2.slice(1, -1);
+					if(w1 === "7") w1 = "3.5";
+					if(w2 === "7") w2 = "3.5";
+					return Number(w1) - Number(w2) || Number(m1) - Number(m2);
+				}).forEach(id => {
+					this.maps[id] = maps[id];
+				});
 		},
 		
 		/**
@@ -114,6 +125,12 @@
 		
 		isEventWorld: function(worldId) {
 			return worldId >= 10;
+		},
+		
+		isLbasSortieMap: function(world, map) {
+			return world === 6 && [4, 5].includes(map) ||
+				(world >= 41 && (this.maps[['m', world, map].join('')] || {}).airBase) ||
+				this.isEventWorld(world);
 		},
 		
 		worldToDesc: function(world) {
@@ -143,9 +160,27 @@
 			const shipClickFunc = function(e) {
 				KC3StrategyTabs.gotoTab("mstship", $(this).attr("alt"));
 			};
-			const diffStrs = ["", "E", "N", "H"];
+			const updateShipTooltip = function(shipBox, shipId, db){
+				const dummyNode = new KC3Node();
+				const abd = db || {};
+				const abm = KC3Master.abyssalShip(shipId, true);
+				// Data from encountered DB get priority than internal data set
+				const eParam = db ? [abd.fp, abd.tp, abd.aa, abd.ar] :
+					[abm.api_houg, abm.api_raig, abm.api_tyku, abm.api_souk];
+				const eSlot = db ? [abd.eq1, abd.eq2, abd.eq3, abd.eq4] :
+					abm.kc3_slots || [];
+				$(shipBox).attr("title", dummyNode.buildEnemyStatsMessage(
+					0, shipId,
+					// Ship level not recorded, always unknown
+					null, null,
+					abd.hp || abm.api_taik || null,
+					eParam.some(v => v === undefined) ? null : eParam,
+					eSlot, false
+				)).lazyInitTooltip();
+			};
+			const isLbasMap = this.isLbasSortieMap(world, map);
 
-			$(".encounter_list").empty().hide();
+			$(".encounter_list").html("").hide();
 			$(".loading").show();
 			KC3Database.con.encounters.filter(node =>
 				node.world === world && node.map === map
@@ -164,7 +199,7 @@
 						KC3Meta.term("EventRankEasyAbbr"),
 						KC3Meta.term("EventRankNormalAbbr"),
 						KC3Meta.term("EventRankHardAbbr")][
-							((d, w) => w >= 41 ? d : d + 1)(encounter.diff || 0, encounter.world)
+							((d, w) => w < 10 || w >= 41 ? d : d + 1)(encounter.diff || 0, encounter.world)
 						] || "";
 					const mapName = `${encounter.world}-${encounter.map}${diffStr}`;
 					// Check map box
@@ -211,7 +246,8 @@
 									.attr("alt", shipId)
 									.click(shipClickFunc);
 								$(".encounter_id", shipBox).text(shipId);
-								$(shipBox).attr("title", KC3Meta.abyssShipName(shipId));
+								// Show abyssal stats & equipment on tooltip
+								KC3Database.get_enemyInfo(shipId, updateShipTooltip.bind(self, shipBox, shipId));
 								shipBox.toggleClass("escort_flagship", shipIndex === 6);
 								shipBox.appendTo($(".encounter_ships", curBox));
 							}
@@ -230,11 +266,19 @@
 					}
 					let tooltip = "{0} x{1}".format(curBox.data("nodeName"), curBox.data("count"));
 					tooltip += "\n{0}".format(KC3Meta.formationText(encounter.form));
-					const ap = KC3Calc.enemyFighterPower(shipList)[0];
+					if(encounter.exp) {
+						tooltip += "\n{0}: {1}".format(KC3Meta.term("PvpBaseExp"), encounter.exp);
+					}
+					const fpArr = KC3Calc.enemyFighterPower(shipList);
+					const ap = fpArr[0], recons = fpArr[3];
 					if(ap) {
 						tooltip += "\n" + KC3Meta.term("InferredFighterPower")
-							.format(ap, Math.round(ap / 3), Math.round(2 * ap / 3),
-								Math.round(3 * ap / 2), 3 * ap);
+							.format(KC3Calc.fighterPowerIntervals(ap));
+					}
+					if(isLbasMap && recons) {
+						const lbasAp = KC3Calc.enemyFighterPower(shipList, undefined, undefined, true)[0];
+						tooltip += !lbasAp ? "" : "\n[LBAS] " + KC3Meta.term("InferredFighterPower")
+							.format(KC3Calc.fighterPowerIntervals(lbasAp));
 					}
 					$(".encounter_formation", curBox).attr("title", tooltip);
 				});

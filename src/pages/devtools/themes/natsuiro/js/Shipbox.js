@@ -60,7 +60,7 @@ KC3改 Ship Box for Natsuiro theme
 		var myExItem = this.shipData.exItem();
 		if( myExItem.exists() ) {
 			$(".ex_item .gear_icon img", this.element)
-				.attr("src", "/assets/img/items/"+myExItem.master().api_type[3]+".png")
+				.attr("src", KC3Meta.itemIcon(myExItem.master().api_type[3]))
 				.attr("title", myExItem.htmlTooltip(undefined, this.shipData))
 				.data("masterId", myExItem.masterId)
 				.on("dblclick", function(e){
@@ -78,7 +78,7 @@ KC3改 Ship Box for Natsuiro theme
 			$(".ex_item", this.element).hide();
 		}
 		$(".ex_item", this.element).toggleClass("item_being_used",
-			ConfigManager.info_battle && (this.dameConConsumed.pos == 4 ||
+			ConfigManager.info_battle && (this.dameConConsumed.pos === 0 ||
 				// Although starshell not equippable at ex-slot for now
 				(this.starShellUsed && myExItem.masterId == 101))
 		);
@@ -171,7 +171,8 @@ KC3改 Ship Box for Natsuiro theme
 					: "";
 				const nextGoal = isFinite(shipGoal.battlesLeft) && shipGoal.battlesLeft > 0 ?
 					KC3Meta.term("PanelNextLvGoalLeft")
-						.format(shipGoal.targetLevel, shipGoal.battlesLeft) : "";
+						.format(shipGoal.targetLevel, shipGoal.battlesLeft,
+							shipGoal.baseExp || shipGoal.baseExpPerBattles) : "";
 				if(nextGoal){
 					if(title) title += "\n";
 					title += nextGoal;
@@ -403,7 +404,7 @@ KC3改 Ship Box for Natsuiro theme
 				}
 				
 				$(".ship_gear_"+(slot+1)+" .ship_gear_icon img", this.element).attr("src",
-					"/assets/img/items/"+thisGear.master().api_type[3]+".png");
+					KC3Meta.itemIcon(thisGear.master().api_type[3]));
 				$(".ship_gear_"+(slot+1), this.element).addClass("equipped");
 				$(".ship_gear_"+(slot+1)+" .ship_gear_icon", this.element)
 					.attr("titlealt", thisGear.htmlTooltip(this.shipData.slots[slot], this.shipData))
@@ -439,7 +440,7 @@ KC3改 Ship Box for Natsuiro theme
 				if(ConfigManager.info_battle){
 					$(".ship_gear_"+(slot+1)+" .ship_gear_icon", this.element).toggleClass("item_being_used",
 						// Consumed damecon slot
-						this.dameConConsumed.pos == slot ||
+						this.dameConConsumed.pos === slot+1 ||
 						// Mark all equipped starshell
 						(this.starShellUsed && thisGear.masterId == 101)
 					);

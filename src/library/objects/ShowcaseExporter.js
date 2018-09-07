@@ -279,19 +279,19 @@
             for (var i in self._statsImages) {
                 if (!self._statsImages.hasOwnProperty(i))
                     continue;
-                self._loadImage(i, "_statsImages", "/assets/img/stats/" + i + ".png", callback);
+                self._loadImage(i, "_statsImages", KC3Meta.statIcon(i, 1), callback);
             }
 
             for (i in self._equipTypeImages) {
                 if (!self._equipTypeImages.hasOwnProperty(i))
                     continue;
-                self._loadImage(i, "_equipTypeImages", "/assets/img/items/" + i + ".png", callback);
+                self._loadImage(i, "_equipTypeImages", KC3Meta.itemIcon(i), callback);
             }
 
             for (i in self._shipImages) {
                 if (!self._shipImages.hasOwnProperty(i))
                     continue;
-                self._loadImage(i, "_shipImages", "/assets/img/ships/" + i + ".png", callback);
+                self._loadImage(i, "_shipImages", KC3Meta.shipIcon(i, undefined, false), callback);
             }
 
             self._loadImage("medals", "_otherImages", "/assets/img/useitems/57.png", callback);
@@ -615,6 +615,7 @@
 
             var equip = allGears[i];
             var equipMaster = KC3Master.slotitem(equip.masterId);
+            if (!equipMaster) continue;
 
             var masterId = "m" + equip.masterId;
             var typeId = "t" + equipMaster.api_type[3];
@@ -628,12 +629,12 @@
 
             if (!sorted[groupId].types[typeId]) {
                 sorted[groupId].types[typeId] = {
-                    typeId: KC3Master.slotitem(equip.masterId).api_type[3],
-                    name: KC3Meta.gearTypeName(2, equipMaster.api_type[2]),
+                    typeId: equipMaster.api_type[3],
+                    name: KC3Meta.gearTypeName(3, equipMaster.api_type[3]),
                     gears: {}
                 };
-                this._equipTypeImages[KC3Master.slotitem(equip.masterId).api_type[3]] = null;
             }
+            this._equipTypeImages[equipMaster.api_type[3]] = null;
 
             if (!sorted[groupId].types[typeId].gears[masterId]) {
                 sorted[groupId].types[typeId].gears[masterId] = {
@@ -799,7 +800,18 @@
     ShowcaseExporter.prototype._addEquipGroupsToCanvas = function (group, canvas, ctx) {
         function compareEquip(a, b) {
             var equipA = KC3Master.slotitem(a.slice(1)), equipB = KC3Master.slotitem(b.slice(1));
-            return equipB[sortingParam] - equipA[sortingParam];
+            if (SPSortPart === "overall") {
+                var equipASum = 0, equipBSum = 0;
+                for (var i in equipParams) {
+                    if (typeof equipA[equipParams[i]] !== "undefined")
+                        equipASum += equipA[equipParams[i]];
+                    if (typeof equipB[equipParams[i]] !== "undefined")
+                        equipBSum += equipB[equipParams[i]];
+                }
+                return equipBSum - equipASum;
+            } else {
+                return equipB[sortingParam] - equipA[sortingParam];
+            }
         }
 
         var typeCount = Object.keys(group.types).length;
@@ -830,8 +842,10 @@
                     }
                 }
 
-                var sortingParam = this._paramToApi[KC3StrategyTabs.gears.definition._defaultCompareMethod[typeId]];
-                if (!!sortingParam) {
+                var SPSortPart = KC3StrategyTabs.gears.definition._defaultCompareMethod[typeId];
+                var equipParams = this._paramToApi;
+                var sortingParam = equipParams[SPSortPart];
+                if (!!sortingParam || SPSortPart === "overall") {
                     masterIds.sort(compareEquip);
                 }
 

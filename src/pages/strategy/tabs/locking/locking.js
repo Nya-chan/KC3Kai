@@ -14,6 +14,7 @@
             this.showListRowCallback = this.showShipLockingRow;
             this.lockLimit = 5;
             this.heartLockMode = 2;
+            this.showShipLevel = true;
         }
 
         /* RELOAD
@@ -39,6 +40,11 @@
             
             this.tab = $(".tab_locking");
             $(".clearAllPlans", this.tab).on("click", this.clearAllPlannedLocks.bind(this));
+            $(".toggleShipLevel", this.tab).on("click", (e) => {
+                this.showShipLevel = !this.showShipLevel;
+                $(".ships_area .lship .level").toggle(this.showShipLevel);
+            });
+            $(".ships_area .lship .level").toggle(this.showShipLevel);
             
             this.shipListDiv = $(".ship_list", this.tab);
             this.shipListDiv.on("preShow", () => {
@@ -51,6 +57,9 @@
             this.shipRowTemplateDiv = $(".factory .ship_item", this.tab);
             this.addFilterUI();
             this.showListGrid();
+            $(".ship_header .ship_stat img").each((_, img) => {
+                $(img).attr("src", KC3Meta.statIcon($(img).parent().data("type")));
+            });
             this.shipListHeaderDiv = $(".ship_header .ship_field.hover", this.tab);
             this.registerShipListHeaderEvent(this.shipListHeaderDiv);
             this.shipListHeaderDiv.on("click", (e) => {
@@ -249,7 +258,7 @@
                 const gear = KC3GearManager.get(equipId);
                 if(gear.exists()) {
                     $("img", element)
-                        .attr("src", `/assets/img/items/${gear.master().api_type[3]}.png`)
+                        .attr("src", KC3Meta.itemIcon(gear.master().api_type[3]))
                         .attr("alt", gear.master().api_id)
                         .click(this.gearClickFunc)
                         .error(function() {
@@ -349,28 +358,28 @@
 
         prepareFilters() {
             this.defineSimpleFilter("speed", [], 0,
-                (index, ship) => {
+                (filterDef, ship) => {
                     return (this.filterValues.speed === 0)
                         || (this.filterValues.speed === 1 && ship.speed < 10)
                         || (this.filterValues.speed === 2 && ship.speed >= 10);
                 }
             );
             this.defineSimpleFilter("daihatsu", [], 0,
-                (index, ship) => {
+                (filterDef, ship) => {
                     return (this.filterValues.daihatsu === 0)
                         || (this.filterValues.daihatsu === 1 && ship.canEquipDaihatsu)
                         || (this.filterValues.daihatsu === 2 && !ship.canEquipDaihatsu);
                 }
             );
             this.defineSimpleFilter("tagLocked", [], 0,
-                (index, ship) => {
+                (filterDef, ship) => {
                     return (!this.filterValues.tagLocked)
                         || (this.filterValues.tagLocked && !ship.sally);
                 }
             );
 
             this.defineSimpleFilter("shipType", [], 0,
-                (index, ship) => {
+                (filterDef, ship) => {
                     return (this.filterValues.stypes.length === 0)
                         || (this.filterValues.stypes.indexOf(ship.stype) !== -1);
                 }
@@ -403,6 +412,7 @@
                 .appendTo(`.tab_locking .lock_mode_${boxIndex + 1} .ships_area`);
 
             $("img", shipBox).attr("src", KC3Meta.shipIcon(ship.masterId));
+            $(".level", shipBox).text(ship.level).toggle(this.showShipLevel);
             shipBox.data("ship_id", ship.id);
             shipBox.attr("data-rosterid", ship.id );
             shipBox.attr("data-boxcolorid", boxIndex);
@@ -423,6 +433,7 @@
                     cursor: "move",
                     start: (e, ui) => {
                         $(e.target).tooltip("disable");
+                        $(".level", e.target).hide();
                     }
                 });
             }

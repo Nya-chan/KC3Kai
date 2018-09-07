@@ -51,7 +51,7 @@ var
 // Show game screens
 function ActivateGame(){
 	waiting = false;
-	$(".box-wrap").css("background", "#fff");
+	var scale = (ConfigManager.api_gameScale || 100) / 100;
 	$(".box-wait").hide();
 	$(".game-swf").remove();
 	$(".box-game")
@@ -60,7 +60,19 @@ function ActivateGame(){
 		.attr("src", localStorage.absoluteswf)
 		.end()
 		.show();
-	$(".box-wrap").css("zoom", ((ConfigManager.api_gameScale || 100) / 100));
+	$(".box-wrap").css({
+		"background": "#fff",
+		"width": 1200,
+		"zoom": scale,
+		"margin-top": ConfigManager.api_margin
+	});
+	/*
+	var gamebox = $(".box-game").offset(), wrapper = $(".box-wrap").offset();
+	$(".box-game").css({
+		"margin-left": -gamebox.left + wrapper.left,
+		"margin-top": -gamebox.top + wrapper.top,
+	});
+	*/
 	idleTimer = setInterval(idleFunction, 1000);
 	if(ConfigManager.alert_idle_counter) {
 		$(".game-idle-timer").trigger("refresh-tick");
@@ -80,7 +92,7 @@ $(document).on("ready", function(){
 	KC3Translation.execute();
 	
 	// Apply interface configs
-	$(".box-wrap").css("margin-top", ConfigManager.api_margin+"px");
+	//$(".box-wrap").css("margin-top", ConfigManager.api_margin+"px");
 	if(ConfigManager.api_bg_image === ""){
 		$("body").css("background", ConfigManager.api_bg_color);
 	}else{
@@ -98,12 +110,13 @@ $(document).on("ready", function(){
 			$(".overlay_subtitles").css("font-weight", "bold");
 		}
 		
+		const scale = (ConfigManager.api_gameScale || 100) / 100;
 		switch (ConfigManager.subtitle_display) {
 			case "bottom":
 				$(".overlay_subtitles span").css("pointer-events", "none");
 				break;
 			case "below":
-				$(".overlay_subtitles").appendTo("body");
+				$(".overlay_subtitles").prependTo(".out-of-box");
 				$(".overlay_subtitles").css({
 					position: "relative",
 					margin: "5px auto 0px",
@@ -112,19 +125,20 @@ $(document).on("ready", function(){
 					bottom: "auto",
 					right: "auto",
 					width: $(".box-game").width(),
-					zoom: ((ConfigManager.api_gameScale || 100) / 100)
+					zoom: scale
 				});
 				break;
 			case "stick":
-				$(".overlay_subtitles").appendTo("body");
+				$(".overlay_subtitles").prependTo(".out-of-box");
 				$(".overlay_subtitles").css({
 					position: "fixed",
 					left: "50%",
 					top: "auto",
-					bottom: "3px",
+					bottom: ConfigManager.alert_idle_counter > 1 ? "40px" : "3px",
 					right: "auto",
 					margin: "0px 0px 0px "+(-($(".box-game").width()/2))+"px",
-					width: $(".box-game").width()
+					width: $(".box-game").width(),
+					zoom: scale
 				});
 				break;
 			default: break;
@@ -417,7 +431,9 @@ var interactions = {
 	
 	// Show map markers for old worlds (node letters & icons)
 	markersOverlay :function(request, sender, response){
-		if(!ConfigManager.map_markers) { response({success:false}); return true; }
+		if(!ConfigManager.map_markers && !ConfigManager.map_letters){
+			response({success:false}); return true;
+		}
 		var sortieStartDelayMillis = 2800;
 		var markersShowMillis = 5000;
 		var compassLeastShowMillis = 3500;
@@ -429,9 +445,9 @@ var interactions = {
 			var letters = KC3Meta.nodeLetters(request.worldId, request.mapId);
 			var lettersFound = (!!letters && Object.keys(letters).length > 0);
 			var icons = KC3Meta.nodeMarkers(request.worldId, request.mapId);
-			var iconsFound =  (!!icons.length && icons.length > 0);
+			var iconsFound = (!!icons.length && icons.length > 0);
 			$(".overlay_markers").hide().empty();
-			if(lettersFound){
+			if(lettersFound && ConfigManager.map_letters){
 				// Show node letters
 				var l;
 				for(l in letters){
@@ -441,7 +457,7 @@ var interactions = {
 					$(".overlay_markers").append(letterDiv);
 				}
 			}
-			if(iconsFound){
+			if(iconsFound && ConfigManager.map_markers){
 				// Show some icon style markers
 				var i;
 				for(i in icons){
@@ -513,8 +529,8 @@ var interactions = {
 			// Resize the window
 			chrome.windows.getCurrent(function(wind){
 				chrome.windows.update(wind.id, {
-					width: Math.ceil(800*GameScale*ZoomFactor) + (wind.width- Math.ceil($(window).width()*ZoomFactor) ),
-					height: Math.ceil(480*GameScale*ZoomFactor) + (wind.height- Math.ceil($(window).height()*ZoomFactor) )
+					width: Math.ceil(1200*GameScale*ZoomFactor) + (wind.width- Math.ceil($(window).width()*ZoomFactor) ),
+					height: Math.ceil(720*GameScale*ZoomFactor) + (wind.height- Math.ceil($(window).height()*ZoomFactor) )
 				});
 			});
 		});
@@ -734,6 +750,16 @@ var interactions = {
 				showSubtitle(subtitleText, quoteIdentifier);
 			}
 		}
+	},
+	
+	// Live reloading meta data
+	reloadMeta :function(request, sender, response){
+		if(request.metaType === "Quotes") {
+			KC3Meta.loadQuotes();
+		} else if(request.metaType === "Quests") {
+			KC3Meta.reloadQuests();
+		}
+		console.info(request.metaType, "reloaded");
 	}
 	
 };

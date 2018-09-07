@@ -156,6 +156,7 @@
 			var GearMaster, GearType;
 			$.each(GearRecords, function(index, element){
 				GearMaster = KC3Master.slotitem( index.substr(1) );
+				if(!GearMaster) return;
 
 				GearType = GearMaster.api_type[3];
 				// If gear type does not exist yet
@@ -381,13 +382,13 @@
 					if(typeof ThisTopGear !== "undefined"){
 						GearBox = $(".tab_showcase .factory .show_gear").clone();
 						if(GearTypeIcon===0){ GearTypeIcon=ThisTopGear.type; }
-						$(".gear_icon img", GearBox).attr("src", "../../assets/img/items/"+GearTypeIcon+".png");
+						$(".gear_icon img", GearBox).attr("src", KC3Meta.itemIcon(GearTypeIcon));
 						GearTypeIcon = 0;
 						$(".gear_name", GearBox).html( ThisTopGear.name );
 						$(".gear_name", GearBox).attr("title", ThisTopGear.name );
 
 						if(typeof element.order !== "undefined"){
-							$(".gear_stat_icon img", GearBox).attr("src", "../../assets/img/stats/"+element.order+".png");
+							$(".gear_stat_icon img", GearBox).attr("src", KC3Meta.statIcon(element.order));
 							$(".gear_stat_val", GearBox).html( ThisTopGear[element.order] );
 						}else{
 							$(".gear_name", GearBox).css("width", "170px");
