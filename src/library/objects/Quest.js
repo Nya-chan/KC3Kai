@@ -64,25 +64,38 @@ known IDs see QuestManager
 	/* OUTPUT SHORT
 	Return tracking text to be shown on Panel and Strategy Room
 	------------------------------------------*/
-	KC3Quest.prototype.outputShort = function(showAll){
-		if (typeof showAll == "undefined") {
-			showAll = false;
-		}
+	KC3Quest.prototype.outputShort = function(showAll = false, oneTimeChecks = false){
 		if(this.tracking){
-			var trackingText = [];
-			var ctr;
-			var textToShow = "";
-			for(ctr in this.tracking){
-				textToShow = this.tracking[ctr][0]+"/"+this.tracking[ctr][1];
-				trackingText.push((this.meta().trackingDesc ? this.meta().trackingDesc[ctr] : "{0}").format(textToShow));
-				if (!showAll && (this.tracking[ctr][0] < this.tracking[ctr][1])) {
-					return textToShow;
+			const trackingText = [];
+			let textToShow = "";
+			// If all tracking items are 1-time checks: [0, 1]
+			const isAllTicks = Array.isArray(this.tracking) &&
+				this.tracking.every(el => Array.isArray(el) && el[1] === 1);
+			let ticked = 0;
+			for(const key in this.tracking){
+				if(!Array.isArray(this.tracking[key])) continue;
+				textToShow = this.tracking[key].join("/");
+				trackingText.push(
+					(this.meta().trackingDesc ? this.meta().trackingDesc[key] : "{0}")
+						.format(textToShow)
+				);
+				if(!showAll) {
+					if(this.tracking[key][0] < this.tracking[key][1]) {
+						// Show first uncompleted item only if not show all and items not 1-time checks
+						if(!oneTimeChecks || !isAllTicks) return textToShow;
+					} else {
+						// Count completed ticks
+						ticked += 1;
+					}
 				}
 			}
-			if (!showAll) {
+			if(!showAll) {
+				// Show completed ticks if all tracking items are 1-time checks
+				if(oneTimeChecks && isAllTicks)
+					return "{0}/{1}".format(ticked, this.tracking.length);
 				return textToShow;
 			} else {
-				return trackingText.join(String.fromCharCode(10));
+				return trackingText.join("\n");
 			}
 		}
 		return "";
@@ -93,10 +106,9 @@ known IDs see QuestManager
 	------------------------------------------*/
 	KC3Quest.prototype.outputHtml = function(){
 		if(this.tracking){
-			var trackingText = [];
-			var ctr;
-			for(ctr in this.tracking){
-				trackingText.push(this.tracking[ctr][0]+"/"+this.tracking[ctr][1]);
+			const trackingText = [];
+			for(const key in this.tracking){
+				trackingText.push(this.tracking[key].join("/"));
 			}
 			return trackingText.join("<br />");
 		}
@@ -278,12 +290,20 @@ known IDs see QuestManager
 		let currentCount = trackingData[0];
 		let maxCount = parseFloat(trackingData[1]);
 
-		// no adjustment for F7 and F8:
-		// these two quests have a weird behavior that 1/3 is marked as being 50% completed
+		// no adjustment for F66, F7 and F8:
+		// these quests have a weird behavior that 1/3 is marked as being 50% completed
 		// so our auto-adjustment won't work for them.
-		if([607, 608].indexOf(this.id) > -1
+		// EO74 marks them as '(internal counter) starts from 1/4', so +1 50%, +2 80%.
+		if([607, 608, 674].indexOf(this.id) > -1
 			&& currentCount > 0 && currentCount < maxCount)
 			return;
+		// client-side progress judgement for these:
+		// C16: no progress by PvP victories, 50% if 1st flagship equip 1 ration
+		if([318].indexOf(this.id) > -1) {
+			if (currentCount < maxCount && this.progress > 0)
+				trackingData[0] = maxCount;
+			return;
+		}
 
 		// pFlag: short for Progress Flag,
 		// for uncompleted quests:
@@ -305,7 +325,7 @@ known IDs see QuestManager
 		let trackedPFlag =
 			/* cur/max >= 4/5 (80%) */
 			5*currentCount >= 4*maxCount ? 2
-		/* cur/max >= 1/2 (50%) */
+			/* cur/max >= 1/2 (50%) */
 			: 2*currentCount >= maxCount ? 1
 			: 0;
 

@@ -256,6 +256,13 @@ String.prototype.toArray = function() {
 };
 
 /**
+ * Capitalize first letter and lower case left letters.
+ */
+String.prototype.capitalize = function() {
+	return this.charAt(0).toUpperCase() + this.slice(1).toLowerCase();
+};
+
+/**
  * String.format("msg {0} is {1}", args) - convenient placeholders replacing,
  * from http://jqueryvalidation.org/jQuery.validator.format/
  *
@@ -561,6 +568,21 @@ Array.pad = function(array, length, value, original){
 	}
 	return array;
 };
+// To avoid for...in iteration hitting this function, uses Object.defineProperty like other polyfill
+Object.defineProperty(Array.prototype, "sumValues", {
+	enumerable: false, // although it is false by default
+	/**
+	 * A convenient method to sum all the numbers in Array.
+	 * Equivalent to a code like `[].reduce((acc, v) => acc + v, 0)`.
+	 * @param getter - an optional function to convert each element to numeric value
+	 */
+	value: function sumValues(getter) {
+		var thisArray = this;
+		return thisArray.reduce(function(acc, v, i) {
+			return acc + (Number(typeof getter === "function" ? getter(v, i, acc, thisArray) : v) || 0);
+		}, 0);
+	}
+});
 
 /*******************************\
 |*** Object                     |

@@ -3,8 +3,8 @@
 
 	window.WhoCallsTheFleetDb = {
 		db: {},
-		expectedShipCount: 498,
-		expectedItemCount: 268,
+		expectedShipCount: 511,
+		expectedItemCount: 281,
 		init: function(repo) {
 			var self = this;
 			var loadAndParseDb = function(prefix, filename, expectedCount) {

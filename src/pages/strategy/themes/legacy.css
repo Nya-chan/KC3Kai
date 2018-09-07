@@ -552,6 +552,9 @@ body {
 .ship_list .ship_item .ship_morale.sparkled {
 	background:#ff0;
 }
+.ship_list .ship_item .ship_hp.max {
+	background:#52d052;
+}
 .ship_list .ship_item .ship_fp.max {
 	background:#ff8888;
 }
@@ -734,6 +737,9 @@ body {
 }
 .tab_ships .ship_item .ship_morale.sparkled {
 	background:#ff0;
+}
+.tab_ships .ship_item .ship_hp.max {
+	background:#52d052;
 }
 .tab_ships .ship_item .ship_fp.max {
 	background:#ff8888;
@@ -1186,11 +1192,17 @@ body {
 	width:672px;
 	margin:0px 4px;
 }
+.tab_fleet .fleet_ships.max_slot6 {
+	height:114px;
+}
 .tab_fleet .fleet_ship {
-	height:85px;
+	height:87px;
 	background:#ffe;
 	border-radius:8px;
 	margin:10px 2px 2px 0px;
+}
+.tab_fleet .max_slot6 .fleet_ship {
+	height:103px;
 }
 .tab_fleet .fleet_ship .ship_hover {
 	height:53px;
@@ -1313,7 +1325,7 @@ body {
 	font-weight:bold;
 	color:#00f;
 }
-.tab_fleet .fleet_ship .ship_gear .ship_gear_5 .gear_name {
+.tab_fleet .fleet_ship .ship_gear .ex_slot .gear_name {
 	color:#79b;
 }
 .tab_fleet .fleet_ship .slot_capacity.shouha {
@@ -1386,7 +1398,8 @@ body {
 	font-weight:bold;
 }
 
-.tab_flowchart .questInfo.complete .questDesc {
+.tab_flowchart .questInfo.complete .questDesc,
+.tab_flowchart .questExtraItem.complete .questDesc {
 	color:#00CC00;
 }
 .tab_flowchart .questExtraItem.active {

@@ -6,6 +6,7 @@
 		BATTLE_BASIC   = 1,
 		BATTLE_NIGHT   = 2,
 		BATTLE_AERIAL  = 4,
+		BATTLE_NIGHT2DAY = 8,
 		
 		// Sortie Boss Node Indicator
 		// FIXME: this is not for translation. to test sortie status
@@ -226,7 +227,12 @@
 
 				updateScrollItem("map", 97);
 
-				var diffStr = ["E","N","H"];
+				const diffStr = [
+					KC3Meta.term("EventRankCasualAbbr"),
+					KC3Meta.term("EventRankEasyAbbr"),
+					KC3Meta.term("EventRankNormalAbbr"),
+					KC3Meta.term("EventRankHardAbbr")
+				];
 				// Check player's map list
 				$.each(self.maps, function(index, element){
 					var cWorld = (""+element.id).substr(0, (""+element.id).length-1);
@@ -236,14 +242,10 @@
 					if(cWorld == self.selectedWorld){
 						mapBox = $(".tab_"+tabCode+" .factory .map_box").clone().appendTo(".tab_"+tabCode+" .map_list");
 						mapBox.attr("data-map_num", cMap);
-						$(".map_title", mapBox).text((cWorld>=10 ? "E" : cWorld)+" - "+cMap+(function(x){
-							switch(x){
-								case 1: case 2: case 3:
-									return " " + diffStr[x-1];
-								default:
-									return "";
-							}
-						})(element.difficulty));
+						$(".map_title", mapBox).text( (cWorld>=10 ? "E" : cWorld) + "-" + cMap + " " +
+						(function(x, w){
+							return diffStr[x - (w >= 41 ? 1 : 0)] || "";
+						})(element.difficulty, cWorld));
 
 						// Check unselected difficulty
 						if(cWorld >= 10 && !element.difficulty) {
@@ -259,18 +261,14 @@
 								$(".map_hp_txt", mapBox).text("Cleared!");
 								mapBox.addClass("cleared");
 								if (cWorld>=10) {
-									mapBox.addClass((function(x){
-										switch(x){
-											case 1:
-												return "easy";
-											case 2:
-												return "normal";
-											case 3:
-												return "hard";
-											default:
-												return "";
+									mapBox.addClass((function(x, w){
+										// New difficulty 'Casual' added since Winter 2018, and ID shifted +1
+										if(w >= 41){
+											return ["", "casual", "easy", "normal", "hard"][x] || "";
+										} else {
+											return ["", "easy", "normal", "hard"][x] || "";
 										}
-									})(element.difficulty));
+									})(element.difficulty, cWorld));
 								}
 								if(typeof element.maxhp != "undefined")
 									$(".map_hp_txt", mapBox).lazyInitTooltip()
@@ -485,8 +483,15 @@
 			var gearClickFunc = function(e){
 				KC3StrategyTabs.gotoTab("mstgear", $(this).attr("alt"));
 			};
-			var viewFleetAtManagerFunc = function(e){
-				KC3StrategyTabs.gotoTab("fleet", "history", $(this).data("id"));
+			var viewFleetAtManagerFunc = function(e) {
+				const id = $(this).data("id");
+				if(!id) return;
+				if(e.metaKey || e.ctrlKey) {
+					const url = chrome.extension.getURL("/pages/strategy/strategy.html") + `#fleet-history-${id}`;
+					chrome.tabs.create({ url, active: true });
+				} else {
+					KC3StrategyTabs.gotoTab("fleet", "history", id);
+				}
 			};
 			var parseAirRaidFunc = function(airRaid){
 				const damageArray =
@@ -511,11 +516,14 @@
 					if(sortie.world >= 10) {
 						sortie.diff = sortie.diff || (self.maps[skey] || {difficulty:0}).difficulty || 0;
 					}
-					if((sortie.diff || 0) > 0)
+					if((sortie.diff || 0) > 0) {
+						const rankMarker = ((d, w) => w >= 41 ? (d === 1 ? "1C" : d - 1) : d)(sortie.diff, sortie.world);
 						$(sortieBox)
-							.addClass("sortie_rank_"+sortie.diff)
-							.attr("data-diff",KC3Meta.term("EventHistoryRank"+sortie.diff));
-					$(".sortie_id", sortieBox).text( sortie.id );
+							.addClass("sortie_rank_" + rankMarker)
+							.attr("data-diff", KC3Meta.term("EventHistoryRank" + rankMarker));
+					}
+					$(".sortie_id", sortieBox).text(sortie.id)
+						.data("id", sortie.id).on("click", viewFleetAtManagerFunc);
 					$(".sortie_dl", sortieBox).data("id", sortie.id);
 					$(".sortie_date", sortieBox).text( new Date(sortie.time*1000).format("mmm d") );
 					$(".sortie_date", sortieBox).attr("title", new Date(sortie.time*1000).format("yyyy-mm-dd HH:MM:ss") );
@@ -525,11 +533,11 @@
 					var edges = [];
 					if(sortie.nodes && ConfigManager.sr_show_non_battle) {
 						$.each(sortie.nodes, function(index, node) {
-							const letter = KC3Meta.nodeLetter( sortie.world, sortie.mapnum, node.id );
+							const letter = KC3Meta.nodeLetter(sortie.world, sortie.mapnum, node.id);
 							const isBattle = node.type === "battle";
 							const battleKind = ["", "",
 								"night_battle", "night_battle",
-								"air_battle", "enemy_combined", "air_raid"
+								"air_battle", "enemy_combined", "air_raid", "night_to_day"
 								][node.eventKind];
 							edges.push(node.id);
 							$(".sortie_edge_"+(index+1), sortieBox)
@@ -537,7 +545,8 @@
 								.addClass((isBattle && battleKind) || "")
 								.toggleClass("non_battle", !isBattle)
 								.attr("title", node.desc || "")
-								.text(letter);
+								.text(letter)
+								.toggleClass("long_name", String(letter).length > 2);
 
 							if(node.airRaid) {
 								// Adding air raids to all nodes, including non battle ones
@@ -555,8 +564,13 @@
 									}
 								}
 							}
-							if(index === 5)
+							if(index === 5) {
 								$(".sortie_edges", sortieBox).removeClass("one_line").addClass("two_lines");
+							}
+							if(index === 10) {
+								$(".sortie_edges", sortieBox).addClass("more_edges");
+								$(".sortie_edges .extra_node", sortieBox).show();
+							}
 						});
 					}
 					
@@ -697,9 +711,15 @@
 							if(typeof battle.data.api_dock_id != "undefined"){
 								battleData = battle.data;
 								battleType = BATTLE_BASIC;
+								if((battle.data.api_name || "").indexOf("ld_airbattle") >= 0)
+									battleType += BATTLE_AERIAL;
 							}else if(typeof battle.data.api_deck_id != "undefined"){
 								battleData = battle.data;
 								battleType = BATTLE_BASIC;
+								if((battle.data.api_name || "").indexOf("ld_airbattle") >= 0)
+									battleType += BATTLE_AERIAL;
+								if(battle.data.api_day_flag !== undefined)
+									battleType += BATTLE_NIGHT2DAY;
 							}else if(typeof battle.yasen.api_deck_id != "undefined"){
 								battleData = battle.yasen;
 								battleType = BATTLE_NIGHT;
@@ -715,8 +735,9 @@
 							if(edgeIndex < 0) {
 								edgeIndex = edges.length;
 								edges.push(battle.node);
+								const letter = KC3Meta.nodeLetter(sortie.world, sortie.mapnum, battle.node);
 								$(".sortie_edge_"+(edgeIndex+1), sortieBox).addClass("edge_battle")
-									.text(KC3Meta.nodeLetter( sortie.world, sortie.mapnum, battle.node ));
+									.text(letter).toggleClass("long_name", String(letter).length > 2);
 								if(edgeIndex === 5){
 									$(".sortie_edges", sortieBox).removeClass("one_line").addClass("two_lines");
 								}
@@ -809,13 +830,15 @@
 							// Enemies
 							$(".node_eformation img", nodeBox).attr("src", KC3Meta.formationIcon(thisNode.eformation) );
 							$(".node_eformation", nodeBox).attr("title", KC3Meta.formationText(thisNode.eformation) );
-							$.each(thisNode.eships.slice(0, 6), function(index, eship){
+							$.each(thisNode.eships.slice(0, 12), function(index, eship){
 								if(eship > 0){
-									$(".node_eship_"+(index+1)+" img", nodeBox)
+									const mainEscort = index >= 6 ? "escort" : "main";
+									$(`.node_eship.${mainEscort}.node_eship_${index+1} img`, nodeBox)
 										.attr("src", KC3Meta.abyssIcon( eship ) )
 										.attr("alt", eship)
 										.click(shipClickFunc);
-									$(".node_eship_"+(index+1), nodeBox).addClass("hover")
+									$(`.node_eship.${mainEscort}.node_eship_${index+1}`, nodeBox)
+										.addClass("hover")
 										.removeClass(KC3Meta.abyssShipBorderClass())
 										.addClass(KC3Meta.abyssShipBorderClass(eship))
 										.attr("title", thisNode.buildEnemyStatsMessage(index))
@@ -823,7 +846,7 @@
 								}
 							});
 							
-							// Support Exped/LBAS Triggered
+							// Support Exped/LBAS triggered
 							if(thisNode.supportFlag || thisNode.lbasFlag || thisNode.nightSupportFlag){
 								$(".node_support img", nodeBox).attr("src", "../../assets/img/ui/support.png");
 								if(
@@ -842,15 +865,28 @@
 								$(".node_support img", nodeBox).attr("src", "../../assets/img/ui/support-x.png");
 							}
 							
+							// Night battle Friendly Fleet support triggered
+							if(battle.yasen.api_friendly_info){
+								$(".node_result", nodeBox).addClass("icon5");
+								$(".node_friend img", nodeBox).attr("src", "../../assets/img/ui/friendly.png");
+								$(".node_friend", nodeBox).attr("title", thisNode.buildFriendlyBattleMessage(battle.yasen));
+							}else{
+								$(".node_result", nodeBox).removeClass("icon5");
+								$(".node_friend", nodeBox).hide();
+							}
+							
 							// Conditions
 							$(".node_engage", nodeBox).text( thisNode.engagement[2] );
 							$(".node_engage", nodeBox).addClass( thisNode.engagement[1] );
 							$(".node_contact", nodeBox).text(thisNode.fcontact +" vs "+thisNode.econtact);
 							
-							// Day Battle-only data
+							// Day Battle only or Night to Day Battle data
 							if((battleType & BATTLE_NIGHT) === 0){
-								$(".node_detect", nodeBox).text( thisNode.detection[0] );
-								$(".node_detect", nodeBox).addClass( thisNode.detection[1] );
+								// No detection, aerial and LBAS combat if Night2Day battle not go into day
+								if(thisNode.detection[0]){
+									$(".node_detect", nodeBox).text( thisNode.detection[0] );
+									$(".node_detect", nodeBox).addClass( thisNode.detection[1] );
+								}
 								
 								$(".node_airbattle", nodeBox).text( thisNode.airbattle[0] );
 								$(".node_airbattle", nodeBox).addClass( thisNode.airbattle[1] );

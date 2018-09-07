@@ -443,7 +443,7 @@
 					}else if(stat[1].startsWith("db_")){
 						var realName = stat[1].slice(3);
 						$(".ship_stat_name", statBox).text(realName);
-						// New initial asw statistic added for Anti-sub Carrier (Taiyou for now)
+						// New initial asw statistic added for Escort Carrier (CVE)
 						if(stat[0]=="as" && shipData.api_tais){
 							$(".ship_stat_min", statBox).text(shipData.api_tais[0]);
 						} else {
@@ -455,6 +455,9 @@
 						}
 						if(realName==="carry"){
 							$(".ship_stat_max", statBox).hide();
+							if(statFromDb[realName] === undefined){
+								$(".ship_stat_min", statBox).text(KC3Ship.getCarrySlots(ship_id));
+							}
 						} else {
 							$(".ship_stat_max span", statBox).text(
 								statFromDb[realName+"_max"] < 0 || statFromDb[realName+"_max"] === ""
@@ -484,25 +487,32 @@
 					// in case when the data isn't available,
 					// slots should still be getting cleaned up
 					$(".slotitem", this).empty().removeAttr("title");
-					$(".sloticon img", this).attr("src", "");
-					$(".sloticon img", this).hide();
+					$(".sloticon img", this).attr("src", "").hide();
 
 					if (stockEquipments) {
-						var equipId = stockEquipments[index];
-						if (equipId > 0) {
-							var equipment = KC3Master.slotitem( equipId );
-							$(".slotitem", this).text(KC3Meta.gearName( equipment.api_name ) );
+						let equipId = stockEquipments[index];
+						if (equipId && (equipId > 0 || equipId.id > 0)) {
+							let star = 0;
+							if (equipId.id) {
+								star = equipId.star;
+								equipId = equipId.id;
+							}
+							const equipment = KC3Master.slotitem(equipId);
+							const fakeGear = new KC3Gear({itemId: 1, masterId: equipId});
+							let nameText = KC3Meta.gearName(equipment.api_name);
+							if (star > 0) nameText += ` <span class="star">\u2605+${star}</span>`;
+							$(".slotitem", this).html(nameText)
+								.attr("title", fakeGear.htmlTooltip(shipData.api_maxeq[index]))
+								.lazyInitTooltip();
 							$(".sloticon img", this)
-								.attr("src","../../../../assets/img/items/"+equipment.api_type[3]+".png");
-							$(".sloticon img", this).attr("alt", equipId);
-							$(".sloticon img", this).off("click").click(function(){
-								KC3StrategyTabs.gotoTab("mstgear", $(this).attr("alt"));
-							});
-							$(".sloticon img", this).show();
+								.attr("src", `/assets/img/items/${equipment.api_type[3]}.png`)
+								.attr("alt", equipId).off("click")
+								.click(function(){
+									KC3StrategyTabs.gotoTab("mstgear", $(this).attr("alt"));
+								}).show();
 							$(".sloticon", this).addClass("hover");
 						} else {
-							$(".sloticon img", this).hide();
-							$(".sloticon img", this).off("click");
+							$(".sloticon img", this).hide().off("click");
 							$(".sloticon", this).removeClass("hover");
 						}
 					}
@@ -625,26 +635,26 @@
 				var aaciList = AntiAir.sortedPossibleAaciList( AntiAir.shipAllPossibleAACIs(shipData) );
 				if (aaciList.length > 0) {
 					$.each(aaciList, function(idx, aaciObj){
-						let aaciBox = $(".tab_mstship .factory .aaciPattern").clone();
+						const aaciBox = $(".tab_mstship .factory .aaciPattern").clone();
 						$(".apiId", aaciBox).text("[{0}]".format(aaciObj.id));
 						if(aaciObj.icons[0] > 0) {
 							$(".shipIcon img", aaciBox)
-								.attr("src", KC3Meta.shipIcon(aaciObj.icons[0]) )
+								.attr("src", KC3Meta.shipIcon(aaciObj.icons[0], undefined, false) )
 								.attr("title", KC3Meta.aacitype(aaciObj.id)[0] || "");
 						} else {
 							$(".shipIcon img", aaciBox).hide();
 						}
 						if(aaciObj.icons.length > 1) {
 							for(let i = 1; i < aaciObj.icons.length; i++) {
-								let equipIcon = String(aaciObj.icons[i]).split(/[+-]/);
+								const equipIcon = String(aaciObj.icons[i]).split(/[+-]/);
 								$("<img/>")
-									.attr("src", "../../../../assets/img/items/"+equipIcon[0]+".png")
+									.attr("src", `/assets/img/items/${equipIcon[0]}.png`)
 									.attr("title", KC3Meta.aacitype(aaciObj.id)[i] || "")
 									.appendTo($(".equipIcons", aaciBox));
-								if(equipIcon.length>1) {
+								if(equipIcon.length > 1) {
 									$('<img/>')
-										.attr("src", "../../../../assets/img/items/"+equipIcon[1]+".png")
-										.addClass(aaciObj.icons[i].indexOf("-")>-1 ? "minusIcon" : "plusIcon")
+										.attr("src", `/assets/img/items/${equipIcon[1]}.png`)
+										.addClass(aaciObj.icons[i].indexOf("-") > -1 ? "minusIcon" : "plusIcon")
 										.appendTo($(".equipIcons", aaciBox));
 								}
 							}
@@ -655,7 +665,7 @@
 						aaciBox.toggleClass("even", (idx+1) % 2 === 0);
 						aaciBox.appendTo(".aaciList");
 					});
-					$(".aaci").show();
+					$(".aaci").show().createChildrenTooltips();
 					$(".aaci").parent().prev().show();
 				} else {
 					$(".aaci").hide();
@@ -798,24 +808,26 @@
 						$(".tab_mstship .shipInfo .stats").css("width", "220px");
 						$(".tab_mstship .equipments .equipment").each(function(index){
 							$(this).show();
+							let maxeq;
 							if(abyssDb && abyssDb.api_maxeq && typeof abyssMaster.api_maxeq[index] !== "undefined"){
-								$(".capacity", this).text(abyssMaster.api_maxeq[index]).show();
+								maxeq = abyssMaster.api_maxeq[index];
+								$(".capacity", this).text(maxeq).show();
 							} else {
 								$(".capacity", this).text(index >= abyssMaster.api_slot_num ? "-" : "?").show();
 							}
 							// Priority to show equipment recorded via encounter
-							var equipId = enemyDbStats ? enemyDbStats["eq"+(index+1)] : (abyssMaster.kc3_slots || [])[index];
+							const equipId = enemyDbStats ? enemyDbStats["eq"+(index+1)] : (abyssMaster.kc3_slots || [])[index];
 							if (equipId > 0) {
-								var equipment = KC3Master.slotitem( equipId );
+								const equipment = KC3Master.slotitem( equipId );
+								const fakeGear = new KC3Gear({ itemId: 2, masterId: equipId });
 								$(".slotitem", this).text(KC3Meta.gearName( equipment.api_name ) )
-									.attr("title", "");
+									.attr("title", fakeGear.htmlTooltip(maxeq))
+									.lazyInitTooltip();
 								$(".sloticon img", this)
-									.attr("src","../../../../assets/img/items/"+equipment.api_type[3]+".png");
-								$(".sloticon img", this).attr("alt", equipId);
-								$(".sloticon img", this).off("click").click(function(){
-									KC3StrategyTabs.gotoTab("mstgear", $(this).attr("alt"));
-								});
-								$(".sloticon img", this).show();
+									.attr("src","/assets/img/items/"+equipment.api_type[3]+".png")
+									.attr("alt", equipId).off("click").click(function(){
+										KC3StrategyTabs.gotoTab("mstgear", $(this).attr("alt"));
+									}).show();
 								$(".sloticon", this).addClass("hover");
 								// Check diff for updating `abyssal_stats.json`
 								if(enemyDbStats && (!abyssDb || !abyssDb.kc3_slots ||
@@ -828,9 +840,8 @@
 									);
 								}
 							} else {
-								$(".slotitem", this).empty();
-								$(".sloticon img", this).hide();
-								$(".sloticon img", this).off("click");
+								$(".slotitem", this).empty().removeAttr("title");
+								$(".sloticon img", this).hide().off("click");
 								$(".sloticon", this).removeClass("hover");
 							}
 						});

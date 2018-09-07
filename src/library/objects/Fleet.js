@@ -452,13 +452,11 @@ Contains summary information about a fleet and its ships
 	};
 	
 	KC3Fleet.prototype.fighterPower = function(){
-		return this.shipsUnescaped().map(ship => ship.fighterPower())
-			.reduce((acc, v) => acc + v, 0);
+		return this.shipsUnescaped().map(ship => ship.fighterPower()).sumValues();
 	};
 	
 	KC3Fleet.prototype.fighterVeteran = function(){
-		return this.shipsUnescaped().map(ship => ship.fighterVeteran())
-			.reduce((acc, v) => acc + v, 0);
+		return this.shipsUnescaped().map(ship => ship.fighterVeteran()).sumValues();
 	};
 	
 	KC3Fleet.prototype.fighterBounds = function(){
@@ -510,11 +508,10 @@ Contains summary information about a fleet and its ships
 		const airControlModifiers = [0, 1, 0.6, 0.55 /* guessed, unknown value */, 0];
 		var rate = 0;
 		this.shipsUnescaped().forEach(ship => {
-			rate += [0, 1, 2, 3].map(idx => {
-				const gear = ship.equipment(idx);
-				return gear.isContactAircraft(false) ?
-					(0.04 * gear.master().api_saku * Math.sqrt(ship.slots[idx])) : 0;
-			}).reduce((acc, v) => acc + v, 0);
+			rate += ship.equipment().map(
+				(gear, idx) => gear.isContactAircraft(false) ?
+					(0.04 * gear.master().api_saku * Math.sqrt(ship.slotSize(idx))) : 0
+			).sumValues();
 		});
 		return rate * (airControlModifiers[dispSeiku] || 0);
 	};
@@ -577,12 +574,12 @@ Contains summary information about a fleet and its ships
 						masterId: gear.masterId,
 						icon: gearMaster.api_type[3],
 						stars: gear.stars || 0,
-						slotSize: ship.slots[gearIdx] || 0,
+						slotSize: ship.slotSize(gearIdx),
 						shipOrder: shipIdx,
 						shipMasterId: ship.masterId,
 						shipLevel: ship.level,
 						// no info about how slot size multiply, just know 0 will not trigger
-						rate: (Math.sqrt(50 * ship.level) - 3) * Math.sqrt(ship.slots[gearIdx] || 0) / 100
+						rate: (Math.sqrt(50 * ship.level) - 3) * Math.sqrt(ship.slotSize(gearIdx)) / 100
 					});
 				}
 			});
@@ -1166,25 +1163,56 @@ Contains summary information about a fleet and its ships
 	/**
 	 * Estimate possible type of support expedition from current composition.
 	 * @return the same value defined by `api_support_flag`,
-	 *         1=Aerial Support, 2=Support Shelling, 3=Long Range Torpedo Attack
+	 *         1=Aerial Support, 2=Support Shelling, 3=Long Range Torpedo Attack, 4=Anti-Sub Support
 	 *         0=Unmet expedition prerequisite
 	 * @see http://kancolle.wikia.com/wiki/Expedition/Support_Expedition
+	 * @see http://wikiwiki.jp/kancolle/?%BB%D9%B1%E7%B4%CF%C2%E2
 	 */
 	KC3Fleet.prototype.estimateSupportType = function() {
 		// Support expedition needs 2 DD at least
 		if(this.countShipType(2) < 2) {
 			return 0;
 		}
-		// 3 or more CV(L/B)/AV/LHA
-		if(this.countShipType([7, 11, 18, 16, 17]) >= 3) {
-			return 1;
-		}
-		// 4 or more DD/CL/CLT
-		if(this.countShipType([2, 3, 4]) >= 4) {
+		// Check for Torpedo Support
+		// No BB/CA/CV(L/B) and BBV/CAV/AV/LHA/AO count less than 2
+		if(this.countShipType([5, 8, 9, 7, 11, 18]) === 0 && this.countShipType([6, 10, 16, 17, 22]) < 2) {
 			return 3;
 		}
-		// other composition
-		return 2;
+		// Check for Support Shelling
+		// If BB/CA is present and less than 2 CV(L/B)/LHA/AV
+		// Decide if its shelling or torp support based on BB(V)/CA(V) count
+		if(this.countShipType([5, 8, 9]) > 0 && this.countShipType([7, 11, 18, 16, 17]) < 2) {
+			if(this.countShipType([8, 9, 10]) >= 2 || this.countShipType([5, 6, 8, 9, 10]) >= 4) {
+				return 2;
+			}
+			else {
+				return 3;
+			}
+		}
+		// Check for Anti-sub Support
+		const countAirAswShipType = (...shipTypes) => {
+			return this.ship().reduce((count, ship) => {
+				return count + (1 & (
+					// Match with specific ship types
+					shipTypes.includes(ship.master().api_stype) &&
+					// Equip aircraft can ASW with air attack (TB/DB/Autogyro/PBY/SPB/SPR/LFB)
+					// on any non zero slot
+					!!ship.equipment().find(
+						(g, i) => ship.slotSize(i) > 0 && g.isAswAircraft(false, true)
+					)
+				));
+			}, 0);
+		};
+		// If 1 Anti-sub CVL + any 1 Anti-sub (with air attack) CVL/AV/AO/LHA/CL or 2 DE present
+		// Will fall back to Aerial Support if there is no submarine in enemy fleet
+		const antiSubCvl = countAirAswShipType(7);
+		if(antiSubCvl >= 1 && (antiSubCvl >= 2 ||
+			countAirAswShipType(3, 16, 17, 22) >= 1 ||
+			this.countShipType(1) >= 2)) {
+			return 4;
+		}
+		// If no criteria is met, remaining should be Aerial Support
+		return 1;
 	};
 
 	/**
@@ -1257,27 +1285,9 @@ Contains summary information about a fleet and its ships
 							as: nakedStats.as
 						},
 						kyouka: ship.mod,
-						equip: [
-							ship.equipment(0).masterId,
-							ship.equipment(1).masterId,
-							ship.equipment(2).masterId,
-							ship.equipment(3).masterId,
-							ship.exItem().masterId
-						],
-						stars: [
-							ship.equipment(0).stars,
-							ship.equipment(1).stars,
-							ship.equipment(2).stars,
-							ship.equipment(3).stars,
-							ship.exItem().stars
-						],
-						ace: [
-							ship.equipment(0).ace,
-							ship.equipment(1).ace,
-							ship.equipment(2).ace,
-							ship.equipment(3).ace,
-							ship.exItem().ace
-						]
+						equip: ship.equipment(true).map(g => g.masterId),
+						stars: ship.equipment(true).map(g => g.stars),
+						ace: ship.equipment(true).map(g => g.ace)
 					});
 				}
 			});

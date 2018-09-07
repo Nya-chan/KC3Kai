@@ -77,7 +77,7 @@
 			this.shipList.length = 0;
 			Object.keys(allRemodelInfo).forEach(key => {
 				const remodelInfo = allRemodelInfo[key];
-				if(remodelInfo.blueprint || remodelInfo.catapult) {
+				if(remodelInfo.blueprint || remodelInfo.catapult || remodelInfo.report || remodelInfo.gunmat) {
 					const shipMaster = KC3Master.ship(remodelInfo.ship_id_from);
 					const shipData = {
 						id: remodelInfo.ship_id_from,
@@ -131,6 +131,22 @@
 					if(remodelInfo.catapult) {
 						mappedObj.materials.push({
 							icon: 65,
+							info: remodelInfo,
+							used: isUsed
+						});
+						mappedObj.materialsUsed += isUsed;
+					}
+					if(remodelInfo.report) {
+						mappedObj.materials.push({
+							icon: 78,
+							info: remodelInfo,
+							used: isUsed
+						});
+						mappedObj.materialsUsed += isUsed;
+					}
+					if(remodelInfo.gunmat) {
+						mappedObj.materials.push({
+							icon: 75,
 							info: remodelInfo,
 							used: isUsed
 						});
@@ -195,10 +211,14 @@
 					.filter(filter).map(
 					m => new Array(m.icon === 58 ? m.info.blueprint :
 									m.icon === 65 ? m.info.catapult :
+									m.icon === 78 ? m.info.report :
+									m.icon === 75 ? m.info.gunmat :
 									1).fill(m.icon)
-				))).map(icon => {
+				))).map(iconArr => {
+					const icon = iconArr[0];
+					const count = iconArr.length;
 					resultMap[icon] = resultMap[icon] || 0;
-					resultMap[icon] += 1;
+					resultMap[icon] += count;
 				});
 				return resultMap;
 			};
@@ -230,6 +250,12 @@
 						break;
 					case 65:
 						appendOwnedItem(iconImg, PlayerManager.consumables.protoCatapult);
+						break;
+					case 75:
+						appendOwnedItem(iconImg, PlayerManager.consumables.newArtilleryMaterial);
+						break;
+					case 78:
+						appendOwnedItem(iconImg, PlayerManager.consumables.actionReport);
 						break;
 				}
 			}
@@ -281,7 +307,7 @@
 				.width(15).height(15).css("margin-right", 2)
 				.css("vertical-align", "top")
 				.appendTo(line);
-			$("<span></span>").css("margin-right", 2)
+			$("<span></span>").css("margin-right", 10)
 				.text(remodelInfo.steel)
 				.appendTo(line);
 			title.append(line);
@@ -304,8 +330,28 @@
 					.width(15).height(15).css("margin-right", 2)
 					.css("vertical-align", "top")
 					.appendTo(line);
-				$("<span></span>").css("margin-right", 2)
+				$("<span></span>").css("margin-right", 10)
 					.text(remodelInfo.catapult)
+					.appendTo(line);
+			}
+			if(remodelInfo.report) {
+				$("<img />")
+					.attr("src", "../../assets/img/useitems/78.png")
+					.width(15).height(15).css("margin-right", 2)
+					.css("vertical-align", "top")
+					.appendTo(line);
+				$("<span></span>").css("margin-right", 10)
+					.text(remodelInfo.report)
+					.appendTo(line);
+			}
+			if(remodelInfo.gunmat) {
+				$("<img />")
+					.attr("src", "../../assets/img/useitems/75.png")
+					.width(15).height(15).css("margin-right", 2)
+					.css("vertical-align", "top")
+					.appendTo(line);
+				$("<span></span>").css("margin-right", 10)
+					.text(remodelInfo.gunmat)
 					.appendTo(line);
 			}
 			if(remodelInfo.devmat) {
@@ -324,7 +370,7 @@
 					.width(15).height(15).css("margin-right", 2)
 					.css("vertical-align", "top")
 					.appendTo(line);
-				$("<span></span>").css("margin-right", 2)
+				$("<span></span>").css("margin-right", 10)
 					.text(remodelInfo.torch)
 					.appendTo(line);
 			}

@@ -604,6 +604,9 @@ button, input, select, textarea {
 	background:#b1b101;
 	color:#000;
 }
+.ship_list .ship_item .ship_hp.max {
+	background:#09a709;
+}
 .ship_list .ship_item .ship_fp.max {
 	background:#833232;
 }
@@ -935,6 +938,9 @@ button, input, select, textarea {
 }
 .tab_ships .ship_item .ship_lv span.value.medium {
 	color:#36c2db;
+}
+.tab_ships .ship_item .ship_hp.max {
+	background:#09a709;
 }
 .tab_ships .ship_item .ship_fp.max {
 	background:#833232;
@@ -1512,8 +1518,11 @@ button, input, select, textarea {
 .tab_fleet .fleet_ships {
 	height:90px !important;
 }
-.tab_fleet .fleet_ships.horizontal  {
+.tab_fleet .fleet_ships.horizontal {
 	height:175px !important;
+}
+.tab_fleet .fleet_ships.max_slot6 {
+	height:107px !important;
 }
 
 /* SHIP BOX
@@ -1525,8 +1534,11 @@ button, input, select, textarea {
 	border:1px solid #444444;
 	overflow:hidden;
 }
+.tab_fleet .max_slot6 .fleet_ship {
+	height:105px;
+}
 .tab_fleet .fleet_ship.horizontal {
-	height:170px !important;
+	min-height:171px !important;
 	margin:5px 2px 0px 0px;
 }
 .tab_fleet .fleet_ship .ship_type {
@@ -1684,7 +1696,8 @@ button, input, select, textarea {
 	font-weight:bold;
 }
 
-.tab_flowchart .questInfo.complete .questDesc {
+.tab_flowchart .questInfo.complete .questDesc ,
+.tab_flowchart .questExtraItem.complete .questDesc {
 	color:#4caf50;
 }
 .tab_flowchart .questExtraItem.active {
@@ -1888,6 +1901,7 @@ button, input, select, textarea {
 }
 .tab_encounters .encounter_record {
 	background:#414141 !important;
+	border-radius:0px !important;
 }
 
 /* PVP

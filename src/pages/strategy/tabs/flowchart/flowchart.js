@@ -5,6 +5,8 @@
 	
 	KC3StrategyTabs.flowchart.definition = {
 		tabSelf: KC3StrategyTabs.flowchart,
+		showingAll: false,
+		showQuestName: false,
 		
 		flowchartIds: [],
 		
@@ -12,7 +14,6 @@
 		Prepares all data needed
 		---------------------------------*/
 		init :function(){
-
 		},
 
 		/* RELOAD
@@ -20,15 +21,16 @@
 		---------------------------------*/
 		reload :function(){
 			KC3QuestManager.load();
-			this.flowchartIds = [];
 		},
 		
 		/* EXECUTE
 		Places data onto the interface
 		---------------------------------*/
 		execute :function(){
+			const self = this;
 			// Flowchart root nodes
-			var rootQuestTree = $(".tab_flowchart .flowchart ul.questTree");
+			const rootQuestTree = $(".tab_flowchart .flowchart ul.questTree");
+			this.flowchartIds = [];
 			this.seedBranch( rootQuestTree, 201 ); // Bd1
 			this.seedBranch( rootQuestTree, 303 ); // Cd2
 			this.seedBranch( rootQuestTree, 402 ); // Dd2
@@ -41,15 +43,45 @@
 			this.seedBranch( rootQuestTree, 256 ); // Bm2
 			this.seedBranch( rootQuestTree, 259 ); // Bm4
 			this.seedBranch( rootQuestTree, 861 ); // Bq3
+			this.seedBranch( rootQuestTree, 873 ); // Bq5
 			
 			// Other non-flowchart quests
-			var rootQuestList = $(".tab_flowchart .extralist ul.questList");
-			for(var ctr in KC3QuestManager.open){
-				var anotherQuest = KC3QuestManager.get( KC3QuestManager.open[ctr] );
-				if(this.flowchartIds.indexOf( KC3QuestManager.open[ctr] ) === -1){
-					this.addOtherQuest( anotherQuest );
-				}
+			const rootQuestList = $(".tab_flowchart .extralist ul.questList");
+			const otherQuests = [];
+			for(let ctr in KC3QuestManager.list){
+				const anotherQuest = KC3QuestManager.list[ctr];
+				if(anotherQuest.id > 0 && this.flowchartIds.indexOf( anotherQuest.id ) === -1)
+					otherQuests.push( anotherQuest );
 			}
+			// Sort by ID like in-game
+			otherQuests.sort((a, b) => a.id - b.id);
+			for(let otherQuest of otherQuests){
+				this.addOtherQuest(otherQuest);
+			}
+			$(".tab_flowchart .extralist .complete").hide();
+			
+			$(".showName").on("click", function() {
+				if(!self.showQuestName) {
+					self.showQuestName = true;
+					KC3StrategyTabs.reloadTab();
+				}
+			});
+			$(".showDesc").on("click", function() {
+				if(self.showQuestName) {
+					self.showQuestName = false;
+					KC3StrategyTabs.reloadTab();
+				}
+			});
+			
+			$(".showAll").on("click", function() {
+				self.showingAll = true;
+				$(".tab_flowchart .extralist .complete").show();
+			});
+			$(".hideAll").on("click", function() {
+				self.showingAll = false;
+				$(".tab_flowchart .extralist .complete").hide();
+			});
+			$(".tab_flowchart .extralist .complete").toggle(this.showingAll);
 			
 			$(".resetDailies").on("click", function(){
 				KC3QuestManager.resetDailies();
@@ -127,10 +159,11 @@
 			this.flowchartIds.push(quest_id);
 			
 			// Get meta data of this quest
-			var thisQuest = KC3Meta.quest(quest_id);
+			const thisQuest = KC3Meta.quest(quest_id);
 			
 			// Create quest HTML box and fill initial data
-			var thisBox = $(".tab_flowchart .factory .questFlowItem").clone().appendTo("#"+parentElement.attr("id"));
+			const thisBox = $(".tab_flowchart .factory .questFlowItem")
+				.clone().appendTo("#"+parentElement.attr("id"));
 			$(".questIcon", thisBox).text( thisQuest.code );
 			$(".questIcon", thisBox).addClass("type"+(String(quest_id).substring(0,1)));
 			$(".questIcon", thisBox).on("mouseover", function(){
@@ -139,7 +172,7 @@
 			$(".questIcon", thisBox).on("mouseleave", function(){
 				$(this).next().tooltip("close");
 			});
-			$(".questDesc", thisBox).text(thisQuest.desc);
+			$(".questDesc", thisBox).text( this.showQuestName ? thisQuest.name : thisQuest.desc );
 			$(".questDesc", thisBox)
 				.attr("title", KC3QuestManager.buildHtmlTooltip(quest_id, thisQuest, true, false))
 				.lazyInitTooltip();
@@ -155,7 +188,7 @@
 					$(".questTrack", thisBox).hide();
 				} else {
 					$(".questCount", thisBox).text( questRecord.outputShort() );
-					if(questRecord.tracking.length  > 1){
+					if(questRecord.tracking.length > 1){
 						$(".questCount", thisBox)
 							.attr("title", questRecord.outputShort(true))
 							.lazyInitTooltip();
@@ -195,10 +228,9 @@
 			
 			// If has children, show them under me
 			if(typeof thisQuest.unlock != "undefined"){
-				var ctr;
 				var childContainer = $("ul.questChildren", thisBox);
 				childContainer.attr("id", "questBox_"+quest_id);
-				for(ctr in thisQuest.unlock){
+				for(let ctr in thisQuest.unlock){
 					if(KC3QuestManager.isPeriod(thisQuest.unlock[ctr])){
 						this.seedBranch( childContainer, thisQuest.unlock[ctr] );
 					}
@@ -209,8 +241,9 @@
 		/* Add quest row to normal list
 		--------------------------------------------*/
 		addOtherQuest :function( thisQuest ){
-			var questMeta = KC3Meta.quest( thisQuest.id );
-			var thisBox = $(".tab_flowchart .factory .questExtraItem").clone().appendTo(".tab_flowchart .extralist");
+			const questMeta = KC3Meta.quest( thisQuest.id );
+			const thisBox = $(".tab_flowchart .factory .questExtraItem")
+				.clone().appendTo(".tab_flowchart .extralist");
 			$(".questIcon", thisBox).text( questMeta.code || thisQuest.id );
 			$(".questIcon", thisBox).addClass("type"+(String(thisQuest.id).substring(0,1)));
 			$(".questIcon", thisBox).on("mouseover", function(){
@@ -219,7 +252,9 @@
 			$(".questIcon", thisBox).on("mouseleave", function(){
 				$(this).next().tooltip("close");
 			});
-			$(".questDesc", thisBox).text( questMeta.desc || KC3Meta.term("UntranslatedQuest") );
+			$(".questDesc", thisBox).text(
+				(this.showQuestName ? questMeta.name : questMeta.desc) || KC3Meta.term("UntranslatedQuest")
+			);
 			$(".questDesc", thisBox)
 				.attr("title", KC3QuestManager.buildHtmlTooltip(thisQuest.id, questMeta))
 				.lazyInitTooltip();
@@ -239,6 +274,7 @@
 				// Complete
 				case 3:
 					$(thisBox).addClass("complete");
+					$(".questIcon", thisBox).addClass("ticked");
 					break;
 				// Else
 				default:

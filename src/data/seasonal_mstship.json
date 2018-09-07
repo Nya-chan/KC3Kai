@@ -1,4 +1,260 @@
 {
+	"729": {
+		"api_id": 729,
+		"api_name": "バレンタイン神風",
+		"api_yomi": "かみかぜ",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"730": {
+		"api_id": 730,
+		"api_name": "バレンタイン球磨",
+		"api_yomi": "くま",
+		"api_stype": 3,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"731": {
+		"api_id": 731,
+		"api_name": "バレンタイン潮",
+		"api_yomi": "うしお",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"732": {
+		"api_id": 732,
+		"api_name": "節分如月",
+		"api_yomi": "きさらぎ",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"733": {
+		"api_id": 733,
+		"api_name": "節分佐渡",
+		"api_yomi": "さど",
+		"api_stype": 1,
+		"api_soku": 5,
+		"api_slot_num": 2
+	},
+	"734": {
+		"api_id": 734,
+		"api_name": "節分朝霜",
+		"api_yomi": "あさしも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"735": {
+		"api_id": 735,
+		"api_name": "正月大和",
+		"api_yomi": "やまと",
+		"api_stype": 9,
+		"api_soku": 5,
+		"api_slot_num": 4
+	},
+	"736": {
+		"api_id": 736,
+		"api_name": "正月対馬",
+		"api_yomi": "つしま",
+		"api_stype": 1,
+		"api_soku": 5,
+		"api_slot_num": 2
+	},
+	"737": {
+		"api_id": 737,
+		"api_name": "正月Richelieu",
+		"api_yomi": "リシュリュー",
+		"api_stype": 8,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"738": {
+		"api_id": 738,
+		"api_name": "正月Warspite",
+		"api_yomi": "ウォースパイト",
+		"api_stype": 9,
+		"api_soku": 5,
+		"api_slot_num": 4
+	},
+	"739": {
+		"api_id": 739,
+		"api_name": "打ち上げ秋雲",
+		"api_yomi": "あきぐも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"740": {
+		"api_id": 740,
+		"api_name": "売り子風雲",
+		"api_yomi": "かざぐも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"741": {
+		"api_id": 741,
+		"api_name": "超修羅場秋雲",
+		"api_yomi": "あきぐも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"742": {
+		"api_id": 742,
+		"api_name": "大掃除対馬",
+		"api_yomi": "つしま",
+		"api_stype": 1,
+		"api_soku": 5,
+		"api_slot_num": 2
+	},
+	"743": {
+		"api_id": 743,
+		"api_name": "Xmas伊8",
+		"api_yomi": "い8",
+		"api_stype": 13,
+		"api_soku": 5,
+		"api_slot_num": 1
+	},
+	"744": {
+		"api_id": 744,
+		"api_name": "Xmas霰",
+		"api_yomi": "あられ",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"745": {
+		"api_id": 745,
+		"api_name": "Xmas衣笠",
+		"api_yomi": "きぬがさ",
+		"api_stype": 5,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"746": {
+		"api_id": 746,
+		"api_name": "Xmas衣笠改二",
+		"api_yomi": "きぬがさ",
+		"api_stype": 5,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"747": {
+		"api_id": 747,
+		"api_name": "Xmas佐渡",
+		"api_yomi": "さど",
+		"api_stype": 1,
+		"api_soku": 5,
+		"api_slot_num": 2
+	},
+	"748": {
+		"api_id": 748,
+		"api_name": "Xmas神威",
+		"api_yomi": "かもい",
+		"api_stype": 22,
+		"api_soku": 5,
+		"api_slot_num": 3
+	},
+	"749": {
+		"api_id": 749,
+		"api_name": "Xmas長月",
+		"api_yomi": "ながつき",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"750": {
+		"api_id": 750,
+		"api_name": "Xmas翔鶴",
+		"api_yomi": "しょうかく",
+		"api_stype": 11,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"751": {
+		"api_id": 751,
+		"api_name": "XmasLibeccio",
+		"api_yomi": "リベッチオ",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"752": {
+		"api_id": 752,
+		"api_name": "Xmas狭霧",
+		"api_yomi": "さぎり",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"753": {
+		"api_id": 753,
+		"api_name": "修羅場秋雲",
+		"api_yomi": "あきぐも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"756": {
+		"api_id": 756,
+		"api_name": "秋の私服不知火",
+		"api_yomi": "しらぬい",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"757": {
+		"api_id": 757,
+		"api_name": "海峡突入満潮改二",
+		"api_yomi": "みちしお",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"758": {
+		"api_id": 758,
+		"api_name": "海峡突入時雨改二",
+		"api_yomi": "しぐれ",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"759": {
+		"api_id": 759,
+		"api_name": "海峡突入最上",
+		"api_yomi": "もがみ",
+		"api_stype": 5,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"760": {
+		"api_id": 760,
+		"api_name": "海峡突入山雲",
+		"api_yomi": "やまぐも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"761": {
+		"api_id": 761,
+		"api_name": "海峡突入朝雲",
+		"api_yomi": "あさぐも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"762": {
+		"api_id": 762,
+		"api_name": "晩秋の私服狭霧",
+		"api_yomi": "さぎり",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
 	"763": {
 		"api_id": 763,
 		"api_name": "ハロウィン瑞穂",
@@ -7,10 +263,42 @@
 		"api_soku": 5,
 		"api_slot_num": 2
 	},
+	"764": {
+		"api_id": 764,
+		"api_name": "秋の私服蒼龍",
+		"api_yomi": "そうりゅう",
+		"api_stype": 11,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"765": {
+		"api_id": 765,
+		"api_name": "秋の私服川内",
+		"api_yomi": "せんだい",
+		"api_stype": 3,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"766": {
+		"api_id": 766,
+		"api_name": "秋の私服秋雲",
+		"api_yomi": "あきぐも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
 	"767": {
 		"api_id": 767,
 		"api_name": "秋の私服藤波",
 		"api_yomi": "ふじなみ",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"768": {
+		"api_id": 768,
+		"api_name": "秋の私服天霧",
+		"api_yomi": "あまぎり",
 		"api_stype": 2,
 		"api_soku": 10,
 		"api_slot_num": 2
@@ -22,6 +310,14 @@
 		"api_stype": 21,
 		"api_soku": 10,
 		"api_slot_num": 3
+	},
+	"770": {
+		"api_id": 770,
+		"api_name": "秋の私服白露",
+		"api_yomi": "しらつゆ",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
 	},
 	"771": {
 		"api_id": 771,

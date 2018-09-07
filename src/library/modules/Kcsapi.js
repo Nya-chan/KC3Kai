@@ -314,6 +314,9 @@ Previously known as "Reactor"
 					case 74: PlayerManager.consumables.newAircraftBlueprint = thisItem.api_count; break;
 					case 75: PlayerManager.consumables.newArtilleryMaterial = thisItem.api_count; break;
 					case 77: PlayerManager.consumables.newAviationMaterial = thisItem.api_count; break;
+					case 78: PlayerManager.consumables.actionReport = thisItem.api_count; break;
+					case 79: PlayerManager.consumables.straitMedal = thisItem.api_count; break;
+					case 80: PlayerManager.consumables.xmasGiftBox = thisItem.api_count; break;
 					default: break;
 				}
 			}
@@ -474,8 +477,7 @@ Previously known as "Reactor"
 		// Equipment dragging
 		"api_req_kaisou/slot_exchange_index":function(params, response, headers){
 			var updatingShip = KC3ShipManager.get(params.api_id);
-			// git rid of unused 5th element, guarantee equipment(4) is ex_item
-			updatingShip.items = response.api_data.api_slot.slice(0, 4);
+			updatingShip.items = response.api_data.api_slot;
 			KC3ShipManager.save();
 			// If ship is in a fleet, switch view to the fleet containing the ship
 			var fleetNum = KC3ShipManager.locateOnFleet(params.api_id);
@@ -488,27 +490,35 @@ Previously known as "Reactor"
 		
 		// Equipment swap
 		"api_req_kaisou/slot_deprive":function(params, response, headers){
-			var ShipFrom = KC3ShipManager.get(params.api_unset_ship);
-			var ShipTo = KC3ShipManager.get(params.api_set_ship);
-			var setExSlot = params.api_set_slot_kind == 1;
-			var unsetExSlot = params.api_unset_slot_kind == 1;
-			// git rid of unused 5th element, guarantee equipment(4) is ex_item
-			ShipFrom.items = response.api_data.api_ship_data.api_unset_ship.api_slot.slice(0, 4);
-			if(unsetExSlot) ShipFrom.ex_item = response.api_data.api_ship_data.api_unset_ship.api_slot_ex;
-			var oldGearObj = KC3GearManager.get(setExSlot ? ShipTo.ex_item : ShipTo.items[params.api_set_idx]);
-			ShipTo.items = response.api_data.api_ship_data.api_set_ship.api_slot.slice(0, 4);
-			if(setExSlot) ShipTo.ex_item = response.api_data.api_ship_data.api_set_ship.api_slot_ex;
-			KC3ShipManager.save();
+			// it's not swap in fact, only move item from unset ship to set ship:
+			// old slot from unset ship will be empty, and old item from set ship (if any) will be freed
+			const setExSlot = params.api_set_slot_kind == 1;
+			const setShipRosterId = parseInt(params.api_set_ship, 10);
+			const setItemIndex = setExSlot ? 4 : parseInt(params.api_set_idx, 10);
+			const newShipData = response.api_data.api_ship_data;
+			
+			// old status of set ship
+			const oldShipObj = KC3ShipManager.get(setShipRosterId);
+			const oldGearObj = oldShipObj.equipment(setItemIndex);
+			// update set item only for equipment change checks
+			oldShipObj.items = newShipData.api_set_ship.api_slot;
+			if(setExSlot) oldShipObj.ex_item = newShipData.api_set_ship.api_slot_ex;
+			
+			// renew ship data for both set ship and unset ship
+			KC3ShipManager.set([newShipData.api_set_ship, newShipData.api_unset_ship]);
+			
 			// If ship is in a fleet, switch view to the fleet containing the ship
-			var fleetNum = KC3ShipManager.locateOnFleet(params.api_set_ship);
+			const fleetNum = KC3ShipManager.locateOnFleet(params.api_set_ship);
 			if (fleetNum > -1) {
 				KC3Network.trigger("Fleet", { switchTo: fleetNum+1 });
 			} else {
 				KC3Network.trigger("Fleet");
 			}
 			
-			var gearObj = KC3GearManager.get(setExSlot ? ShipTo.ex_item : ShipTo.items[params.api_set_idx]);
-			KC3Network.trigger("GunFit", ShipTo.equipmentChangedEffects(gearObj, oldGearObj));
+			// get new status of set ship
+			const newShipObj = KC3ShipManager.get(setShipRosterId);
+			const newGearObj = newShipObj.equipment(setItemIndex);
+			KC3Network.trigger("GunFit", oldShipObj.equipmentChangedEffects(newGearObj, oldGearObj));
 		},
 		
 		/* Fleet list
@@ -784,7 +794,8 @@ Previously known as "Reactor"
 		/* Remove all equipment of a ship
 		-------------------------------------------------------*/
 		"api_req_kaisou/unsetslot_all":function(params, response, headers){
-			KC3ShipManager.get( params.api_id ).items = [-1,-1,-1,-1];
+			// unnecessary operation here since a `/api_get_member/ship3` call is followed
+			KC3ShipManager.get( params.api_id ).items = [-1,-1,-1,-1,-1];
 			KC3ShipManager.save();
 			
 			// If ship is in a fleet, switch view to the fleet containing the ship
@@ -937,13 +948,19 @@ Previously known as "Reactor"
 			// 1: repair team used, 2: repair goddess used
 			var dameconUsedType = parseInt(params.api_recovery_type, 10);
 			KC3SortieManager.discardSunk();
-			KC3SortieManager.advanceNode( response.api_data, Date.toUTCseconds(headers.Date) );
+			var nextNode = KC3SortieManager.advanceNode(
+				response.api_data, Date.toUTCseconds(headers.Date)
+			);
 			KC3Network.hasOverlay = true;
 			(new RMsg("service", "mapMarkers", {
 				tabId: chrome.devtools.inspectedWindow.tabId,
 				nextNode: response.api_data
 			})).execute();
 			KC3Network.trigger("CompassResult");
+			// Refresh fleet shipbox if fuel or ammo lost at maelstrom node
+			if(nextNode.type === "maelstrom" && [1, 2].indexOf(nextNode.item) > -1){
+				KC3Network.trigger("Fleet");
+			}
 			if(typeof response.api_data.api_destruction_battle !== "undefined"){
 				KC3SortieManager.engageLandBaseAirRaid(
 					response.api_data.api_destruction_battle
@@ -1717,38 +1734,50 @@ Previously known as "Reactor"
 		/* Scrap a Ship
 		-------------------------------------------------------*/
 		"api_req_kousyou/destroyship":function(params, response, headers){
-			var rsc   = [0,0,0,0,0,0,0,0],
-				memId = params.api_ship_id,
-				ship  = KC3ShipManager.get(memId),
-				scrap = [],
+			var shipIds = params.api_ship_id,
+				scrapGearFlag = params.api_slot_dest_flag == 1,
 				utcHour = Date.toUTChours(headers.Date);
-			
-			// Base ship scrap value
-			scrap.push(ship.master());
-			// Collect equipment scrap value
-			scrap = scrap.concat(
-				((ship.items).concat(ship.ex_item)).map(function(gearId){
-					return KC3GearManager.get(gearId).master();
-				}).filter(function(gearMaster){
-					return gearMaster;
-				})
-			);
-			// Sum everything
-			scrap.forEach(function(scrapData){
-				console.log("Scrapping", scrapData.api_id, scrapData.api_name, scrapData.api_broken);
-				scrapData.api_broken.forEach(function(val,ind){
-					rsc[ind] += val;
+			var scrapOneShip = function(rosterId) {
+				var rsc   = [0,0,0,0,0,0,0,0],
+					ship  = KC3ShipManager.get(rosterId),
+					scrap = [];
+				if(ship.isDummy()){
+					console.warn("There is no data in ShipManager, your localStorage.ships may not get synced for ships", rosterId);
+					return;
+				}
+				// Base ship scrap value
+				scrap.push(ship.master());
+				if(scrapGearFlag){
+					// Collect equipment scrap value if needed
+					scrap = scrap.concat(
+						((ship.items).concat(ship.ex_item)).map(function(gearId){
+							return KC3GearManager.get(gearId).master();
+						}).filter(function(gearMaster){
+							return gearMaster;
+						})
+					);
+				}
+				// Sum everything
+				scrap.forEach(function(scrapData){
+					console.log("Scrapping", scrapData.api_id, scrapData.api_name, scrapData.api_broken);
+					scrapData.api_broken.forEach(function(val,ind){
+						rsc[ind] += val;
+					});
 				});
+				KC3Database.Naverall({
+					hour: utcHour,
+					type: "dsship" + ship.masterId,
+					data: rsc
+				});
+				KC3ShipManager.remove(rosterId, !scrapGearFlag);
+				// F5: Daily Dismantlement
+				KC3QuestManager.get(609).increment();
+				PlayerManager.setResources(utcHour * 3600, null, rsc.slice(0,4));
+			};
+			// Now in-game allow to scrap more ships in a row since 2017-12-11
+			$.each(shipIds.split("%2C"), function(index, shipId){
+				scrapOneShip(parseInt(shipId, 10));
 			});
-			KC3Database.Naverall({
-				hour: utcHour,
-				type: "dsship" + ship.masterId,
-				data: rsc
-			});
-			KC3ShipManager.remove(memId);
-			// F5: Daily Dismantlement
-			KC3QuestManager.get(609).increment();
-			PlayerManager.setResources(utcHour * 3600, null, rsc.slice(0,4));
 			KC3Network.trigger("ShipSlots");
 			KC3Network.trigger("GearSlots");
 			KC3Network.trigger("Consumables");
@@ -1764,20 +1793,41 @@ Previously known as "Reactor"
 				utcHour = Date.toUTChours(headers.Date);
 			$.each(itemIds.split("%2C"), function(index, itemId){
 				var gearMaster = KC3GearManager.get(itemId).master();
-				console.log("Scrapping", itemId, gearMaster.api_id, gearMaster.api_name, gearMaster.api_broken);
 				if(!gearMaster){
 					console.warn("There is no data in GearManager, your localStorage.gears may not get synced for item", itemId);
 				} else {
+					console.log("Scrapping", itemId, gearMaster.api_id, gearMaster.api_name, gearMaster.api_broken);
 					gearMaster.api_broken.forEach(function(x,i){
 						rsc[i] += x;
 					});
-					// F34: Weekly Scrap Anti-Air Guns
-					if([21].indexOf(gearMaster.api_type[2]) > -1){
-						KC3QuestManager.get(638).increment();
-					}
-					// F55: Quarterly Scrap 10 Large Caliber Main Guns
-					if([3].indexOf(gearMaster.api_type[2]) > -1){
-						KC3QuestManager.get(663).increment();
+					// To track scrapping quests
+					switch(gearMaster.api_type[2]){
+						case 1: // Small Caliber Main Gun
+							KC3QuestManager.get(673).increment(); // F65 daily
+							break;
+						case 2: // Medium Caliber Main Gun
+							KC3QuestManager.get(676).increment(0); // F68 weekly index 0
+							break;
+						case 3: // Large Caliber Main Gun
+							KC3QuestManager.get(663).increment(); // F55 quarterly
+							KC3QuestManager.get(677).increment(0); // F69 weekly index 0
+							break;
+						case 4: // Secondary Gun
+							KC3QuestManager.get(676).increment(1); // F68 weekly index 1
+							break;
+						case 5: // Torpedo
+							KC3QuestManager.get(677).increment(2); // F69 weekly index 2
+							break;
+						case 10: // Recon Seaplane
+							KC3QuestManager.get(677).increment(1); // F69 weekly index 1
+							break;
+						case 21: // Anti-Air Gun
+							KC3QuestManager.get(638).increment(); // F34 weekly
+							KC3QuestManager.get(674).increment(); // F66 daily
+							break;
+						case 30: // Supply Container
+							KC3QuestManager.get(676).increment(2); // F68 weekly index 2
+							break;
 					}
 				}
 				KC3GearManager.remove(itemId);
@@ -1877,20 +1927,21 @@ Previously known as "Reactor"
 					}
 					
 					if(typeof oldMap !== "undefined"){
+						if(!!oldMap.kinds) localMap.kinds = oldMap.kinds;
+						if(!!oldMap.maxhps) localMap.maxhps = oldMap.maxhps;
+						if(!!oldMap.baseHp) localMap.baseHp = oldMap.baseHp;
 						// Different gauge detected
 						if(!!oldMap.gaugeType && oldMap.gaugeType !== localMap.gaugeType){
-							localMap.kinds = oldMap.kinds || [oldMap.gaugeType];
+							localMap.kinds = localMap.kinds || [oldMap.gaugeType];
 							localMap.kinds.push(localMap.gaugeType);
 							console.info("New gauge phase detected:", oldMap.gaugeType + " -> " + localMap.gaugeType);
 						}
 						// Different max value detected
 						if((oldMap.maxhp || 9999) !== 9999
 							&& oldMap.maxhp !== localMap.maxhp){
-							localMap.maxhps = oldMap.maxhps || [oldMap.maxhp];
+							localMap.maxhps = localMap.maxhps || [oldMap.maxhp];
 							localMap.maxhps.push(localMap.maxhp);
 							console.info("New max HP detected:", oldMap.maxhp + " -> " + localMap.maxhp);
-						} else if(!!oldMap.baseHp){
-							localMap.baseHp = oldMap.baseHp;
 						}
 					}
 					localMap.stat       = $.extend(true,{},defStat,etcStat[ key ]);
@@ -2021,6 +2072,11 @@ Previously known as "Reactor"
 					if(itemId === 11) PlayerManager.consumables.furniture400 -= 10;
 					if(itemId === 12) PlayerManager.consumables.furniture700 -= 10;
 				break;
+				case 51: // exchange 1 xmas select gift box with 1 Reppuu (guessed)
+				case 52: // exchange 1 xmas select gift box with 1 WG42 (guessed)
+				case 53: // exchange 1 xmas select gift box with 4 screws [0, 0, 0, 4]
+					if(itemId === 80) PlayerManager.consumables.xmasGiftBox -= 1;
+				break;
 				default:
 					if(isNaN(fExchg)){
 						// exchange 1 chocolate with resources [700, 700, 700, 1500]
@@ -2051,6 +2107,30 @@ Previously known as "Reactor"
 					KC3Network.trigger("Consumables");
 					*/
 					break;
+			}
+		},
+		
+		/* Buy Furniture
+		-------------------------------------------------------*/
+		"api_req_furniture/buy":function(params, response, headers, decodedParams){
+			var furnitureNo = parseInt(decodedParams.api_no, 10),
+				furnitureType = parseInt(decodedParams.api_type, 10),
+				discountFlag = !!decodedParams.api_discount_flag,
+				furnitureObj = KC3Master.furniture(undefined, furnitureNo, furnitureType);
+			if(furnitureObj){
+				// Defined in Core.swf#dto.FurnitureDTO.isNeedSpecialCraftsman()
+				const isFurnitureFairyNeeded = (price) => price >= 2000 && price < 20000;
+				// Defined in Core.swf#dto.FurnitureDTO.getDiscountPrice()
+				const getDiscountedPrice = (price) => Math.max(0, Math.floor((price - 100000) * 0.1));
+				var price = furnitureObj.api_price || 0,
+					fairyUsed = isFurnitureFairyNeeded(price) || discountFlag;
+				if(discountFlag && price >= 100000) price = getDiscountedPrice(price);
+				PlayerManager.consumables.fcoin -= price;
+				if(fairyUsed) PlayerManager.consumables.furnitureFairy -= 1;
+				PlayerManager.setConsumables();
+				console.log("You have bought furniture", furnitureObj.api_id, furnitureObj.api_title,
+					"with fcoin", price, fairyUsed ? "and furniture fairy" : "");
+				KC3Network.trigger("Consumables");
 			}
 		},
 		
@@ -2128,6 +2208,32 @@ Previously known as "Reactor"
 			KC3Network.trigger("Quests");
 		},
 		
+		/* List current available musics in Jukebox
+		-------------------------------------------------------*/
+		"api_req_furniture/music_list":function(params, response, headers){
+			// Game client-side will cache this result, so only 1st time of session will make a call
+			console.debug("Jukebox available musics", response.api_data);
+		},
+		/* Play music from a Jukebox
+		-------------------------------------------------------*/
+		"api_req_furniture/music_play":function(params, response, headers, decodedParams){
+			const musicId = decodedParams.api_music_id,
+				afterFcoin = parseInt(response.api_data.api_coin, 10);
+			if(afterFcoin >= 0){
+				PlayerManager.consumables.fcoin = afterFcoin;
+				PlayerManager.setConsumables();
+				KC3Network.trigger("Consumables");
+				// To get music information, have to handle `api_req_furniture/music_list`,
+				// and remember its API data array, match `api_music_id` with elements' `api_id`,
+				// and found `api_bgm_id` also defined in master.
+			}
+		},
+		/* Set a music as Home Port BGM from a Jukebox
+		-------------------------------------------------------*/
+		"api_req_furniture/set_portbgm":function(params, response, headers, decodedParams){
+			const musicId = decodedParams.api_music_id;
+		},
+		
 		/* Dummy
 		-------------------------------------------------------*/
 		"dummy":function(params, response, headers){
@@ -2178,14 +2284,18 @@ Previously known as "Reactor"
 					[854,0,[2,4], true, true], // Bq2: 1st requirement: [W2-4] A-rank+ the boss node
 					[854,1,[6,1], true, true], // Bq2: 2nd requirement: [W6-1] A-rank+ the boss node
 					[854,2,[6,3], true, true], // Bq2: 3rd requirement: [W6-3] A-rank+ the boss node
-					[862,0,[6,3], true, true]  // Bq4: Sortie to [W6-3] A-rank+ the boss node 2 times
+					[862,0,[6,3], true, true], // Bq4: Sortie to [W6-3] A-rank+ the boss node 2 times
+					[873,0,[3,1], true, true], // Bq5: 1st requirement: [W3-1] A-rank+ the boss node
+					[873,1,[3,2], true, true], // Bq5: 2nd requirement: [W3-2] A-rank+ the boss node
+					[873,2,[3,3], true, true]  // Bq5: 3rd requirement: [W3-3] A-rank+ the boss node
 				],
 				[ /* S RANK */
 					[214,3,false,false], // Bw1: 4th requirement: 6 S ranks (index:3)
 					[243,0,[5,2], true], // Bw9: Sortie to [W5-2] and S-rank the boss node 2 times
 					[256,0,[6,1], true], // Bm2: Deploy to [W6-1] and obtain an S-rank the boss node 3 times
 					[822,0,[2,4], true], // Bq1: Sortie to [W2-4] and S-rank the boss node 2 times
-					[854,3,[6,4], true, true]  // Bq2: 4th requirement: [W6-4] S-rank the boss node
+					[854,3,[6,4], true, true], // Bq2: 4th requirement: [W6-4] S-rank the boss node
+					[875,0,[5,4], true, true]  // Bq6: Sortie to [W5-4] S-rank the boss node
 				],
 				[ /* SS RANK */ ]
 			].slice(0, rankPt+1)
@@ -2206,7 +2316,9 @@ Previously known as "Reactor"
 			if(rankPt >= 3) {
 				KC3QuestManager.get(304).increment(); // C3: Daily Exercises 2
 				KC3QuestManager.get(302).increment(); // C4: Weekly Exercises
-				KC3QuestManager.get(311).increment(); // C8: Elite Fleet Practice
+				KC3QuestManager.get(311).increment(); // C8: Monthly Exercises 1
+				if(KC3QuestManager.isPrerequisiteFulfilled(318))
+					KC3QuestManager.get(318).increment(); // C16: Monthly Exercises 2
 			}
 		}
 	}

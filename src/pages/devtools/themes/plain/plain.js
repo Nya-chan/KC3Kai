@@ -251,13 +251,23 @@
 		}
 		
 		// Panel customizations: custom css
-		if(ConfigManager.pan_custom_css !== ""){
-			var customCSS = document.createElement("style");
-			customCSS.type = "text/css";
-			customCSS.innerHTML = ConfigManager.pan_custom_css;
-			$("head").append(customCSS);
-		}
+		var customCSS = document.createElement("style");
+		customCSS.type = "text/css";
+		customCSS.id = "pan_custom_css";
+		customCSS.innerHTML = ConfigManager.pan_custom_css;
+		$("head").append(customCSS);
 
+		// Listen config key changed
+		window.addEventListener("storage", function({key, timeStamp, url}){
+			if(key === ConfigManager.keyName()) {
+				ConfigManager.load();
+				console.debug("Reload ConfigManager caused by", (url || "").match(/\/\/[^\/]+\/([^\?]+)/)[1]);
+
+				if($("#pan_custom_css").html() != ConfigManager.pan_custom_css)
+					$("#pan_custom_css").html(ConfigManager.pan_custom_css);
+			}
+		});
+		
 		// Close CatBomb modal
 		$(".modalBox").on("click", ".closebtn", function(){
 			$(this).parent().parent().fadeOut(300);
@@ -369,7 +379,8 @@
 								title: KC3Meta.term("DesktopNotifyMoraleTitle"),
 								message: KC3Meta.term("DesktopNotifyMoraleMessage"),
 								iconUrl: "../../assets/img/ui/morale.png"
-							}
+							},
+							tabId: chrome.devtools.inspectedWindow.tabId
 						})).execute();
 					}
 				}
@@ -1093,13 +1104,20 @@
 				(KC3SortieManager.map_world>10 ? 'E' : KC3SortieManager.map_world)
 				+"-"
 				+KC3SortieManager.map_num
-				+((KC3SortieManager.map_world>10)
-					?["",
+				+ ((KC3SortieManager.map_world >= 41)
+					? [ "",
+					  KC3Meta.term("EventRankCasualAbbr"),
 					  KC3Meta.term("EventRankEasyAbbr"),
 					  KC3Meta.term("EventRankNormalAbbr"),
-					  KC3Meta.term("EventRankHardAbbr")]
+					  KC3Meta.term("EventRankHardAbbr") ]
 					[ KC3SortieManager.map_difficulty ]
-					:"")
+					: (KC3SortieManager.map_world >= 10)
+					? [ "",
+					  KC3Meta.term("EventRankEasyAbbr"),
+					  KC3Meta.term("EventRankNormalAbbr"),
+					  KC3Meta.term("EventRankHardAbbr") ]
+					[ KC3SortieManager.map_difficulty ]
+					: "")
 			);
 			
 			// Map Gauge and status
@@ -1828,7 +1846,7 @@
 				else
 					return "";
 			}()))
-			.text( PlayerManager.hq.exp[hqDt].toLocaleString() );
+			.text( KC3Meta.formatNumber(PlayerManager.hq.exp[hqDt]) );
 	}
 	
 	function buildContactPlaneSpan(fcontactId, fcontact, econtactId, econtact) {

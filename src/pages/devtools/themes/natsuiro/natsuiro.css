@@ -1,5 +1,6 @@
-/* BEGIN GLOBAL
-------------------------------*/
+@charset "utf-8";
+
+/* GLOBAL
 #factory {
 	display:none;
 }
@@ -22,6 +23,18 @@ html,body {
 }
 #critical.anim2 {
 	box-shadow:inset 0px 0px 60px rgba(255,0,0,0.8);
+}
+.jp_fonts {
+	font-family: "Tahoma", "Helvetica", "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "Osaka", "メイリオ", "Meiryo", "Yu Gothic UI Semibold", "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+}
+.kr_fonts {
+	font-family: "AppleGothic", "Malgun Gothic", "GulimChe", "Dotum", "UnDotum", sans-serif;
+}
+.scn_fonts {
+	font-family: "Microsoft YaHei UI", "Microsoft YaHei", "Hiragino Sans GB", "Wenquanyi Micro Hei", "WenQuanYi Zen Hei Sharp", "WenQuanYi Zen Hei", "Heiti SC", "ST Heiti", "SimHei", sans-serif;
+}
+.tcn_fonts {
+	font-family: "Microsoft JhengHei UI", "Microsoft JhengHei", "Heiti TC", "LiHei Pro Medium", sans-serif;
 }
 
 /* MODALS
@@ -297,7 +310,10 @@ html,body {
 }
 .module.admiral .admiral_name.censor {
 	color: transparent;
-	text-shadow: 0 0 8px rgba(255,220,0,0.9);
+	text-shadow: 0 0 8px rgba(255,220,0,0.4);
+}
+.module.admiral .admiral_name.censor:before {
+	content: 'U CANT SEE ME';
 }
 .module.admiral .admiral_comm {
     float: left;
@@ -594,10 +610,12 @@ html,body {
 }
 /* Sortie Nodes */
 .module.activity .sortie_nodes {
-	width:100%;
-	margin:0px 0px 2% 0px;
+	width:auto;
+	min-width:180px;
+	height:19px;
+	margin:0px 0px 4px 0px;
 	position:relative;
-	z-index: 1;
+	display:inline-flex;
 }
 .module.activity .sortie_node {
 	width:19px;
@@ -613,6 +631,10 @@ html,body {
 	text-align:center;
 	border:1px solid #aaa;
 	position: relative;
+}
+.module.activity .sortie_node.long_name {
+	font-size:9px;
+	letter-spacing:-1px;
 }
 .module.activity .sortie_nodes .boss_node {
 	display: none;
@@ -652,11 +674,14 @@ html,body {
 	background:#00B3B1;
 }
 .module.activity .sortie_node.nc_night_battle {
+	background:#4233C3;
+}
+.module.activity .sortie_node.nc_night_to_day {
 	background:
-		-webkit-linear-gradient(-15deg, rgba(0, 26, 199, 0.6) 25%, rgba(0,0,0,0) 25%),
+		-webkit-linear-gradient(-15deg, rgba(106, 98, 241, 0.6) 25%, rgba(0,0,0,0) 25%),
 		#7d0000;
 	background:
-		linear-gradient(105deg, rgba(0, 26, 199, 0.6) 25%, rgba(0,0,0,0) 25%),
+		linear-gradient(105deg, rgba(106, 98, 241, 0.6) 25%, rgba(0,0,0,0) 25%),
 		#7d0000;
 	background-size: 400% 200%;
 	background-position: -8px 0px;
@@ -2837,6 +2862,12 @@ ABYSS FLEET
 	height:20px;
 	float:left;
 }
+.module.fleet .lship .ship_gear.ship_gear_5 {
+	display:none;
+	position:relative;
+	left:83px;
+	top:-40px;
+}
 .module.fleet .lship .ship_gear_star {
 	width:12px;
 	position:absolute;
@@ -2948,6 +2979,22 @@ ABYSS FLEET
 }
 .module.fleet .lship .ship_ammo .ship_supply_bar {
 	background:#999900;
+}
+.module.fleet .lship .ship_supplies.slot5 {
+	height:20px;
+	margin-top:20px;
+}
+.module.fleet .lship .slot5 .ship_supply {
+	height:10px;
+	margin:0px 0px;
+}
+.module.fleet .lship .slot5 .ship_supply_text {
+	height:8px;
+	line-height:8px;
+	font-size:8px;
+}
+.module.fleet .lship .slot5 .ship_supply_bar {
+	height:8px;
 }
 
 .module.fleet .lship .ship_exp_box {

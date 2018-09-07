@@ -115,7 +115,7 @@ Uses KC3Quest objects to play around with
 			daily: {
 				type: 'daily',
 				key: 'timeToResetDailyQuests',
-				questIds: [201, 216, 210, 211, 218, 212, 226, 230, 303, 304, 402, 403, 503, 504, 605, 606, 607, 608, 609, 619, 702],
+				questIds: [201, 216, 210, 211, 218, 212, 226, 230, 303, 304, 402, 403, 503, 504, 605, 606, 607, 608, 609, 619, 673, 674, 702],
 				resetQuests: function () { KC3QuestManager.resetDailies(); },
 				calculateNextReset: function (serverTime) {
 					// JST is +9 GMT, so 05:00 JST === 20:00 UTC
@@ -135,7 +135,7 @@ Uses KC3Quest objects to play around with
 			weekly: {
 				type: 'weekly',
 				key: 'timeToResetWeeklyQuests',
-				questIds: [214, 220, 213, 221, 228, 229, 241, 242, 243, 261, 302, 404, 410, 411, 613, 638, 703],
+				questIds: [214, 220, 213, 221, 228, 229, 241, 242, 243, 261, 302, 404, 410, 411, 613, 638, 676, 677, 703],
 				resetQuests: function () { KC3QuestManager.resetWeeklies(); },
 				calculateNextReset: function (serverTime) {
 					const nextDailyReset = new Date(
@@ -154,7 +154,7 @@ Uses KC3Quest objects to play around with
 			monthly: {
 				type: 'monthly',
 				key: 'timeToResetMonthlyQuests',
-				questIds: [249, 256, 257, 259, 265, 264, 266, 311, 424, 626, 628, 645],
+				questIds: [249, 256, 257, 259, 265, 264, 266, 311, 318, 424, 626, 628, 645],
 				resetQuests: function () { KC3QuestManager.resetMonthlies(); },
 				calculateNextReset: function (serverTime) {
 					const nextDailyReset = new Date(
@@ -168,7 +168,7 @@ Uses KC3Quest objects to play around with
 			quarterly: {
 				type: 'quarterly',
 				key: 'timeToResetQuarterlyQuests',
-				questIds: [426, 428, 637, 643, 663, 822, 854, 861, 862],
+				questIds: [426, 428, 637, 643, 663, 675, 678, 822, 854, 861, 862, 873, 875],
 				resetQuests: function () { KC3QuestManager.resetQuarterlies(); },
 				calculateNextReset: function (serverTime) {
 					const nextMonthlyReset = new Date(
@@ -474,6 +474,12 @@ Uses KC3Quest objects to play around with
 								26, 286, 411, 27, 287, 412  // Fusou-class
 							]) === 3 && fleet.countShipType(3) === 1;
 					},
+				"318": // C16 PvP with 2 more CLs in 1st fleet
+					() => {
+						const firstFleet = PlayerManager.fleets[0];
+						return KC3SortieManager.isPvP() && KC3SortieManager.fleetSent == 1 &&
+							firstFleet.countShipType(3) >= 2;
+					},
 				"626": // F22 Have 1 Skilled Crew Member. Houshou as secretary, equip her with a >> Type 0 Fighter Model 21
 					() => {
 						const firstFleet = PlayerManager.fleets[0];
@@ -501,13 +507,28 @@ Uses KC3Quest objects to play around with
 					({fleetSent = KC3SortieManager.fleetSent}) => {
 						const fleet = PlayerManager.fleets[fleetSent - 1];
 						return (fleet.countShipType(10) +
-							fleet.countShipType(22)) === 2;
+							fleet.countShipType(22)) >= 2;
 					},
 				"862": // Bq4 Sortie 1 AV, 2 CL
 					({fleetSent = KC3SortieManager.fleetSent}) => {
 						const fleet = PlayerManager.fleets[fleetSent - 1];
-						return fleet.countShipType(16) === 1
-							&& fleet.countShipType(3) === 2;
+						return fleet.countShipType(16) >= 1
+							&& fleet.countShipType(3) >= 2;
+					},
+				"873": // Bq5 Sortie 1 CL
+					({fleetSent = KC3SortieManager.fleetSent}) => {
+						const fleet = PlayerManager.fleets[fleetSent - 1];
+						return fleet.countShipType(3) >= 1;
+					},
+				"875": // Bq6 Sortie DesDiv 31
+					({fleetSent = KC3SortieManager.fleetSent}) => {
+						const fleet = PlayerManager.fleets[fleetSent - 1];
+						return fleet.countShip([
+								543, // Naganami Kai2
+								345, // Takanami Kai
+								359, // Okinami Kai
+								344  // Asashimo Kai
+							]) >= 1;
 					},
 			};
 			if(questObj.id && questCondsLibrary[questId]){

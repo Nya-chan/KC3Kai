@@ -65,8 +65,8 @@
 			$(".hq_level .hq_content").text(PlayerManager.hq.level);
 			$(".hq_exp .hq_content").text(
 				"{0} / {1}".format(
-					PlayerManager.hq.exp[3].toLocaleString(),
-					(PlayerManager.hq.exp[1]+PlayerManager.hq.exp[3]).toLocaleString()
+					KC3Meta.formatNumber(PlayerManager.hq.exp[3]),
+					KC3Meta.formatNumber(PlayerManager.hq.exp[1] + PlayerManager.hq.exp[3])
 				)
 			);
 			
@@ -78,7 +78,7 @@
 					: new Date(PlayerManager.hq.rankPtLastTimestamp).format("yyyy-mm-dd HH:MM:ss")
 			);
 			$(".rank_cutval .rank_content").text(
-				PlayerManager.hq.rankPtCutoff.toLocaleString()
+				KC3Meta.formatNumber(PlayerManager.hq.rankPtCutoff)
 			);
 			$(".rank_current .rank_content").text(
 				PlayerManager.hq.getRankPoints().toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
@@ -252,7 +252,7 @@
 					"Reward 1", "Reward 2", "Result", "Date", "Fleet#",
 					"Ship #1", "Ship #2", "Ship #3",
 					"Ship #4", "Ship #5", "Ship #6",
-				].concat(forAsw ? ["Total AA", "Total LoS", "Total ASW"] : [])
+				].concat(forAsw ? ["Total FP", "Total AA", "Total LoS", "Total ASW"] : [])
 				.join(",") + CSV_LINE_BREAKS;
 				const buildRewardItemText = (data, index) => {
 					const flag = data.api_useitem_flag[index - 1],
@@ -271,6 +271,8 @@
 				};
 				const sumShipStats = (shipInfo) => {
 					const stats = {
+						fp: 0,
+						fpEquip: 0,
 						aa: 0,
 						aaEquip: 0,
 						los: 0,
@@ -279,10 +281,12 @@
 						aswEquip: 0
 					};
 					const shipMst = KC3Master.ship(shipInfo.mst_id);
+					stats.fpEquip = sumEquipStats(shipInfo.equip, "houg");
 					stats.aaEquip = sumEquipStats(shipInfo.equip, "tyku");
 					stats.losEquip = sumEquipStats(shipInfo.equip, "saku");
 					stats.aswEquip = sumEquipStats(shipInfo.equip, "tais");
-					stats.aa = shipMst.api_tyku[0] + shipInfo.kyouka[2];
+					stats.aa = shipMst.api_houg[0] + shipInfo.kyouka[0];
+					stats.fp = shipMst.api_tyku[0] + shipInfo.kyouka[2];
 					if(shipInfo.stats){
 						stats.los = shipInfo.stats.ls || 0;
 						stats.asw = shipInfo.stats.as || 0;
@@ -299,6 +303,7 @@
 				db.reverse().toArray(function(result){
 					result.forEach(function(expedInfo){
 						const fleetStats = {
+							fp: 0,
 							aa: 0,
 							los: 0,
 							asw: 0,
@@ -306,6 +311,7 @@
 						const shipsInfo = expedInfo.fleet.map(ship => {
 							if(ship.mst_id > 0){
 								const stats = sumShipStats(ship);
+								fleetStats.fp += stats.fp + stats.fpEquip;
 								fleetStats.aa += stats.aa + stats.aaEquip;
 								fleetStats.los += stats.los + stats.losEquip;
 								fleetStats.asw += stats.asw + stats.aswEquip;
@@ -315,7 +321,8 @@
 									"Lv:" + ship.level,
 									"Morale:" + ship.morale,
 									"Drums:" + ship.equip.reduce((drums, id) => drums+=(id===75), 0)
-								].concat(forAsw ? ["AA+-LoS+-ASW+-",
+								].concat(forAsw ? ["FP+-AA+-LoS+-ASW+-",
+										stats.fp + stats.fpEquip, stats.fp,
 										stats.aa + stats.aaEquip, stats.aa,
 										stats.los + stats.losEquip, stats.los,
 										stats.asw + stats.aswEquip, stats.asw].join(":") : []
@@ -340,7 +347,7 @@
 							csvQuoteIfNecessary(new Date(expedInfo.time * 1000).format("mmm dd, yyyy hh:MM tt")),
 							expedInfo.fleetN
 						].concat(shipsInfo)
-						.concat(forAsw ? [fleetStats.aa, fleetStats.los, fleetStats.asw] : [])
+						.concat(forAsw ? [fleetStats.fp, fleetStats.aa, fleetStats.los, fleetStats.asw] : [])
 						.join(",") + CSV_LINE_BREAKS;
 					});
 					
@@ -441,6 +448,37 @@
 					});
 			});
 			
+			// Export CSV: Shipgirl Master Data
+			$(".tab_profile .export_csv_shipgirl").on("click", function(event){
+				// CSV Headers
+				let exportData = [
+					"ID", "Name", "Yomi", "Romaji", "SType", "Class", "Models", "HP", "FP", "AR", "TP", "AA", "Luck", "Speed", "Slots"
+				].join(",") + CSV_LINE_BREAKS;
+				$.each(KC3Master.all_ships(), (i, s) => {
+					if(KC3Master.isRegularShip(s.api_id)) {
+						exportData += [
+							s.api_id,
+							csvQuoteIfNecessary(KC3Meta.shipName(s.api_name)),
+							csvQuoteIfNecessary(s.api_yomi),
+							csvQuoteIfNecessary(wanakana.toRomaji(s.api_yomi).capitalize()),
+							csvQuoteIfNecessary(KC3Meta.stype(s.api_stype)),
+							csvQuoteIfNecessary(KC3Meta.ctype(s.api_ctype)),
+							RemodelDb.remodelGroup(s.api_id).join('/'),
+							s.api_taik.join('/'),
+							s.api_houg.join('/'),
+							s.api_souk.join('/'),
+							s.api_raig.join('/'),
+							s.api_tyku.join('/'),
+							s.api_luck.join('/'),
+							s.api_soku,
+							s.api_maxeq.slice(0, s.api_slot_num).join('/')
+						].join(",") + CSV_LINE_BREAKS;
+					}
+				});
+				const filename = self.makeFilename("Shipgirls", "csv");
+				self.saveFile(filename, exportData, "text/csv");
+			});
+			
 			// Export CSV: Abyssal Enemies
 			$(".tab_profile .export_csv_abyssal").on("click", function(event){
 				// CSV Headers
@@ -501,17 +539,6 @@
 				});
 			});
 			
-			// Clear RemodelDb
-			$(".tab_profile .clear_remodeldb").on("click", function(event) {
-				let result = confirm(
-					"You are about to remove ship remodel information, " +
-						"it won't be available until next time you restart game with KC3.");
-				if(result === true) {
-					delete localStorage.remodelDb;
-					window.location.reload();
-				}
-			});
-
 			// Reset Dismissed messages
 			$(".tab_profile .clear_dismissed").on("click", function(event){
 				// These variables may be moved into ConfigManager
@@ -526,9 +553,23 @@
 				ConfigManager.dismissed_hints = {};
 				delete ConfigManager.air_average;
 				delete ConfigManager.air_bounds;
+				delete ConfigManager.DBSubmission_enabled;
+				delete ConfigManager.DBSubmission_key;
 				ConfigManager.save();
 				// Give a response instead of alert
 				window.location.reload();
+			});
+			
+			// Clear RemodelDb (will be rebuilt on page reloaded)
+			$(".tab_profile .clear_remodeldb").on("click", function(event) {
+				const result = confirm(
+					"You are about to rebuild ship remodel information,\n"
+					+ "it won't be correct until next time you restart game with KC3 to get latest ship data."
+				);
+				if(result === true) {
+					delete localStorage.remodelDb;
+					window.location.reload();
+				}
 			});
 			
 			// Clear inconsistent localStorage cached ships & gears
@@ -563,7 +604,8 @@
 					const ke = JSON.parse(d.ke || null);
 					const letter = KC3Meta.nodeLetter(d.world, d.map, d.node);
 					return d.world <= 0 || !Array.isArray(ke) || ke.length < 6
-						|| (d.world < 10 && letter === d.node);
+						|| (d.world < 10 && letter === d.node)
+						|| d.uniqid.indexOf(d.ke) === -1;
 				}).delete().then((count) => {
 					if(count) alert("Done!"); else alert("No bug found!");
 				});
@@ -606,6 +648,11 @@
 			
 			// Fix abyssal master IDs after 2017-04-05 (bump 1000)
 			$(".tab_profile .fix_abyssal").on("click", function(event){
+				const handleError = function(err, msg) {
+					console.error(msg || "Fixing abyssal IDs error", err);
+					alert(`Oops! ${msg || "There is something wrong"}. You might report the error logs.`);
+				};
+				
 				// Fix table `enemy`. To update primary key, have to delete all records first
 				KC3Database.con.enemy.toArray(function(enemyList){
 					KC3Database.con.enemy.clear();
@@ -615,54 +662,54 @@
 					}
 					console.info("Enemy stats have been fixed");/*RemoveLogging:skip*/
 					alert("Done 1/3~");
+				}).catch(function(e){
+					handleError(e, "Fixing enemy stats error");
 				});
+				
+				const updateKe = function(keArr){
+					if(Array.isArray(keArr) && keArr.some(id => id > 500 && id < 1501)){
+						return keArr.map(id => id > 500 && id < 1501 ? id + 1000 : id);
+					}
+					return keArr;
+				};
 				
 				// Fix table `encounters`. To update primary key, have to delete all records first
 				KC3Database.con.encounters.toArray(function(encList){
 					KC3Database.con.encounters.clear();
 					for(let r of encList){
-						let ke = JSON.parse(r.ke);
-						if(ke.some(id => id > 500 && id < 1501)){
-							ke = ke.map(id => id > 500 ? id + 1000 : id);
-							r.ke = JSON.stringify(ke);
-							let id = r.uniqid.split("/");
+						const ke = JSON.parse(r.ke || null);
+						const keu = updateKe(ke);
+						if(ke !== keu){
+							r.ke = JSON.stringify(keu);
+							const id = r.uniqid.split("/");
 							id[4] = r.ke;
 							r.uniqid = id.join("/");
 						}
-						KC3Database.Encounter(r, false);
+						KC3Database.Encounter(r, true);
 					}
 					console.info("Encounters have been fixed");/*RemoveLogging:skip*/
 					alert("Done 2/3~");
+				}).catch(function(e){
+					handleError(e, "Fixing encounters error");
 				});
 				
-				// Fix table `battle`
-				KC3Database.con.battle.toArray(function(battleList){
-					var updateKe = function(keArr){
-						if(Array.isArray(keArr) && keArr.some(id => id > 500 && id < 1501)){
-							return keArr.map(id => id > 500 ? id + 1000 : id);
-						}
-						return keArr;
-					};
-					var logError = function(e){ console.error("Database fixing error", e); };
-					try {
-						for(let r of battleList){
-							let day = r.data;
-							let night = r.yasen;
-							if(day.api_ship_ke)
-								day.api_ship_ke = updateKe(day.api_ship_ke);
-							if(day.api_ship_ke_combined)
-								day.api_ship_ke_combined = updateKe(day.api_ship_ke_combined);
-							if(night.api_ship_ke)
-								night.api_ship_ke = updateKe(night.api_ship_ke);
-							if(night.api_ship_ke_combined)
-								night.api_ship_ke_combined = updateKe(night.api_ship_ke_combined);
-							KC3Database.con.battle.put(r).catch(logError);
-						}
-						console.info("Battle enemies have been fixed");/*RemoveLogging:skip*/
-					} catch(e) {
-						console.error("Fixing battle enemies error", e);
-					}
+				// Fix table `battle`, don't iterate all records by `toArray` to save memory
+				KC3Database.con.battle.reverse().modify(function(battle){
+					const day = battle.data;
+					const night = battle.yasen;
+					if(day.api_ship_ke)
+						day.api_ship_ke = updateKe(day.api_ship_ke);
+					if(day.api_ship_ke_combined)
+						day.api_ship_ke_combined = updateKe(day.api_ship_ke_combined);
+					if(night.api_ship_ke)
+						night.api_ship_ke = updateKe(night.api_ship_ke);
+					if(night.api_ship_ke_combined)
+						night.api_ship_ke_combined = updateKe(night.api_ship_ke_combined);
+				}).then(function(c){
+					console.info("Battle enemies have been fixed");/*RemoveLogging:skip*/
 					alert("Done 3/3!");
+				}).catch(function(e){
+					handleError(e, "Fixing battle enemies error");
 				});
 			});
 			
@@ -704,6 +751,7 @@
 			} else {
 				$(".newsfeed").hide();
 			}
+			$(".newsfeed .feed_text").toggleClass("jp_fonts", showRawNewsfeed);
 		},
 		
 		showFeedItem: function(index, time, log, showRawNewsfeed){

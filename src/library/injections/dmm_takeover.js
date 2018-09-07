@@ -23,6 +23,7 @@
 			this.clearOverlayHotKey();
 			this.exitConfirmation();
 			this.screenshotHotkey();
+			this.injectDMM();
 
 			chrome.runtime.onMessage.addListener(this.subtitlesOverlay());
 			chrome.runtime.onMessage.addListener(this.clearOverlays());
@@ -312,6 +313,9 @@
 					case "npc":
 						quoteIdentifier = "npc";
 						break;
+					case "event":
+						quoteIdentifier = "event";
+						break;
 					case "abyssal":
 						quoteIdentifier = "abyssal";
 						if(config.subtitle_speaker){
@@ -348,7 +352,6 @@
 							clearTimeout(self.subtitleTimer);
 					}
 				};
-				hideSubtitle();
 
 				// Display subtitle and set its removal timer
 				const showSubtitle = (subtitleText, quoteIdentifier) => {
@@ -435,6 +438,7 @@
 
 				// If subtitles available for the voice
 				if(subtitleText){
+					hideSubtitle();
 					// Book for a future display if it's a ship's hourly voice,
 					// because game preload voice file in advance (about > 5 mins).
 					if(!isNaN(Number(quoteIdentifier)) && KC3Meta.isHourlyVoiceNum(quoteVoiceNum)){
@@ -721,6 +725,14 @@
 				hideIdleScreen = false;
 				$(".overlay_idle").hide();
 			};
+		},
+
+		injectDMM: function() {
+			let body = document.getElementsByTagName('body')[0];
+			let script = document.createElement('script');
+			script.setAttribute('type', 'text/javascript');
+			script.setAttribute('src', chrome.extension.getURL('library/injections/dmm_injectable.js'));
+			body.appendChild(script);
 		}
 	};
 

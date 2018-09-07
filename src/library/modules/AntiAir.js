@@ -8,7 +8,7 @@ AntiAir: anti-air related calculations
 		- mst: master data of either ship or gear
 		- pred: predicates, a function that accepts a single parameter and returns a boolean value
 		- predXXX: predicate combinations. "predXXX(pred1, pred2, ...)" combines pred1, pred2, ...
-          in some specific way to produce a new predicate.
+		  in some specific way to produce a new predicate.
 
 - module contents:
 	- shipProportionalShotdownRate(shipObj)
@@ -103,10 +103,8 @@ AntiAir: anti-air related calculations
 	// AA Radar
 	// Surface Radar are excluded by checking whether
 	// the equipment gives AA stat (api_tyku)
-	// EO memo: api_tyku >= 2
 	function isAARadar(mst) {
-		return isRadar(mst) && 
-			mst.api_tyku > 0;
+		return isRadar(mst) && mst.api_tyku >= 2;
 	}
 
 	// AAFD: check by category (36)
@@ -118,8 +116,11 @@ AntiAir: anti-air related calculations
 	// Type 3 Shell
 	var isType3Shell = categoryEq(18);
 
-	// Anti-air gun includes machine guns and rocket launchers
-	var isAAGun = categoryEq(21);
+	// Anti-air gun includes machine guns and rocket launchers,
+	// but not sure why AA stat < 3 gun not counted (only 7.7mm MG for now)
+	var isAAGun = predAllOf(iconEq(15), function(mst) {
+		return mst.api_tyku >= 3;
+	});
 
 	var isRedGun = predAnyOf(
 		iconEq(1),
@@ -127,7 +128,7 @@ AntiAir: anti-air related calculations
 		iconEq(3));
 
 	function is46cmTripleMount(mst) {
-		return mst.api_id === 6;
+		return mst.api_id === 6 || mst.api_id === 276;
 	}
 	
 	var isYellowGun = iconEq(4);
@@ -137,26 +138,39 @@ AntiAir: anti-air related calculations
 
 	var isLargeCaliberMainGun = categoryEq(3);
 
-	// EO memo: api_tyku >= 8
 	function isBuiltinHighAngleMount(mst) {
+		// use the condition also used in game for future unknown equipment
+		return isHighAngleMount(mst) && mst.api_tyku >= 8;
+		/*
 		return [
-			122 /* aki-gun */,
-			130 /* maya-gun */,
-			135 /* 90mm single HA */,
-			172 /* 5inch */
+			122, // aki-gun
+			130, // maya-gun
+			135, // 90mm single HA
+			172, // 5inch
 		].indexOf( mst.api_id ) !== -1;
+		*/
 	}
 
-	// EO memo: api_tyku >= 9
+	function is10cmTwinHighAngleMountKaiAMG(mst) {
+		return mst.api_id === 275;
+	}
+
 	function isCDMG(mst) {
+		return isAAGun(mst) && mst.api_tyku >= 9;
+		/*
 		return [
-			131 /* 25mm triple (CD) */,
-			173 /* Bofors */,
-			191 /* QF 2-pounder */
+			131, // 25mm triple (CD)
+			173, // Bofors
+			191, // QF 2-pounder
 		].indexOf( mst.api_id ) !== -1;
+		*/
 	}
 
 	var isAAGunNotCD = predAllOf(isAAGun, predNot(isCDMG));
+
+	function is12cm30tubeRocketLauncherKai2(mst) {
+		return mst.api_id === 274;
+	}
 
 	// for equipments the coefficient is different for
 	// calculating adjusted ship AA stat and fleet AA stat,
@@ -278,12 +292,7 @@ AntiAir: anti-air related calculations
 	}
 
 	function allShipEquipments(shipObj) {
-		return [
-			shipObj.equipment(0),
-			shipObj.equipment(1),
-			shipObj.equipment(2),
-			shipObj.equipment(3),
-			shipObj.exItem()];
+		return shipObj.equipment(true);
 	}
 
 	function shipEquipmentAntiAir(shipObj, forFleet) {
@@ -322,6 +331,7 @@ AntiAir: anti-air related calculations
 		return (id === 1 || id === 4 || id === 5) ? 1.0  // line ahead / echelon / line abreast
 			:  (id === 2) ? 1.2 // double line
 			:  (id === 3) ? 1.6 // diamond
+			:  (id === 6) ? 1.1 // vanguard
 			:  (id === 11 || id === 21) ? 1.1 // Combined anti-sub
 			:  (id === 12 || id === 14 || id === 22 || id === 24) ? 1.0 // Combined forward / battle
 			:  (id === 13 || id === 23) ? 1.5 // Combined diamond
@@ -401,11 +411,30 @@ AntiAir: anti-air related calculations
 	}
 
 	function isAkizukiClass( mst ) {
+		return mst.api_ctype === 54;
+		/*
 		return [
-			421, 330 /* Akizuki & Kai */,
-			422, 346 /* Teruzuki & Kai */,
-			423, 357 /* Hatsuzuki & Kai */,
-			532, 537 /* Suzutsuki & Kai */	
+			421, 330, // Akizuki & Kai
+			422, 346, // Teruzuki & Kai
+			423, 357, // Hatsuzuki & Kai
+			532, 537, // Suzutsuki & Kai
+		].indexOf( mst.api_id ) !== -1;
+		*/
+	}
+
+	function isIseClassKai( mst ) {
+		return mst.api_ctype === 2
+			// if non-Kai excluded
+			&& mst.api_id !== 77 && mst.api_id !== 87;
+	}
+
+	// Battleships capable for 12cm 30tube Rocket Launcher Kai 2
+	function isBattleShipKai( mst ) {
+		return [
+			82, // Ise Kai
+			88, // Hyuuga Kai
+			148, // Musashi Kai
+			546, // Musashi K2
 		].indexOf( mst.api_id ) !== -1;
 	}
 
@@ -419,6 +448,9 @@ AntiAir: anti-air related calculations
 	var surfaceShipIcon = 0, // Means no icon, low priority
 		akizukiIcon = 421,
 		battleShipIcon = 131, // Yamato, weigh anchor!
+		battleShipKaiIcon = 148, // Musashi Kai represents
+		musashiK2Icon = 546,
+		iseIcon = 77,
 		mayaK2Icon = 428,
 		isuzuK2Icon = 141,
 		kasumiK2BIcon = 470,
@@ -428,6 +460,7 @@ AntiAir: anti-air related calculations
 		fumizukiK2Icon = 548,
 		uit25Icon = 539,
 		i504Icon = 530,
+		tatsutaK2Icon = 478,
 		haMountIcon = 16,
 		radarIcon = 11,
 		aaFdIcon = 30,
@@ -438,8 +471,11 @@ AntiAir: anti-air related calculations
 		biHaMountIcon = "16+30",    // HA plus AAFD
 		cdmgIcon = "15+15",         // AAGun double
 		haMountNbifdIcon = "16-30", // HA without AAFD
-		aaGunNotCdIcon = "15-15";   // Non-CD AA Machine Gun
+		aaGunNotCdIcon = "15-15",   // Non-CD AA Machine Gun
+		aaGunK2RockeLaunIcon = "15+31", // 12cm 30tube Rocket Launcher Kai 2
+		haMountKaiAmg = "16+15";    // 10cm Twin High-angle Mount Kai + Additional Machine Gun
 
+	var isMusashiK2 = masterIdEq( musashiK2Icon );
 	var isMayaK2 = masterIdEq( mayaK2Icon );
 	var isIsuzuK2 = masterIdEq( isuzuK2Icon );
 	var isKasumiK2B = masterIdEq( kasumiK2BIcon );
@@ -449,6 +485,7 @@ AntiAir: anti-air related calculations
 	var isFumizukiK2 = masterIdEq( fumizukiK2Icon );
 	var isUit25 = masterIdEq( uit25Icon );
 	var isI504 = masterIdEq( i504Icon );
+	var isTatsutaK2 = masterIdEq( tatsutaK2Icon );
 
 	// turns a "shipObj" into the list of her equipments
 	// for its parameter function "pred"
@@ -538,7 +575,7 @@ AntiAir: anti-air related calculations
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isCDMG ),
-				/* CDMGs are AAGuns, so we need at least 2 AA guns 
+				/* CDMGs are AAGuns, so we need at least 2 AA guns
 				   including the CDMG one we have just counted */
 				hasAtLeast(isAAGun, 2),
 				hasSome( isAARadar ))
@@ -547,7 +584,7 @@ AntiAir: anti-air related calculations
 
 	// battleship special AACIs
 	declareAACI(
-		4, 6, 1.4,
+		4, 6, 1.5,
 		[battleShipIcon, lcMainGunIcon, type3ShellIcon, aaFdIcon, radarIcon],
 		predAllOf(isBattleship, slotNumAtLeast(4)),
 		withEquipmentMsts(
@@ -568,6 +605,44 @@ AntiAir: anti-air related calculations
 				hasSome( isLargeCaliberMainGun ),
 				hasSome( isType3Shell ),
 				hasSome( isAAFD ))
+		)
+	);
+
+	// Ise-class Kai only AACIs
+	declareAACI(
+		25, 7, 1.55,
+		[iseIcon, aaGunK2RockeLaunIcon, radarIcon, type3ShellIcon],
+		predAllOf(isIseClassKai),
+		withEquipmentMsts(
+			predAllOf(
+				hasSome( is12cm30tubeRocketLauncherKai2 ),
+				hasSome( isType3Shell ),
+				hasSome( isAARadar ))
+		)
+	);
+
+	declareAACI(
+		26, 6, 1.4,
+		[musashiK2Icon, haMountKaiAmg, radarIcon],
+		predAllOf(isMusashiK2),
+		withEquipmentMsts(
+			predAllOf(
+				hasSome( is10cmTwinHighAngleMountKaiAMG ),
+				hasSome( isAARadar ))
+		)
+	);
+
+	// api_kind 27 still unknown
+
+	// Ise-class Kai + Musashi Kai
+	declareAACI(
+		28, 4, 1.4,
+		[battleShipKaiIcon, aaGunK2RockeLaunIcon, radarIcon],
+		predAllOf(isBattleShipKai),
+		withEquipmentMsts(
+			predAllOf(
+				hasSome( is12cm30tubeRocketLauncherKai2 ),
+				hasSome( isAARadar ))
 		)
 	);
 
@@ -624,6 +699,8 @@ AntiAir: anti-air related calculations
 				hasSome( isCDMG ))
 		)
 	);
+	// api_kind 13 deprecated by devs
+	// might be Maya non-K2 biHaMount+CDMG+AirRadar +4 x1.35
 
 	// Isuzu K2
 	declareAACI(
@@ -688,7 +765,7 @@ AntiAir: anti-air related calculations
 		predAllOf(isKinuK2),
 		withEquipmentMsts(
 			predAllOf(
-				/* any HA with builtin AAFD will not work  */
+				/* any HA with builtin AAFD will not work */
 				predNot( hasSome( isBuiltinHighAngleMount )),
 				hasSome( isHighAngleMount ),
 				hasSome( isCDMG ))
@@ -726,13 +803,24 @@ AntiAir: anti-air related calculations
 	);
 
 	// UIT-25 / I-504
-	// https://docs.google.com/spreadsheets/d/1ljddcPvpEioGVU5yvd5GtPU7afRKPSnzFDEIBbFohh8
 	declareAACI(
 		23, 1, 1.05,
 		[uit25Icon, aaGunNotCdIcon],
 		predAnyOf(isUit25, isI504),
 		withEquipmentMsts(
 			hasSome( isAAGunNotCD )
+		)
+	);
+
+	// Tatsuta K2
+	declareAACI(
+		24, 3, 1.25,
+		[tatsutaK2Icon, haMountIcon, aaGunNotCdIcon],
+		predAllOf(isTatsutaK2),
+		withEquipmentMsts(
+			predAllOf(
+				hasSome( isHighAngleMount ),
+				hasSome( isAAGunNotCD ))
 		)
 	);
 
@@ -776,6 +864,10 @@ AntiAir: anti-air related calculations
 
 	// return: a list of sorted AACI objects order by effect desc,
 	//   as most effective AACI gets priority to be triggered.
+	// in-game, priority is based on kinds of conditions (in `if...return` flavor),
+	//   research about AACI priority for a ship:
+	//   https://docs.google.com/document/d/1XBrQgQsA_pM3fXsDDC7e1N5Xpr2p59kmvQbnY2UH0Ko
+	//   here still use the simple way via ordering by 'effect' since new AACI kinds not covered by investigations.
 	// param: AACI IDs from possibleAACIs functions
 	// param: a optional callback function to customize ordering
 	function sortedPossibleAaciList(aaciIds, sortCallback) {

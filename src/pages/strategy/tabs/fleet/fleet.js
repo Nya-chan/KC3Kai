@@ -311,6 +311,7 @@
 					if (!shipData || shipData.mst_id <= 0) return null;
 					var shipObj = {};
 					var masterData = KC3Master.ship(shipData.mst_id);
+					var slotnum = masterData.api_slot_num;
 					shipObj.id = shipData.mst_id;
 					shipObj.level = shipData.level;
 					shipObj.morale = shipData.morale;
@@ -328,8 +329,7 @@
 							ace: shipData.ace ? shipData.ace[i] : 0
 						} );
 					});
-
-					while (shipObj.equipments.length !== 5)
+					while (shipObj.equipments.length < Math.max(slotnum + 1, 5))
 						shipObj.equipments.push(null);
 
 					return shipObj;
@@ -388,18 +388,23 @@
 			// fleetBox.attr("id", "fleet_box"+index);
 			$(".fleet_name", fleetBox).text( kcFleet.name );
 
+			let maxSlots = 0;
 			$.each( kcFleet.ship(), function(ind, kcShip) {
 				self.showKCShip(fleetBox, kcShip, (ind + 1));
+				maxSlots = Math.max(maxSlots, kcShip.equipmentMaxCount(true));
 			});
+			$(".fleet_ships", fleetBox).addClass(`max_slot${maxSlots}`);
+			if(maxSlots > 6) $(".fleet_ships", fleetBox).addClass("max_slot6");
 
 			// Show fleet info
 			const fstats = kcFleet.totalStats(true);
 			$(".detail_level .detail_value", fleetBox).text( kcFleet.totalLevel() )
-				.attr("title", "{0}: {3}\n{1}: {4}\n{2}: {5}".format(
+				.attr("title", "{0}: {4}\n{1}: {5}\n{2}: {6}\n{3}: {7}".format(
+					KC3Meta.term("ExpedTotalFp"),
 					KC3Meta.term("ExpedTotalAa"),
 					KC3Meta.term("ExpedTotalAsw"),
 					KC3Meta.term("ExpedTotalLos"),
-					fstats.aa, fstats.as, fstats.ls)
+					fstats.fp, fstats.aa, fstats.as, fstats.ls)
 				);
 			$(".detail_los .detail_icon img", fleetBox).attr("src", "../../../../assets/img/stats/los"+ConfigManager.elosFormula+".png" );
 			$(".detail_los .detail_value", fleetBox).text( Math.qckInt("floor", kcFleet.eLoS(), 1) );
@@ -470,10 +475,11 @@
 				});
 			}
 
-			[0,1,2,3,4].forEach(index => {
+			$(".ship_gear > div", shipBox).hide();
+			kcShip.equipment(true).forEach((gear, index) => {
 				self.showKCGear(
 					$(".ship_gear_"+(index+1), shipBox),
-					kcShip.equipment(index),
+					gear,
 					kcShip.slots[index],
 					kcShip,
 					index
@@ -490,8 +496,9 @@
 			}
 			const masterData = kcGear.master();
 			const slotMaxSize = kcShip.master().api_maxeq[index];
+			const isExslot = index >= kcShip.slotnum;
 			// ex-slot capacity not implemented yet, no aircraft equippable
-			$(".slot_capacity", gearBox).text(index < 4 ? capacity : "-")
+			$(".slot_capacity", gearBox).text(isExslot ? "-" : capacity)
 				.removeClass("empty taiha chuuha shouha unused")
 				.addClass((percent => {
 					switch(true){
@@ -503,7 +510,7 @@
 						default: return "";
 					}
 				})(capacity / (slotMaxSize || 1)));
-			if(index >= 4 || KC3GearManager.carrierBasedAircraftType3Ids.indexOf(masterData.api_type[3]) < 0){
+			if(isExslot || KC3GearManager.carrierBasedAircraftType3Ids.indexOf(masterData.api_type[3]) < 0){
 				$(".slot_capacity", gearBox).addClass("unused");
 			}
 			$(".gear_icon img", gearBox).attr("src", "/assets/img/items/" + masterData.api_type[3] + ".png")
@@ -525,6 +532,7 @@
 			$(".gear_name", gearBox).attr("title",
 				kcGear.htmlTooltip(capacity, kcShip))
 				.lazyInitTooltip();
+			gearBox.toggleClass("ex_slot", isExslot).show();
 		},
 
 		createKCFleetObject: function(fleetObj) {
@@ -552,14 +560,16 @@
 
 				var equipmentObjectArr = [];
 				var masterData = KC3Master.ship( shipObj.id );
+				var slotnum = masterData.api_slot_num;
 				ship.rosterId = shipObj.rid || fleet.ships[ind];
 				ship.masterId = shipObj.id;
 				ship.level = shipObj.level;
 				ship.morale = shipObj.morale;
 
-				ship.items = [-1,-1,-1,-1];
+				ship.items = [-1,-1,-1,-1,-1];
 				ship.slots = masterData.api_maxeq;
 				ship.ex_item = 0;
+				ship.slotnum = slotnum;
 				ship.GearManager = {
 					get: function(ind) {
 						return equipmentObjectArr[ind-1] || new KC3Gear();
@@ -570,7 +580,7 @@
 					if (!equipment) return;
 					var gear = new KC3Gear();
 					equipmentObjectArr.push( gear );
-					if(ind >= 4)
+					if(ind >= 4 && ind >= ship.slotnum)
 						ship.ex_item = equipmentObjectArr.length;
 					else
 						ship.items[ind] = equipmentObjectArr.length;
@@ -612,11 +622,7 @@
 			var fleetsObj = [];
 
 			function convertEquipmentsOf(ship) {
-				var equipments = [];
-				$.each([0,1,2,3], function(_,ind) {
-					equipments.push( ship.equipment(ind) );
-				});
-				equipments.push( ship.exItem() );
+				var equipments = ship.equipment(true);
 
 				function convertEquipment(e) {
 					if (e.masterId === 0)

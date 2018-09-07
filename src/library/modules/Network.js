@@ -141,13 +141,6 @@ Listens to network history and triggers callback if game events happen
 							}
 							
 							thisRequest.process();
-							
-							// -- Kancolle DB Submission, post-process
-							if (ConfigManager.DBSubmission_enabled && DBSubmission.checkIfDataNeeded(request.request.url)){
-								request.getContent(function(content, encoding){
-									DBSubmission.submitData(request.request.url,request.request.postData, content);
-								});
-							}
 						}
 					});
 					request.getContent(function(x){
@@ -209,7 +202,8 @@ Listens to network history and triggers callback if game events happen
 			}
 			const soundPaths = http.request.url.split("/");
 			const voiceType = soundPaths[5];
-			if(voiceType === "titlecall") {
+			switch(voiceType) {
+			case "titlecall":
 				// console.debug("DETECTED titlecall sound");
 				(new RMsg("service", "subtitle", {
 					voicetype: "titlecall",
@@ -218,7 +212,19 @@ Listens to network history and triggers callback if game events happen
 					voiceNum: soundPaths[7].split(".")[0],
 					tabId: chrome.devtools.inspectedWindow.tabId
 				})).execute();
-			} else if(voiceType === "kc9998") {
+				break;
+			case "kc9997":
+				// console.debug("DETECTED Event special sound", soundPaths);
+				(new RMsg("service", "subtitle", {
+					voicetype: "event",
+					fullurl: http.request.url,
+					filename: "",
+					voiceNum: soundPaths[6].split(".")[0],
+					voiceSize: http.response.content.size || 0,
+					tabId: chrome.devtools.inspectedWindow.tabId
+				})).execute();
+				break;
+			case "kc9998":
 				// console.debug("DETECTED Abyssal sound", soundPaths);
 				(new RMsg("service", "subtitle", {
 					voicetype: "abyssal",
@@ -228,7 +234,8 @@ Listens to network history and triggers callback if game events happen
 					voiceSize: http.response.content.size || 0,
 					tabId: chrome.devtools.inspectedWindow.tabId
 				})).execute();
-			} else if(voiceType === "kc9999") {
+				break;
+			case "kc9999":
 				// console.debug("DETECTED NPC sound", soundPaths);
 				(new RMsg("service", "subtitle", {
 					voicetype: "npc",
@@ -237,7 +244,8 @@ Listens to network history and triggers callback if game events happen
 					voiceNum: soundPaths[6].split(".")[0],
 					tabId: chrome.devtools.inspectedWindow.tabId
 				})).execute();
-			} else {
+				break;
+			default:
 				// console.debug("DETECTED shipgirl sound");
 				const shipGirl = KC3Master.graph_file(soundPaths[5].substring(2));
 				const voiceLine = KC3Meta.getVoiceLineByFilename(shipGirl, soundPaths[6].split(".")[0]);

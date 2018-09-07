@@ -83,7 +83,7 @@
 			// land base bomber
 			"t37": "dv",
 			// interceptor
-			"t38": "aa",
+			"t38": "ht",
 			// jet bomber (keiun)
 			"t39": "dv",
 			// jet bomber (kikka)
@@ -100,6 +100,8 @@
 			"t45": "aa",
 			// night torpedo bomber
 			"t46": "tp",
+			// ASW land base bomber
+			"t47": "as",
 			// all types
 			"tall": "type",
 		},
