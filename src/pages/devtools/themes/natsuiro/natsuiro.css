@@ -1,6 +1,7 @@
 @charset "utf-8";
 
 /* GLOBAL
+------------------------------*/
 #factory {
 	display:none;
 }
@@ -246,7 +247,7 @@ html,body {
 
 .module.fleet {
     grid-column: 2;
-    grid-row: 1/2;
+    grid-row: 1/5;
 }
 
 
@@ -3954,49 +3955,8 @@ ABYSS FLEET
 /* VERTICAL LAYOUT
 ------------------------------*/
 .wrapper.v {
-	width:800px;
-	height:325px;
-}
-.v .module.admiral {
-	left:5px; top:5px;
-}
-.v .module.activity {
-	left:5px; top:65px;
-}
-.v .module.fleet {
-	left:205px; top:5px;
-}
-.v .module.controls {
-	width:240px;
-	height:66px;
-	left:555px; top:5px;
-}
-.v .module.controls .scrollable {
-	width:175px;
-}
-.v .module.summary {
-	width:240px;
-	height:46px;
-	left:555px; top:75px;
-}
-.v .module.status {
-	width:240px;
-	height:69px;
-	left:555px; top:125px;
-}
-.v .module.quests {
-	width:240px;
-	height:120px;
-	left:555px; top:200px;
-}
-.v .module.quests .quest {
-	width:240px;
-}
-.v .module.quests .quest_text {
-	width:170px;
-}
-.v .module.quests .untracked .quest_text {
-	width:210px;
+	width: 100%;
+	height: auto;
 }
 
 /* ANIMATIONS

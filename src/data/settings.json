@@ -1098,6 +1098,14 @@
 				}
 			},
 			{
+				"id" : "pan_responsive",
+				"name" : "SettingsPanelResponsive",
+				"type" : "check",
+				"options" : {
+					"tooltip" : "SettingsPanelResponsiveTip"
+				}
+			},
+			{
 				"id" : "pan_custom_css",
 				"name" : "SettingsPanelCustomCSS",
 				"type" : "textarea",
