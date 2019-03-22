@@ -232,6 +232,32 @@ Object.safePropertyPath = function(isGetProp, root, props) {
 	return isGetProp ? root : true;
 };
 
+/** Sum values in Objects with same properties */
+Object.sumValuesByKey = function(){
+	return Array.from(arguments).reduce(function(acc, o){
+		for(var k in o){
+			if(o.hasOwnProperty(k))
+				acc[k] = Number(acc[k] || 0) + Number(o[k]);
+		}
+		return acc;
+	}, {});
+};
+
+/** Swap the position of keys and values for a simple 1-1 mapping dictionary object */
+Object.swapMapKeyValue = function(map, isNumericKey){
+	if(typeof map !== "object") return map;
+	var result = {};
+	Object.keys(map).forEach(function(key){
+		// only simple value type can be stringified to the new key
+		var value = map[key];
+		if(typeof value !== "string" && typeof value !== "number")
+			value = String(value);
+		// key will be string by default, even it is number in original map,
+		// and duplicated key will simply overwrite old ones.
+		result[value] = !!isNumericKey ? Number(key) : key;
+	});
+	return result;
+};
 
 /* PRIMITIVE */
 /*******************************\
@@ -344,21 +370,27 @@ String.prototype.format = function(params) {
 
 /* SECONDS TO HH:MM:SS
 -------------------------------*/
-String.prototype.toHHMMSS = function () {
-	var sec_num = parseInt(this, 10); // don't forget the second param
+String.prototype.toHHMMSS = function (showDays) {
+	var sec_num = parseInt(this, 10);
 	var time;
 	if(isNaN(sec_num)) {
 		time = "--:--:--";
 	} else {
 		var isNeg   = sec_num < 0;
-
 		if(isNeg) sec_num = -sec_num;
-
+		var secsLeft = sec_num, days = 0;
 		var hours   = (Math.floor(sec_num / 3600)).toDigits(2);
-		var minutes = (Math.floor((sec_num - (hours * 3600)) / 60)).toDigits(2);
-		var seconds = (sec_num - (hours * 3600) - (minutes * 60)).toDigits(2);
-
-		time    = (isNeg ? "-" : "")+hours+':'+minutes+':'+seconds;
+		secsLeft    -= hours * 3600;
+		if(showDays) {
+			days    = Math.floor(sec_num / 86400);
+			hours   = (Math.floor((sec_num % 86400) / 3600)).toDigits(2);
+		}
+		var minutes = (Math.floor(secsLeft / 60)).toDigits(2);
+		secsLeft   -= minutes * 60;
+		var seconds = (secsLeft).toDigits(2);
+		time = (isNeg ? "-" : (showDays ? "+" : "")) +
+			(showDays ? days + " " : "") +
+			hours + ':' + minutes + ':' + seconds;
 	}
 	return time;
 };
@@ -634,19 +666,33 @@ Object.defineProperty(Array.prototype, "sumValues", {
 	}
 });
 
-/*******************************\
-|*** Object                     |
-\*******************************/
-/** Sum values in Objects with same properties */
-Object.sumValuesByKey = function(){
-	return Array.from(arguments).reduce(function(acc, o){
-		for(var k in o){
-			if(o.hasOwnProperty(k))
-				acc[k] = Number(acc[k] || 0) + Number(o[k]);
+Object.defineProperty(Array.prototype, "joinIfNeeded", {
+	enumerable: false,
+	/**
+	 * A convenient method to join Array elements with space if char between 2 elements are ascii.
+	 * @param separator - an optional string to use other separator instead of space.
+	 * @param testCallback - an optional function to test interfacing chars are ascii or not.
+	 */
+	value: function joinIfNeeded(separator, testCallback) {
+		separator = separator || " ";
+		testCallback = testCallback || function(prevStr, nextStr) {
+			var tailChar = String(prevStr).slice(-1).charCodeAt(0),
+				headChar = String(nextStr).charCodeAt(0);
+			return tailChar > 32 && tailChar < 256 && headChar > 32 && headChar < 256;
+		};
+		var thisArray = this, resultArray = [];
+		if(thisArray.length) {
+			if(thisArray.length === 1) resultArray.push(thisArray[0]);
+			thisArray.reduce(function(lastElm, thisElm, i) {
+				if(i === 1) resultArray.push(lastElm);
+				if(testCallback(lastElm, thisElm)) resultArray.push(separator);
+				resultArray.push(thisElm);
+				return thisElm;
+			});
 		}
-		return acc;
-	}, {});
-};
+		return resultArray.join("");
+	}
+});
 
 /*******************************\
 |*** Date                       |

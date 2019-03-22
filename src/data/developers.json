@@ -592,16 +592,35 @@
 				"links" : {
 					"gh" :"https://github.com/RandomGuyB5"
 				}
+			},
+			{
+				"name": "whitekiw",
+				"avatar" : "https://avatars2.githubusercontent.com/u/42760071?s=460&v=4",
+				"desc" : "한국어",
+				"active": 1,
+				"links" : {
+					"gh" : "https://github.com/whitekiw"
+				}
+			},
+			{
+				"name": "ShinDes",
+				"avatar" : "https://avatars3.githubusercontent.com/u/35944727?s=460&v=4",
+				"desc" : "Español",
+				"active": 1,
+				"links" : {
+					"gh" : "https://github.com/ShinHKPDes"
+				}
 			}
 		],
 		"AboutForkContributors": [
 			{
 				"name": "HitomaruKonpaku",
-				"avatar" : "https://avatars3.githubusercontent.com/u/9608105?v=4&s=460",
-				"desc" : "AboutDeveloper",
+				"avatar": "https://avatars3.githubusercontent.com/u/9608105?v=4&s=460",
+				"desc": "AboutDeveloper",
 				"active": 1,
-				"links" : {
-					"gh" :"https://github.com/HitomaruKonpaku"
+				"links": {
+					"gh": "https://github.com/HitomaruKonpaku",
+					"tw": "https://twitter.com/HitomaruKonpaku"
 				}
 			},
 			{
@@ -726,12 +745,12 @@
 				}
 			},
 			{
-				"name": "whitekiw",
-				"avatar" : "https://avatars2.githubusercontent.com/u/42760071?s=460&v=4",
+				"name": "MacBread",
+				"avatar" : "https://avatars1.githubusercontent.com/u/37400313?s=460&v=4",
 				"desc" : "한국어",
 				"active": 1,
 				"links" : {
-					"gh" : "https://github.com/whitekiw"
+					"gh" : "https://github.com/MacBread"
 				}
 			}
 		],

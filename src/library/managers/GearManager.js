@@ -35,7 +35,7 @@ Saves and loads list to and from localStorage
 		landBaseOtherSortieAmmoCostPerSlot: 0.62,
 		landBaseReconnMaxSlot: 4,
 		landBaseOtherMaxSlot: 18,
-		landBaseReconnType2Ids: [9,10,41],
+		landBaseReconnType2Ids: [9,10,41,49],
 		// Jet aircraft mechanism still in progress
 		jetAircraftType2Ids: [56,57,58,59],
 		jetBomberSteelCostRatioPerSlot: 0.2,
@@ -44,27 +44,27 @@ Saves and loads list to and from localStorage
 		// Daihatsu landing craft anti-installation power modifiers per types and improvements
 		// Array format is [t2Bonus, t89Bonus, normalBonus, shikonBonus, tokuBonus]
 		landingCraftModifiers: {
-			// Soft-skinned (currently only Shikon 11th tank)
+			// Soft-skinned
 			0: {
-				modifier: [1,1,1,1.39,1],
-				improvement: [0,0,0,0,0]
+				modifier: [1.5,2.1,1,2.82,1],
+				improvement: [0.03,0,0,0,0]
 			},
 			// Artillery Imp
 			1: {
-				modifier: [2.4,2.15,1.8,2.97,2.05],
+				modifier: [2.4,2.15,1.8,2.2,2.05],
 				improvement: [0.08,0.043,0.0036,0,0],
 			},
 			// Isolated Island Princess
 			2: {
-				modifier: [2.4,2.15,1.8,2.97,1],
+				modifier: [2.4,2.15,1.8,2.2,1],
 				improvement: [0.08,0.043,0.0036,0,0],
 			},
 			// Supply Depot Princess (no info on Daihatsu improvement)
 			3: {
-				modifier: [1.7,1.3,1,3.52,1],
+				modifier: [1.7,1.3,1.65,3.5,1],
 				improvement: [0.051,0.026,0,0,0],
 			},
-			// Summer Harbor Princess Damaged Form (no info on Shikon 11th tank)
+			// Summer Harbor Princess (no info on Shikon 11th tank)
 			4: {
 				modifier: [2.8,3.7,1.8,1,1],
 				improvement: [0.093,0.074,0.036,0,0],

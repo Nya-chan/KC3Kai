@@ -39,11 +39,18 @@
 
 		 */
 
-		fleetsObjToDeckBuilder: function(fleetsObj) {
+		fleetsObjToDeckBuilder: function(fleetsObj, isImgBuilder = false) {
 			var self = this;
 			var dBuilder = {
-				version: 4
+				version: 4,
+				hqlv: PlayerManager.hq.level
 			};
+			if(isImgBuilder) {
+				dBuilder.theme = ConfigManager.sr_theme;
+				if(["kr", "jp", "en", "scn", "tcn"].includes(ConfigManager.language)) {
+					dBuilder.lang = ConfigManager.language;
+				}
+			}
 
 			fleetsObj
 				.map( self.createKCFleetObject )
@@ -151,6 +158,13 @@
 				var converted = self.fleetsObjToDeckBuilder( self.currentFleetsObj );
 				console.log( "JSON to be exported", JSON.stringify( converted ) );
 				window.open("http://www.kancolle-calc.net/deckbuilder.html?predeck="+
+							encodeURI( JSON.stringify( converted )));
+			});
+
+			$("button#control_export_imgkcbuilder").on("click", function() {
+				var converted = self.fleetsObjToDeckBuilder( self.currentFleetsObj, true );
+				console.log( "JSON to be exported", JSON.stringify( converted ) );
+				window.open("https://www.nishikuma.net/ImgKCbuilder/?predeck="+
 							encodeURI( JSON.stringify( converted )));
 			});
 
@@ -413,9 +427,15 @@
 			$(".detail_los .detail_icon img", fleetBox).attr("src", "/assets/img/stats/los"+ConfigManager.elosFormula+".png" );
 			$(".detail_los .detail_value", fleetBox).text( Math.qckInt("floor", kcFleet.eLoS(), 1) );
 			if(ConfigManager.elosFormula > 1) {
-				const f33Cn = Array.numbers(1, 5).map(cn => Math.qckInt("floor", kcFleet.eLos4(cn), 1));
+				const f33CnHq4 = Array.numbers(1, 5).map(cn =>
+					Math.qckInt("floor", kcFleet.eLos4(cn), 1).toLocaleString(undefined, KC3Meta.formatDecimalOptions(1, false)
+				));
+				const f33CnHq3 = Array.numbers(1, 5).map(cn =>
+					Math.qckInt("floor", kcFleet.eLos4(cn, 0.35), 1).toLocaleString(undefined, KC3Meta.formatDecimalOptions(1, false)
+				));
 				$(".detail_los .detail_value", fleetBox).attr("title",
-					"Cn1: {0}\nCn3: {1}\nCn4: {2}".format(f33Cn[0], f33Cn[2], f33Cn[3]));
+					"HLv: x0.4\tx0.35\nCn1: {0}\t{5}\nCn2: {1}\t{6}\nCn3: {2}\t{7}\nCn4: {3}\t{8}\nCn5: {4}\t{9}".format(f33CnHq4.concat(f33CnHq3))
+				);
 			} else {
 				$(".detail_los .detail_value").attr("title", "");
 			}
@@ -423,8 +443,10 @@
 				.attr("title", KC3Calc.buildFleetsAirstrikePowerText(kcFleet)
 					+ KC3Calc.buildFleetsContactChanceText(kcFleet));
 			$(".detail_antiair .detail_value", fleetBox).text( kcFleet.adjustedAntiAir(ConfigManager.aaFormation) )
-				.attr("title", "Line-Ahead: {0}\nDouble-Line: {1}\nDiamond: {2}"
-					.format(kcFleet.adjustedAntiAir(1), kcFleet.adjustedAntiAir(2), kcFleet.adjustedAntiAir(3))
+				.attr("title", "{0}: {3}\n{1}: {4}\n{2}: {5}".format(
+						KC3Meta.formationText(1), KC3Meta.formationText(2), KC3Meta.formationText(3),
+						kcFleet.adjustedAntiAir(1), kcFleet.adjustedAntiAir(2), kcFleet.adjustedAntiAir(3)
+					)
 				);
 			$(".detail_speed .detail_value", fleetBox).text( kcFleet.speed() );
 			$(".detail_support .detail_value", fleetBox).text( kcFleet.supportPower() );
@@ -660,7 +682,7 @@
 				// no value in master data, fall back to calculated naked + equip total
 				ship.ls[0] = shipObj.ls || ((noMasterStats.ls || ship.estimateNakedLoS()) + ship.equipmentTotalLoS());
 				ship.ev[0] = shipObj.ev || ((noMasterStats.ev || ship.estimateNakedEvasion()) + ship.equipmentTotalStats("houk"));
-				ship.as[0] = shipObj.as || ((noMasterStats.as || ship.estimateNakedAsw()) + ship.equipmentTotalStats("tais"));
+				ship.as[0] = shipObj.as || ((noMasterStats.as || ship.estimateNakedAsw()) + ship.equipmentTotalStats("tais") + (mod[6] || 0));
 
 				// just fall back to master data, to avoid recompute ship speed by updating a table about speed up ship classes
 				ship.speed = shipObj.sp || noMasterStats.sp || masterData.api_soku;

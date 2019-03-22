@@ -12,7 +12,7 @@
         init() {
             this.defineSorters();
             this.showListRowCallback = this.showShipLockingRow;
-            this.lockLimit = 5;
+            this.lockLimit = 4;
             this.heartLockMode = 2;
             this.showShipLevel = true;
         }
@@ -108,11 +108,15 @@
             tagColors.forEach((color, i) => {
                 this.setStyleVar(`--lockColor${i + 1}`, color);
             });
+            // try to auto adjust lock mode box width and margin
+            this.setStyleVar(`--lockModeWidth`, ([0, 0, 0, 0, 160, 130, 100][this.lockLimit] || 160) + "px");
+            this.setStyleVar(`--lockMarginRight`, ([0, 0, 0, 0, 10, 6, 15][this.lockLimit] || 10) + "px");
         }
 
         adjustHeight() {
             this.setStyleVar("--shipListOffsetTop",
                 $(".ship_list", this.tab).offset().top + "px");
+            this.updateLockCount();
         }
 
         mapShipLockingStatus(shipObj) {
@@ -172,6 +176,7 @@
                 });
                 this.lockPlans[tag] = shipIds.filter(id => id !== undefined);
             });
+            this.updateLockCount();
         }
 
         defineSorters() {
@@ -387,10 +392,17 @@
         }
 
         loadShipLockPlan() {
-            if (localStorage.lock_plan !== undefined)
+            if (localStorage.lock_plan !== undefined) {
                 this.lockPlans = JSON.parse(localStorage.lock_plan);
-            else
+                // Add insufficient & remove overflow, guarantee = `this.lockLimit`
+                while (this.lockPlans.length < this.lockLimit) {
+                    this.lockPlans.push([]);
+                }
+                if (this.lockPlans.length > this.lockLimit)
+                    this.lockPlans.length = this.lockLimit;
+            } else {
                 this.resetShipLockPlan();
+            }
         }
 
         resetShipLockPlan() {
@@ -491,6 +503,15 @@
                 .text("").addClass("lock_mode_" + (newLockPlan + 1));
             ship.lockPlan = newLockPlan;
         }
+
+        updateLockCount() {
+            $(".lock_mode").each((_, lock) => {
+                const total = $(".ships_area > .lship", lock).length;
+                const planned = $(".ships_area > .lship.plannedlock", lock).length;
+                $(".ship_count", lock).text("{0} /{1}".format(planned, total));
+            });
+        }
+
     }
 
     KC3StrategyTabs.locking = new KC3StrategyTab("locking");

@@ -785,7 +785,7 @@
 				// Show ships on main fleet
 				$.each(MainFleet.ships, function(index, rosterId){
 					if(rosterId > -1){
-						(new KC3NatsuiroShipbox(".sship", rosterId))
+						(new KC3PlainShipbox(".sship", rosterId))
 							.commonElements()
 							.defineShort( MainFleet )
 							.appendTo(".module.fleet .shiplist_main");
@@ -795,7 +795,7 @@
 				// Show ships on escort fleet
 				$.each(EscortFleet.ships, function(index, rosterId){
 					if(rosterId > -1){
-						(new KC3NatsuiroShipbox(".sship", rosterId))
+						(new KC3PlainShipbox(".sship", rosterId))
 							.commonElements()
 							.defineShort( EscortFleet )
 							.appendTo(".module.fleet .shiplist_escort");
@@ -850,7 +850,7 @@
 				// Show ships on selected fleet
 				$.each(CurrentFleet.ships, function(index, rosterId){
 					if(rosterId > -1){
-						(new KC3NatsuiroShipbox(".lship", rosterId))
+						(new KC3PlainShipbox(".lship", rosterId))
 							.commonElements()
 							.defineLong( CurrentFleet )
 							.toggleClass("seven", CurrentFleet.countShips() >= 7)
@@ -1102,7 +1102,7 @@
 			
 			// Show world map and difficulty
 			$(".module.activity .map_world").text(
-				(KC3SortieManager.map_world>10 ? 'E' : KC3SortieManager.map_world)
+				(KC3Meta.isEventWorld(KC3SortieManager.map_world) ? 'E' : KC3SortieManager.map_world)
 				+"-"
 				+KC3SortieManager.map_num
 				+ ((KC3SortieManager.map_world >= 41)
@@ -1112,7 +1112,7 @@
 					  KC3Meta.term("EventRankNormalAbbr"),
 					  KC3Meta.term("EventRankHardAbbr") ]
 					[ KC3SortieManager.map_difficulty ]
-					: (KC3SortieManager.map_world >= 10)
+					: KC3Meta.isEventWorld(KC3SortieManager.map_world)
 					? [ "",
 					  KC3Meta.term("EventRankEasyAbbr"),
 					  KC3Meta.term("EventRankNormalAbbr"),
@@ -1137,7 +1137,7 @@
 						
 					// If kill-based gauge
 					}else{
-						var totalKills = KC3Meta.gauge( thisMapId.replace("m","") );
+						var totalKills = thisMap.killsRequired || KC3Meta.gauge( thisMapId.replace("m","") );
 						//console.debug("wm", KC3SortieManager.map_world, KC3SortieManager.map_num);
 						//console.debug("thisMapId", thisMapId);
 						//console.debug("totalKills", totalKills);

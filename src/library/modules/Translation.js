@@ -220,8 +220,18 @@
 			"Repair" : 6,
 			"Yasen(3)" : 917,
 			"Yasen(4)" : 918,
-			"FriendSupport" : 141,
-			"FriendSupport(2)" : 241,
+			"SpCutin" : 900,
+			"SpCCutin(1)" : 901,
+			"SpCCutin(2)" : 902,
+			"SpCCutin(3)" : 903,
+			"Friend41(1)" : 141,
+			"Friend41(2)" : 241,
+			"Friend42(1)" : 142,
+			"Friend42(2)" : 242,
+			"Friend42(3)" : 342,
+			"Friend43(1)" : 143,
+			"Friend43(2)" : 243,
+			"Friend43(3)" : 343,
 
 			"H0000":30, "H0100":31, "H0200":32, "H0300":33,
 			"H0400":34, "H0500":35, "H0600":36, "H0700":37,
@@ -241,17 +251,15 @@
 		// numeric voice key to descriptive one
 		voiceNumToDesc: function(k) {
 			if(!this._idToDesc) {
-				this._idToDesc = Object.keys(this._descToId).reduce(
-					(o, k) => Object.assign({}, o, { [this._descToId[k]]:k }), {}
-				);
+				this._idToDesc = Object.swapMapKeyValue(this._descToId);
 			}
 			return this._idToDesc[k] || "";
 		},
 
-		// get available ship voice numbers by checking 
+		// get available ship voice numbers by checking
 		// voice flag of a ship.
 		// the result is sorted.
-		getShipVoiceNums: function(masterId, includeHourlies = true, includeRepair = true) {
+		getShipVoiceNums: function(masterId, includeHourlies = true, includeRepair = true, includeFriend = false) {
 			var sortedVoiceNums = [
 				1,25,2,3,4,28,24,8,13,9,10,26,27,11,
 				12,5,7,14,15,16,18,17,23,19,20,21,22,
@@ -272,12 +280,28 @@
 			if (includeRepair && KC3Meta.specialReairVoiceShips.indexOf(masterId) > -1)
 				sortedVoiceNums.push(6);
 
+			// add special cut-in (Nelson Touch, Nagato/Mutsu Cutin) key
+			if (KC3Meta.specialCutinIds.indexOf(masterId) > -1)
+				sortedVoiceNums.push(900);
+			// add special cut-in voice keys for Nagato class combination
+			// when Nagato cutin, 902 for combined with Kai Ni, 901 for base remodel and Kai, 903 for Nelson
+			if (KC3Meta.nagatoCutinShips.indexOf(masterId) > -1)
+				sortedVoiceNums.push(901, 902, 903);
+			// when Mutsu cutin,  902 for combined with Kai Ni, 901 for base remodel and Kai, no 903
+			if (KC3Meta.mutsuCutinShips.indexOf(masterId) > -1)
+				sortedVoiceNums.push(901, 902);
+
 			if (includeHourlies && KC3Meta.shipHasHourlyVoices(masterId))
 				sortedVoiceNums = sortedVoiceNums.concat(hourlyNums);
 
+			// add special keys (Graf Zeppelin)
 			if (KC3Meta.specialShipVoices[masterId]){
 				sortedVoiceNums = sortedVoiceNums.concat(Object.keys(KC3Meta.specialShipVoices[masterId]));
 			}
+
+			// add known friend support keys (last 2 digits seem be event world id)
+			if (includeFriend)
+				sortedVoiceNums.push(...[141, 241, 142, 242, 342, 143, 243, 343]);
 
 			return sortedVoiceNums;
 		},
@@ -482,7 +506,9 @@
 		},
 		
 		/**
-		 * @return the IANA standard (ISO-639) locale tag according our language code
+		 * @return the IANA standard (ISO-639) locale tag according our language code.
+		 * @see ConfigManager#detectBrowserLanguage - for all language codes we supported.
+		 * @see kc3-translation repo all subfolders in `data`.
 		 */
 		getLocale :function(languageCode = ConfigManager.language){
 			// Since some of our language codes are not standard such as JP, KR, SCN, TCN.

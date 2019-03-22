@@ -64,7 +64,7 @@
 				$("<option />").attr("value", 0).text("Select a {0}...".format(isMap ? "map" : "world"))
 			);
 			$(".map_switcher .difficulty").removeClass("active");
-			if(isMap && this.isEventWorld(worldId)) {
+			if(isMap && KC3Meta.isEventWorld(worldId)) {
 				$(".map_switcher .difficulty." + (worldId >= 41 ? "newSet" : "newSet")).addClass("active");
 			}
 			$.each(this.maps, (_, map) => {
@@ -83,10 +83,10 @@
 			const world = String(mapId).slice(0, -1);
 			const map = String(mapId).slice(-1);
 			const value = isMap ? map : world;
-			const descFunc = isMap ? this.mapToDesc : this.worldToDesc;
+			const descFunc = isMap ? KC3Meta.mapToDesc : KC3Meta.worldToDesc;
 			if($(`option[value=${value}]`, list).length === 0) {
 				list.append(
-					$("<option />").attr("value", value).text(descFunc.call(this, world, map))
+					$("<option />").attr("value", value).text(descFunc.call(KC3Meta, world, map))
 				);
 			}
 		},
@@ -123,36 +123,10 @@
 			});
 		},
 		
-		isEventWorld: function(worldId) {
-			return worldId >= 10;
-		},
-		
 		isLbasSortieMap: function(world, map) {
 			return world === 6 && [4, 5].includes(map) ||
 				(world >= 41 && (this.maps[['m', world, map].join('')] || {}).airBase) ||
-				this.isEventWorld(world);
-		},
-		
-		worldToDesc: function(world) {
-			world = Number(world);
-			if(this.isEventWorld(world)) {
-				const eventMapDefs = {
-					seasons : ["Winter", "Spring", "Summer", "Fall"],
-					fromId : 21,
-					fromYear : 2013
-				}, period = eventMapDefs.seasons.length,
-				worldIndex = world - eventMapDefs.fromId,
-				season = eventMapDefs.seasons[worldIndex % period],
-				year = eventMapDefs.fromYear + Math.floor(worldIndex / period);
-				return KC3Meta.term("MapNameEventWorld").format(
-					KC3Meta.term("MapNameEventSeason" + season), year);
-			} else {
-				return KC3Meta.term("MapNameWorld" + world);
-			}
-		},
-		
-		mapToDesc: function(world, map) {
-			return this.isEventWorld(world) ? "E-" + map : [world, map].join("-");
+				KC3Meta.isEventWorld(world);
 		},
 		
 		showMapEncounters: function(world, map, diff) {
@@ -211,27 +185,36 @@
 					}
 					// Check node box
 					const nodeLetter = KC3Meta.nodeLetter(encounter.world, encounter.map, encounter.node);
-					const nodeName = encounter.name || "";
-					curBox = $("#encounter-" + mapName + " .node-" + nodeLetter);
+					const nodeName = encounter.name ||
+						(nodeLetter === KC3Meta.getAirBaseFakeEdge(true) ? "Land-Base Air Raid" : "");
+					let curNodeHead = $("#encounter-" + mapName + " .node-" + nodeLetter);
+					curBox = curNodeHead;
 					if(!curBox.length) {
 						curBox = $(".tab_encounters .factory .encounter_node").clone();
 						curBox.addClass("node-" + nodeLetter);
 						$(".encounter_node_head", curBox).text("Node {0} {1}".format(nodeLetter, nodeName));
 						curBox.appendTo("#encounter-" + mapName + " .encounter_world_body");
+						curNodeHead = curBox;
+						curNodeHead.data("sumBaseExp", 0).data("sumExpCount", 0)
+							.data("edgesCount", 0).data("patternsCount", 0).data("totalCount", 0);
 					} else if(!!nodeName) {
 						// Update node name only if node duplicated by multi edges
 						$(".encounter_node_head", curBox).text("Node {0} {1}".format(nodeLetter, nodeName));
 					}
 					// Check formation and ships box
 					const curNodeBody = $("#encounter-" + mapName + " .node-" + nodeLetter + " .encounter_node_body");
-					const keSafe = encounter.ke.replace(/[\[\]\"\'\{\}]/g,"").replace(/[,:]/g,"_");
-					curBox = $(".formke-" + encounter.form + keSafe, curNodeBody);
+					const keSafe = encounter.ke.replace(/[\[\]\"\'\{\}]/g,"").replace(/[,:]/g, "_");
+					const formationUniqueClass = ["formke", encounter.form, keSafe].join("-");
+					curBox = $("." + formationUniqueClass, curNodeBody);
 					if(!curBox.length) {
 						// Clone record box
 						curBox = $(".tab_encounters .factory .encounter_record").clone();
-						curBox.addClass("formke-" + encounter.form + keSafe);
+						curBox.addClass(formationUniqueClass);
 						curBox.data("count", encounter.count || 1);
 						curBox.data("nodeName", nodeName);
+						curNodeHead.data("totalCount", (encounter.count || 1) + curNodeHead.data("totalCount"));
+						curNodeHead.data("edgesCount", 1 + curNodeHead.data("edgesCount"));
+						curNodeHead.data("patternsCount", 1 + curNodeHead.data("patternsCount"));
 						curBox.appendTo(curNodeBody);
 						$(".encounter_formation img", curBox).attr("src", KC3Meta.formationIcon(encounter.form));
 						shipList = JSON.parse(encounter.ke || "[]");
@@ -260,6 +243,8 @@
 						shipList = JSON.parse(encounter.ke || "[]");
 						// Update count only if more edges lead to the same node
 						curBox.data("count", (encounter.count || 1) + curBox.data("count"));
+						curNodeHead.data("totalCount", (encounter.count || 1) + curNodeHead.data("totalCount"));
+						curNodeHead.data("edgesCount", 1 + curNodeHead.data("edgesCount"));
 						if(!!nodeName && curBox.data("nodeName") !== nodeName) {
 							curBox.data("nodeName", "{0}/{1}".format(curBox.data("nodeName"), nodeName));
 						}
@@ -268,6 +253,8 @@
 					tooltip += "\n{0}".format(KC3Meta.formationText(encounter.form));
 					if(encounter.exp) {
 						tooltip += "\n{0}: {1}".format(KC3Meta.term("PvpBaseExp"), encounter.exp);
+						curNodeHead.data("sumBaseExp", encounter.exp + curNodeHead.data("sumBaseExp"));
+						curNodeHead.data("sumExpCount", 1 + curNodeHead.data("sumExpCount"));
 					}
 					const fpArr = KC3Calc.enemyFighterPower(shipList);
 					const ap = fpArr[0], recons = fpArr[3];
@@ -281,6 +268,25 @@
 							.format(KC3Calc.fighterPowerIntervals(lbasAp));
 					}
 					$(".encounter_formation", curBox).attr("title", tooltip);
+					const baseExpSum = Number(curNodeHead.data("sumBaseExp"));
+					const baseExpCount = Number(curNodeHead.data("sumExpCount"));
+					if(baseExpCount) {
+						const avgBaseExp = Math.qckInt("round", baseExpSum / baseExpCount, 1);
+						$(".encounter_node_head", curNodeHead).attr("title",
+							("Recorded Encounters: {0}" +
+							"\n\u2003{1} patterns /{2} edges /{3} exp gains" +
+							"\nAverage Base Exp: {4}").format(
+								curNodeHead.data("totalCount"),
+								curNodeHead.data("patternsCount"),
+								curNodeHead.data("edgesCount"),
+								baseExpCount, avgBaseExp
+							)
+						);
+					} else {
+						$(".encounter_node_head", curNodeHead).attr("title",
+							"Recorded Encounters: {0}".format(curNodeHead.data("totalCount"))
+						);
+					}
 				});
 				
 				$(".loading").hide();

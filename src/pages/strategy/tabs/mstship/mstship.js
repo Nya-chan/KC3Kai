@@ -136,7 +136,7 @@
 					$(".tab_mstship .shipInfo .subtitles").html("This voice is currently disabled to be replayable in KC3Kai");
 					return true;
 				}
-				var shipVersions = KC3Master.graph(self.currentShipId).api_version;
+				var shipVersions = KC3Master.graph(self.currentShipId).api_version || [];
 				var isPortVoices = vnum >= 2 && vnum <= 4;
 				// 0: ship card version, 1: voice version, 2: poke voice version?
 				var soundVersion = shipVersions[isPortVoices ? 2 : 1] || 1;
@@ -249,6 +249,11 @@
 				}
 			});
 			
+			// View all CG types
+			$(".tab_mstship .shipInfo .type").on("click", function(e){
+				self.showShip(self.currentShipId, false, false, true);
+			});
+			
 			// Link to quotes developer page
 			if(ConfigManager.devOnlyPages){
 				$(".tab_mstship .shipInfo").on("click", ".to-quotes", function(e){
@@ -326,7 +331,7 @@
 			shipList.scrollTop(scrollTop);
 		},
 
-		showShip :function(ship_id, switchDamagedGraph = false, switchCgView = false){
+		showShip :function(ship_id, switchDamagedGraph, switchCgView, switchAllGraphs){
 			ship_id = Number(ship_id || "405");
 			const self = this,
 				shipData = this.mergedMasterShips[ship_id],
@@ -352,6 +357,7 @@
 			if(switchCgView) this.tryBigMode = !this.tryBigMode;
 			const viewCgMode = !!this.tryBigMode;
 			const tryDamagedGraph = !!this.tryDamaged;
+			const showAllGraphs = switchAllGraphs && !$(".tab_mstship .shipInfo .basic .cglist").length;
 			this.currentShipId = ship_id;
 
 			console.debug("Viewing shipData", shipData);
@@ -386,7 +392,7 @@
 			// CG VIEWER
 			var shipFile = KC3Master.graph(ship_id).api_filename;
 			// Changed to an Array from 2016-04-01
-			var shipVersions = KC3Master.graph(ship_id).api_version;
+			var shipVersions = KC3Master.graph(ship_id).api_version || [];
 			//console.debug("shipgraph.api_version", shipVersions);
 			this.currentGraph = shipFile;
 			this.currentCardVersion = shipVersions[0];
@@ -422,26 +428,89 @@
 			if(this.currentCardVersion) kcs2Src += `?version=${this.currentCardVersion}`;
 			
 			if(this.croppie) this.croppie.croppie("destroy");
-			setTimeout(() => {
-				if(this.currentShipId !== ship_id) return;
-				const cgswf = $(".tab_mstship .shipInfo .cgswf");
-				this.croppie = $(".tab_mstship .shipInfo .cgswf .image").croppie({
-					boundary: { width: cgswf.width(), height: cgswf.height() },
-					viewport: KC3Master.isAbyssalShip(ship_id) ?
-						{ width: 234, height: 200, type: "square" } :
-						{ width: 218, height: 300, type: "square" },
-					showZoomer: false,
+			if(showAllGraphs){
+				$(".tab_mstship .shipInfo .cgswf").hide();
+				const cgList = $('<div class="cglist"></div>').appendTo(".tab_mstship .shipInfo .basic");
+				// To avoid loading seasonal image types not existed,
+				// see `ShipLoader.prototype.getSpecificAlbumImageLoadList`
+				const isSpecificAlbumTypes = [754, 755, 984, 997, 1003, 1004,
+					1005, 1006, 1007, 1008, 1009, 1010, 1011, 1012, 1013,
+					1014, 1015, 1016, 1017, 1018, 1019, 1020, 1021, 1022,
+					1023, 1024, 1025, 1026, 1027, 1028, 1029, 1030, 1031,
+					1032, 1033, 1034, 1085].includes(ship_id);
+				const availableTypes = KC3Master.isSeasonalShip(ship_id) ?
+					isSpecificAlbumTypes ? ['character_full', 'character_up'] : [
+						'card', 'character_full', 'character_full_dmg',
+						'character_up', 'character_up_dmg'
+					] : KC3Master.isAbyssalShip(ship_id) ?
+					KC3Meta.abyssShipBorderClass(shipData) === "boss" ? [
+						'banner', 'banner_dmg', 'banner_g_dmg',
+						'full', 'full_dmg',
+						'banner_d', 'full_d'
+						// also exists: 'banner_g_d', 'full_dmg_d'...
+					] : [
+						'banner', 'banner_dmg', 'banner_g_dmg',
+						'full', 'full_dmg'
+						// some exists: 'banner3', 'banner3_g_dmg'
+					] : ['card', 'card_dmg',
+						'banner', 'banner_dmg', 'banner_g_dmg',
+						'banner2', 'banner2_dmg', 'banner2_g_dmg',
+						'full', 'full_dmg',
+						'character_full', 'character_full_dmg',
+						'character_up', 'character_up_dmg',
+						'remodel', 'remodel_dmg',
+						'supply_character', 'supply_character_dmg',
+						'album_status'
+					];
+				// Special cut-in (Nelson Touch, Nagato/Mutsu Cutin) special type
+				if(KC3Meta.specialCutinIds.includes(ship_id)) availableTypes.push("special");
+				const imageErrorHandler = function(e) {
+					$(this).unbind("error");
+					// Hide optional debuffed abyssal boss alt lines,
+					// since damaged boss state can be only determined via battle API `api_xal01` property.
+					if($(this).attr("title").endsWith("_d")) $(this).hide();
+				};
+				availableTypes.forEach(type => {
+					// Old suffix for debuffed boss CG used still, see `ShipLoader.hasai` & `hSuffix()`
+					const isDebuffedBoss = type.endsWith("_d"),
+						isDamaged = type.endsWith("_dmg"),
+						qualifiedType = isDebuffedBoss ? type.slice(0, -2) :
+							isDamaged ? type.slice(0, -4) : type;
+					const img = $("<img />"),
+						imgUri = KC3Master.png_file(ship_id, qualifiedType, "ship", isDamaged,
+							isDebuffedBoss ? this.damagedBossFileSuffix : "");
+					const url = `http://${this.server_ip}/kcs2/resources${imgUri}`
+						+ (this.currentCardVersion ? `?version=${this.currentCardVersion}` : "");
+					img.attr("src", url).attr("alt", imgUri).attr("title", type)
+						.css("max-width", "100%")
+						.error(imageErrorHandler)
+						.appendTo(cgList);
+					cgList.append('<div class="clear"></div>');
 				});
-				$(".tab_mstship .shipInfo .cgswf .cr-viewport").css("border", "none")
-					.css("box-shadow", "none");
-				$(".tab_mstship .shipInfo .cgswf .cr-image").attr("alt", "Loading");
-				this.croppie.croppie("bind", {
-					url: KC3Meta.isAF() && ship_id == KC3Meta.getAF(4) ? KC3Meta.getAF(3).format("bk") : kcs2Src,
-					zoom: cgswf.attr("scale"),
-				}).catch(err => {
-					$(".tab_mstship .shipInfo .cgswf .cr-image").attr("alt", "ERROR: failed to load image");
-				});
-			}, 0);
+			} else {
+				$(".tab_mstship .shipInfo .basic .cglist").remove();
+				setTimeout(() => {
+					if(this.currentShipId !== ship_id) return;
+					const cgswf = $(".tab_mstship .shipInfo .cgswf").show();
+					this.croppie = $(".tab_mstship .shipInfo .cgswf .image").croppie({
+						boundary: { width: cgswf.width(), height: cgswf.height() },
+						viewport: KC3Master.isAbyssalShip(ship_id) ?
+							{ width: 234, height: 200, type: "square" } :
+							{ width: 218, height: 300, type: "square" },
+						showZoomer: false,
+					});
+					if(!cgswf.length || !this.croppie.length) return;
+					$(".tab_mstship .shipInfo .cgswf .cr-viewport").css("border", "none")
+						.css("box-shadow", "none");
+					$(".tab_mstship .shipInfo .cgswf .cr-image").attr("alt", "Loading");
+					this.croppie.croppie("bind", {
+						url: KC3Meta.isAF() && ship_id == KC3Meta.getAF(4) ? KC3Meta.getAF(3).format("bk") : kcs2Src,
+						zoom: cgswf.attr("scale"),
+					}).catch(err => {
+						$(".tab_mstship .shipInfo .cgswf .cr-image").attr("alt", "ERROR: failed to load image");
+					});
+				}, 0);
+			}
 			
 			$(".tab_mstship .shipInfo .salty-zone").text(KC3Meta.term(denyTerm()));
 			$(".tab_mstship .shipInfo .hourlies").empty();
@@ -449,7 +518,7 @@
 			saltClassUpdate();
 			
 			var statBox;
-			if(KC3Master.isRegularShip(ship_id) && !viewCgMode){
+			if(KC3Master.isRegularShip(ship_id) && !viewCgMode && !showAllGraphs){
 				// Ship-only, non abyssal
 				$(".tab_mstship .shipInfo .stats").empty();
 				$(".tab_mstship .shipInfo .stats").css("width", "");
@@ -803,6 +872,7 @@
 						const gearObj = KC3Master.slotitem(itemId);
 						$(".gearName", gunfitBox).text(
 							"[{0}] {1}".format(itemId, KC3Meta.gearName(gearObj.api_name))
+						).attr("title", KC3Meta.gearName(gearObj.api_name)
 						).data("id", itemId).on("click", gearClickFunc).addClass("hover");
 						
 						if (gunfitObj.unknown === true) {
@@ -840,7 +910,7 @@
 					$(".tab_mstship .shipInfo .tokubest .to-quotes").show();
 				else
 					$(".tab_mstship .shipInfo .tokubest .to-quotes").hide();
-			} else if (KC3Master.isAbyssalShip(ship_id)) {
+			} else if (KC3Master.isAbyssalShip(ship_id) && !showAllGraphs) {
 				// Abyssal, show larger CG viewer
 				$(".tab_mstship .shipInfo .stats").hide();
 				$(".tab_mstship .shipInfo .equipments").hide();
@@ -969,7 +1039,7 @@
 				$(".tab_mstship .shipInfo .subtitles").hide();
 				$(".tab_mstship .shipInfo .cgswf")
 					.css("width", "100%").css("height", "600px")
-					.attr("scale", KC3Master.isSeasonalShip(ship_id) ? 1 : 600 / 1300);
+					.attr("scale", KC3Master.isSeasonalShip(ship_id) ? 600 / 645 : 600 / 1300);
 				
 				$(".tab_mstship .shipInfo .voices").hide();
 				$(".tab_mstship .shipInfo .hourlies").hide();

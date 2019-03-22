@@ -10,6 +10,8 @@
 		newCgs: [],
 		archivedCgs: [],
 		myServerIp: "",
+		listedShipId: 1,
+		shipsPerPage: 18,
 		
 		/* INIT
 		Prepares all data needed
@@ -28,6 +30,7 @@
 			this.newGears.length = 0;
 			this.newCgs.length = 0;
 			this.archivedCgs.length = 0;
+			this.listedShipId = 1;
 			var masterChanged = false;
 			KC3Master.load();
 			const checkExpired = (masterColle, colleName, removeMethod, resolveMethod) => {
@@ -120,6 +123,7 @@
 					.data("api_id", shipData.api_id)
 					.attr("data-mst-id", shipData.api_id)
 					.attr("data-swf", shipSrc)
+					.attr("title", "[{0}]".format(shipData.api_id))
 					.click(linkClickFunc);
 				
 				shipBox.appendTo(appendToBox);
@@ -142,6 +146,7 @@
 					.data("tab", "mstgear")
 					.data("api_id", gearData.api_id)
 					.attr("data-mst-id", gearData.api_id)
+					.attr("title", "[{0}]".format(gearData.api_id))
 					.click(linkClickFunc);
 				
 				gearBox.appendTo(".tab_mstupdate .mstgears");
@@ -167,6 +172,7 @@
 					.data("tab", "mstship")
 					.data("api_id", shipData.api_id)
 					.attr("data-mst-id", shipData.api_id)
+					.attr("title", "[{0}]".format(shipData.api_id))
 					.attr("data-coord", [coordX, coordY].join(','))
 					.attr("data-swf", shipSrc)
 					.click(linkClickFunc);
@@ -194,6 +200,7 @@
 					.data("tab", "mstship")
 					.data("api_id", shipId)
 					.attr("data-mst-id", shipId)
+					.attr("title", "[{0}]".format(shipId))
 					.attr("data-swf", shipSrc);
 				if(seasonalData) {
 					$(".ship_name", shipBox).click(linkClickFunc);
@@ -204,7 +211,66 @@
 				shipBox.appendTo(".tab_mstupdate .mstseason");
 			});
 			$("<div/>").addClass("clear").appendTo(".tab_mstupdate .mstseason");
+			$(".page_padding").createChildrenTooltips();
 			
+			const toggleImageFunc = function(e) {
+				const cgElm = $(this), imgElm = $("img", cgElm);
+				const isFullImage = !cgElm.hasClass("char_image");
+				cgElm.toggleClass("char_image", isFullImage);
+				imgElm.attr("src", cgElm.data(isFullImage ? "char" : "full"));
+			};
+			const appendShipsByPage = (showAll = false) => {
+				const addOneShip = (shipData) => {
+					const shipBox = $(".tab_mstupdate .factory .mstship").clone()
+						.addClass("smaller")
+						.appendTo(".tab_mstupdate .allships");
+					const version = (KC3Master.graph(shipData.api_id).api_version || [])[0],
+						imgFileFull = KC3Master.png_file(shipData.api_id, "full", "ship")
+							+ (!version ? "" : "?version=" + version),
+						imgFileChar = KC3Master.png_file(shipData.api_id, "character_full", "ship")
+							+ (!version ? "" : "?version=" + version),
+						fullUrl = `http://${self.myServerIp}/kcs2/resources${imgFileFull}`,
+						charUrl = `http://${self.myServerIp}/kcs2/resources${imgFileChar}`;
+					$(".ship_cg img", shipBox).attr("src", fullUrl);
+					$(".ship_cg", shipBox).addClass("hover").click(toggleImageFunc)
+						.attr("data-full", fullUrl)
+						.attr("data-char", charUrl);
+					const shipName = "[{0}] {1}".format(shipData.api_id, KC3Meta.shipName(shipData.api_name));
+					$(".ship_name", shipBox).text(shipName)
+						.data("tab", "mstship")
+						.data("api_id", shipData.api_id)
+						.click(linkClickFunc);
+				};
+				if(this.listedShipId > 1 && $(".tab_mstupdate .allships > div").length === 0) {
+					for(let id = 1; id < this.listedShipId; id++) {
+						const ship = KC3Master.isRegularShip(id) && KC3Master.ship(id);
+						if(ship) addOneShip(ship);
+					}
+				}
+				const shipsToShown = showAll ? KC3Master.seasonalCgIdFrom : this.shipsPerPage;
+				let shipsAdded = 0;
+				for(let cnt = 0; cnt < shipsToShown; cnt++) {
+					let shipData = false;
+					while(!shipData && KC3Master.isRegularShip(this.listedShipId)) {
+						shipData = KC3Master.ship(this.listedShipId);
+						this.listedShipId += 1;
+					}
+					if(!shipData) break;
+					addOneShip(shipData);
+					shipsAdded += 1;
+				}
+				return shipsAdded;
+			};
+			$(".moreships_btn").on("click", (e) => {
+				$(".moreships_btn, .allships_btn").toggle(appendShipsByPage() > 0);
+			});
+			$(".allships_btn").on("click", (e) => {
+				appendShipsByPage(true);
+				$(".moreships_btn, .allships_btn").hide();
+			});
+			if(!ConfigManager.devOnlyPages) {
+				$(".dev_only").hide();
+			}
 		}
 		
 	};

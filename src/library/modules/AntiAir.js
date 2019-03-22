@@ -185,10 +185,17 @@ AntiAir: anti-air related calculations
 		return [300, 301].indexOf(mst.api_id) !== -1;
 	}
 
-	function isBritishPomPomGun(mst) {
+	function isBritishAAGun(mst) {
 		// QF 2-pounder Octuple Pom-pom Gun Mount
-		return mst.api_id === 191;
+		return [191].indexOf(mst.api_id) !== -1;
 	}
+
+	// GFCS Mk.37
+	var isGfcsRadar = masterIdEq(307);
+	// 5inch Single Gun Mount Mk.30 Kai + GFCS Mk.37
+	var is5inchSingleMountKaiWithGfcs = masterIdEq(308);
+	// 5inch Single Gun Mount Mk.30 Kai
+	var is5inchSingleMountKai = masterIdEq(313);
 
 	// for equipments the coefficient is different for
 	// calculating adjusted ship AA stat and fleet AA stat,
@@ -322,11 +329,13 @@ AntiAir: anti-air related calculations
 	}
 
 	function shipAdjustedAntiAir(shipObj) {
-		// here aa[1] is max naked stat, equaled to api_tyku[1],
+		//return shipObj.aa[1] + shipEquipmentAntiAir(shipObj, false);
+		// here aa[1] is max naked stat on lv99, equaled to api_tyku[1], to get current level naked stat,
 		// might use current naked stat: aa[0] - equipment stat.
 		// according verification, AA bonus of specific equip on specific ship not counted,
-		// it seems be better not to use aa[0] property.
-		return shipObj.aa[1] + shipEquipmentAntiAir(shipObj, false);
+		// it seems be better not to use aa[0] property,
+		// might use `shipObj.estimateNakedStats("aa")` instead.
+		return shipObj.estimateNakedStats("aa") + shipEquipmentAntiAir(shipObj, false);
 	}
 
 	function shipProportionalShotdownRate(shipObj, onCombinedFleetNum) {
@@ -468,6 +477,7 @@ AntiAir: anti-air related calculations
 				67, // Queen Elizabeth Class
 				78, // Ark Royal Class
 				82, // Jervis Class
+				88, // Nelson Class
 			].indexOf( mst.api_ctype ) !== -1 ||
 			// Kongou Class Kai Ni
 			[149, 150, 151, 152].indexOf( mst.api_id ) !== -1;
@@ -500,6 +510,8 @@ AntiAir: anti-air related calculations
 		isokazeBkIcon = 557,
 		hamakazeBkIcon = 558,
 		warspiteIcon = 439,
+		gotlandKaiIcon = 579,
+		johnstonIcon = 562,
 		haMountIcon = 16,
 		radarIcon = 11,
 		aaFdIcon = 30,
@@ -512,7 +524,8 @@ AntiAir: anti-air related calculations
 		haMountNbifdIcon = "16-30", // HA without AAFD
 		aaGunNotCdIcon = "15-15",   // Non-CD AA Machine Gun
 		aaGunK2RockeLaunIcon = "15+31", // 12cm 30tube Rocket Launcher Kai 2
-		haMountKaiAmg = "16+15";    // 10cm Twin High-angle Mount Kai + Additional Machine Gun
+		haMountKaiAmg = "16+15",    // 10cm Twin High-angle Mount Kai + Additional Machine Gun
+		haMountKaiRadar = "16+11";  // 5inch Single Gun Mount Mk.30 Kai + GFCS Mk.37
 
 	var isMusashiK2 = masterIdEq( musashiK2Icon );
 	var isMayaK2 = masterIdEq( mayaK2Icon );
@@ -528,6 +541,10 @@ AntiAir: anti-air related calculations
 	var isTatsutaK2 = masterIdEq( tatsutaK2Icon );
 	var isIsokazeBk = masterIdEq( isokazeBkIcon );
 	var isHamakazeBk = masterIdEq( hamakazeBkIcon );
+	var isGotlandKai = masterIdEq( gotlandKaiIcon );
+	// Both base form and Kai
+	var isJohnston = predAnyOf( masterIdEq(johnstonIcon), masterIdEq(689) );
+
 
 	// turns a "shipObj" into the list of her equipments
 	// for its parameter function "pred"
@@ -556,7 +573,8 @@ AntiAir: anti-air related calculations
 		};
 	}
 
-	// check if slot num of ship (excluding ex slot) equals or greater
+	// check if slot num of ship (excluding ex-slot) equals or greater
+	// note: 8cm HA mount variants and AA machine guns can be equipped in ex-slot
 	function slotNumAtLeast(n) {
 		return function(mst) {
 			var slotnum = mst.api_slot_num;
@@ -594,7 +612,9 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		7, 3, 1.35,
 		[surfaceShipIcon, haMountIcon, aaFdIcon, radarIcon],
-		predAllOf(isNotSubmarine, predNot(isAkizukiClass), slotNumAtLeast(2)),
+		// 8cm HA variants can be equipped on ex-slot for some ships, min slots can be 2
+		// but for now, these ships are all not 2-slot DD
+		predAllOf(isNotSubmarine, predNot(isAkizukiClass), slotNumAtLeast(3)),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isHighAngleMount ),
@@ -658,7 +678,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		25, 7, 1.55,
 		[iseIcon, aaGunK2RockeLaunIcon, radarIcon, type3ShellIcon],
-		predAllOf(isIseClassKai),
+		predAllOf(isIseClassKai, slotNumAtLeast(2)),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( is12cm30tubeRocketLauncherKai2 ),
@@ -697,7 +717,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		1, 7, 1.7,
 		[akizukiIcon, haMountIcon, haMountIcon, radarIcon],
-		predAllOf(isAkizukiClass),
+		predAllOf(isAkizukiClass, slotNumAtLeast(3)),
 		withEquipmentMsts(
 			predAllOf(
 				hasAtLeast( isHighAngleMount, 2 ),
@@ -707,7 +727,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		2, 6, 1.7,
 		[akizukiIcon, haMountIcon, radarIcon],
-		predAllOf(isAkizukiClass),
+		predAllOf(isAkizukiClass, slotNumAtLeast(2)),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isHighAngleMount ),
@@ -717,7 +737,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		3, 4, 1.6,
 		[akizukiIcon, haMountIcon, haMountIcon],
-		predAllOf(isAkizukiClass),
+		predAllOf(isAkizukiClass, slotNumAtLeast(2)),
 		withEquipmentMsts(
 			hasAtLeast( isHighAngleMount, 2 )
 		)
@@ -883,11 +903,11 @@ AntiAir: anti-air related calculations
 		)
 	);
 
-	// Tenryuu K2
+	// Tenryuu K2, Gotland Kai
 	declareAACI(
 		30, 3, 1.3,
 		[tenryuuK2Icon, haMountIcon, haMountIcon, haMountIcon],
-		predAllOf(isTenryuuK2),
+		predAnyOf(isTenryuuK2, isGotlandKai),
 		withEquipmentMsts(
 			predAllOf(
 				hasAtLeast( isHighAngleMount, 3 ))
@@ -904,15 +924,72 @@ AntiAir: anti-air related calculations
 	);
 
 	// British-relevant ships
-	//   Known for now: Warspite, Ark Royal, Jervis, all Kongou-class K2
+	//   Known for now: Nelson, Warspite, Ark Royal, Jervis, all Kongou-class K2
 	declareAACI(
 		32, 3, 1.2,
 		[warspiteIcon, aaGunK2RockeLaunIcon, cdmgIcon],
 		predAnyOf(isBritishShips),
 		withEquipmentMsts(
+			predAnyOf(
+				predAllOf(
+					hasSome( isBritishRocketLauncher ),
+					hasSome( isBritishAAGun )),
+				predAllOf(
+					hasAtLeast( isBritishRocketLauncher, 2 ))
+			)
+		)
+	);
+
+	// Gotland Kai
+	declareAACI(
+		33, 3, 1.35,
+		[gotlandKaiIcon, haMountIcon, aaGunIcon],
+		predAllOf(isGotlandKai),
+		withEquipmentMsts(
 			predAllOf(
-				hasSome( isBritishRocketLauncher ),
-				hasSome( isBritishPomPomGun ))
+				hasSome( isHighAngleMount ),
+				hasSome( isAAGun ))
+		)
+	);
+
+	// Johnston all forms
+	declareAACI(
+		34, 7, 1.6,
+		[johnstonIcon, haMountKaiRadar, haMountKaiRadar],
+		predAllOf(isJohnston),
+		withEquipmentMsts(
+			predAllOf(
+				hasAtLeast( is5inchSingleMountKaiWithGfcs, 2 ))
+		)
+	);
+	declareAACI(
+		35, 6, 1.55,
+		[johnstonIcon, haMountKaiRadar, haMountIcon],
+		predAllOf(isJohnston),
+		withEquipmentMsts(
+			predAllOf(
+				hasSome( is5inchSingleMountKaiWithGfcs ),
+				hasSome( is5inchSingleMountKai ))
+		)
+	);
+	declareAACI(
+		36, 6, 1.55,
+		[johnstonIcon, haMountIcon, haMountIcon, radarIcon],
+		// there are enough slots for Johnston Kai only
+		predAllOf(isJohnston, slotNumAtLeast(3)),
+		withEquipmentMsts(
+			predAllOf(
+				hasAtLeast( is5inchSingleMountKai, 2 ),
+				hasSome( isGfcsRadar ))
+		)
+	);
+	declareAACI(
+		37, 4, 1.45,
+		[johnstonIcon, haMountIcon, haMountIcon],
+		predAllOf(isJohnston),
+		withEquipmentMsts(
+			predAllOf(
+				hasAtLeast( is5inchSingleMountKai, 2 ))
 		)
 	);
 

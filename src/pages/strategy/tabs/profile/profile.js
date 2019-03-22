@@ -455,7 +455,7 @@
 			$(".tab_profile .export_csv_shipgirl").on("click", function(event){
 				// CSV Headers
 				let exportData = [
-					"ID", "Name", "Yomi", "Romaji", "SType", "Class", "Models", "HP", "FP", "AR", "TP", "AA", "Luck", "Speed", "Slots"
+					"ID", "Name", "Yomi", "Romaji", "SType", "Class", "Models", "HP", "FP", "AR", "TP", "AA", "Luck", "Speed", "Slots", "Costs", "BuildMins"
 				].join(",") + CSV_LINE_BREAKS;
 				$.each(KC3Master.all_ships(true), (i, s) => {
 					const isAb = KC3Master.isAbyssalShip(s.api_id);
@@ -475,11 +475,13 @@
 							isAb ? s.api_tyku : s.api_tyku.join('/'),
 							isAb ? s.api_luck : s.api_luck.join('/'),
 							s.api_soku,
-							(s.api_maxeq || []).slice(0, s.api_slot_num).join('/')
+							(s.api_maxeq || []).slice(0, s.api_slot_num).join('/'),
+							isAb ? "-" : [s.api_fuel_max, s.api_bull_max].join('/'),
+							isAb ? "-" : s.api_buildtime
 						].join(",") + CSV_LINE_BREAKS;
 					}
 				});
-				const filename = self.makeFilename("Shipgirls", "csv");
+				const filename = self.makeFilename("Shipgirls", "csv", true);
 				self.saveFile(filename, exportData, "text/csv");
 			});
 			
@@ -514,7 +516,7 @@
 						].join(",") + CSV_LINE_BREAKS;
 					}
 				});
-				const filename = self.makeFilename("Equipment", "csv");
+				const filename = self.makeFilename("Equipment", "csv", true);
 				self.saveFile(filename, exportData, "text/csv");
 			});
 			
@@ -575,6 +577,15 @@
 					return false;
 				KC3Database.clear(function(){
 					window.location.reload();
+				});
+			});
+			
+			// Clear all ledger data if tab becomes unavailable thank to unknown corrupted records
+			$(".tab_profile .clear_ledger").on("click", function(event){
+				if(!confirm("Are you sure? Lost data would not be recovered."))
+					return false;
+				KC3Database.con.navaloverall.clear().then(() => {
+					alert("Done!");
 				});
 			});
 			
@@ -764,6 +775,44 @@
 				});
 			});
 			
+			// Fix ship bugged/desynced pendingConsumption records for some reasons
+			$(".tab_profile .fix_pending_ledger").on("click", function(event){
+				if(!confirm("Have you closed the game?\nThis fix won't work if you haven't closed the game."))
+					return false;
+				KC3ShipManager.load();
+				const badStateShips = KC3ShipManager.find(ship => {
+					const sortieCnt = ship.lastSortie.length,
+						pendingCnt = Object.keys(ship.pendingConsumption).length;
+					return sortieCnt > 1 && pendingCnt > 0 && pendingCnt !== (sortieCnt - 1);
+				});
+				if(!badStateShips.length) {
+					alert("No such ship found");
+				} else {
+					alert("Found {0} ships with pending data,\n".format(badStateShips.length) +
+						"Will begin to update your database,\n" +
+						"might take a long time if the data amount is mass.\n" +
+						"Operation will be performed in background,\n" +
+						"keep eyes on your computer's CPU/disk usage.");
+					badStateShips.forEach(ship => {
+						ship.perform("repair");
+						ship.perform("supply");
+					});
+					console.info("Fixed ships with unexpected pendingConsumption", badStateShips.length);
+					alert("Might be still updating in background.\n" +
+						"Do not leave this page until your CPU/disk calm down!");
+				}
+				// Extra fix if there are some IDs left in `lastSortie` but no `pendingConsumption` record
+				const obsoleteSortieShips = KC3ShipManager.find(ship => ship.lastSortie.length > 2
+					&& Object.keys(ship.pendingConsumption).length === 0);
+				if(obsoleteSortieShips.length) {
+					obsoleteSortieShips.forEach(ship => {
+						ship.lastSortie = ["sortie0"];
+					});
+					KC3ShipManager.save();
+					console.info("Fixed ships with unexpected lastSortie", obsoleteSortieShips.length);
+				}
+			});
+			
 			const isEventMapInfoMissing = () => {
 				if(!localStorage.maps) return true;
 				return ! Object.keys(localStorage.getObject("maps"))
@@ -947,8 +996,13 @@
 			}
 		},
 		
-		makeFilename: function(type, ext){
-			return ["[",PlayerManager.hq.id,"] ",type," ",new Date().format("yyyy-mm-dd"),".",ext].join("");
+		makeFilename: function(type, ext, notPersonal){
+			return [
+				!notPersonal ? ["[", PlayerManager.hq.id, "] "].join("") : "",
+				type,
+				" ", new Date().format("yyyy-mm-dd"),
+				".", ext
+			].join("");
 		},
 		
 		saveFile: function(filename, data, type){

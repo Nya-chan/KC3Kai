@@ -373,6 +373,7 @@ Does not include Ships and Gears which are managed by other Managers
 		prepareDeckbuilder: function() {
 			return {
 				version: 4,
+				hqlv: PlayerManager.hq.level,
 				f1: PlayerManager.fleets[0].deckbuilder(),
 				f2: PlayerManager.fleets[1].deckbuilder(),
 				f3: PlayerManager.fleets[2].deckbuilder(),
@@ -505,9 +506,11 @@ Does not include Ships and Gears which are managed by other Managers
 				"87": "nori",
 				"88": "tea",
 				"89": "dinnerTicket",
+				"90": "setsubunBeans",
 			};
 			// You may need to `loadConsumables` first for Strategy Room
-			return attrNameOnly ? attrNameMap[useitemId] : this.consumables[attrNameMap[useitemId]];
+			return useitemId === undefined ? attrNameMap :
+				attrNameOnly ? attrNameMap[useitemId] : this.consumables[attrNameMap[useitemId]];
 		},
 
 		saveBases :function(){

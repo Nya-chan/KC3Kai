@@ -238,7 +238,7 @@
 			// Binding click event ends
 
 			// Update ship stats header icon set
-			$(".tab_ships .ship_header .ship_stat img").each((_, img) => {
+			$(".tab_ships .ship_header .ship_stat:not(.not_stat) img").each((_, img) => {
 				$(img).attr("src", KC3Meta.statIcon($(img).parent().data("type")));
 			});
 			$(".ship_tooltip .stat_icon img").each((_, img) => {
@@ -476,17 +476,20 @@
 					return prevComparator(l, r) || nextComparator(l, r);
 				};
 			}
-			// Append sortno as default sorter to keep order stable
-			const lastSorterReverse = this.getLastCurrentSorter().reverse;
-			const sortnoSorter = {
-				name: "sortno",
-				reverse: lastSorterReverse
-			};
-			const mergedSorters = this.currentSorters.concat([sortnoSorter]);
-			// To simulate in-game behavior: if 1st sorter is stype,
-			// reverse sortno and add descending level if necessary
-			if(this.currentSorters[0].name == "type"){
-				sortnoSorter.reverse = !sortnoSorter.reverse;
+			const mergedSorters = this.currentSorters.slice(0);
+			// Append sortno as default sorter to keep order stable if not used yet
+			if(this.currentSorters.every(si => si.name !== "sortno")){
+				const lastSorterReverse = this.getLastCurrentSorter().reverse;
+				mergedSorters.push({
+					name: "sortno",
+					reverse: lastSorterReverse
+				});
+			}
+			// To simulate phase 1 in-game behavior: if 1st sorter is stype,
+			// reverse sortno and add descending level if necessary.
+			// (no longer reverse for phase 2 `api_sort_id`)
+			// For phase 2, also add descending level if 1st sorter is sortno
+			if(["type", "sortno"].includes(this.currentSorters[0].name)){
 				if(this.currentSorters.every(si => si.name !== "lv")){
 					mergedSorters.push({
 						name: "lv",
@@ -549,14 +552,18 @@
 				ev: [this.getDerivedStatNaked("houk", ThisShip.ev[0], ThisShip), ThisShip.ev[0] ],
 				ls: [this.getDerivedStatNaked("saku", ThisShip.ls[0], ThisShip), ThisShip.ls[0] ],
 				lk: [ThisShip.lk[0], ThisShip.lk[1], MasterShip.api_luck[0]],
+				fuel: [MasterShip.api_fuel_max, ThisShip.fuel],
+				ammo: [MasterShip.api_bull_max, ThisShip.ammo],
 				sp: ThisShip.speed,
+				isp: MasterShip.api_soku,
 				range: ThisShip.range,
+				irange: MasterShip.api_leng,
 				slots: ThisShip.slots,
 				exSlot: ThisShip.ex_item,
 				slotNum: ThisShip.slotnum,
 				fleet: ThisShip.onFleet(),
 				ship: ThisShip,
-				master: ThisShip.master(),
+				master: MasterShip,
 				// Check whether remodel is max
 				remodel: RemodelDb.isFinalForm(ship.masterId),
 				canEquipDaihatsu: ThisShip.canEquipDaihatsu()
@@ -1011,7 +1018,7 @@
 		prepareSorters: function() {
 			const define = this.defineSimpleSorter.bind(this);
 
-			define("id", "Id",
+			define("id", "ID",
 				   function(x) { return x.id; });
 			define("name", "Name",
 				   function(x) { return this.className ? x.fullName : x.name; });
@@ -1041,11 +1048,15 @@
 				   function(x) { return -x.ls[this.equipMode]; });
 			define("lk", "Luck",
 				   function(x) { return -x.lk[0]; });
+			define("fuel", "Fuel",
+				   function(x) { return x.fuel[1]; });
+			define("ammo", "Ammo",
+				   function(x) { return x.ammo[1]; });
 			define("ctype", "Class",
 				   function(x) { return x.ctype; });
-			define("bid", "ShipId",
+			define("bid", "Master-ID",
 				   function(x) { return x.bid; });
-			define("sortno", "SortOrder",
+			define("sortno", "Class in-game",
 				   function(x) { return x.sortno; });
 		},
 
@@ -1113,6 +1124,7 @@
 						.attr("data-jpname-romaji", cShip.jpNameRomaji);
 					if(shipLevel >= 100) {
 						$(".ship_name", cElm).addClass("ship_kekkon-color");
+						//$(".ship_marry", cElm).show();
 					}
 					if(cShip.fleet > 0) {
 						$(".ship_name", cElm).addClass("ship_onfleet-color" + cShip.fleet);
@@ -1168,6 +1180,8 @@
 							$(".ship_ls", this).text( thisShip.ls[self.equipMode] );
 							self.modernizableStat("lk", this, thisShip.lk, 0, 0, true);
 							$(".ship_hp", this).attr("data-equip-mode", self.equipMode);
+							$(".ship_fuel", this).text( thisShip.fuel[1] );
+							$(".ship_ammo", this).text( thisShip.ammo[1] );
 						}
 						// Reset heart-lock icon
 						if((self.heartLockMode === 1 && thisShip.locked)

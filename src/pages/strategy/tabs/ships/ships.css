@@ -260,6 +260,20 @@
 	font-size:12px;
 	font-weight:bold;
 	margin:0px 0px 3px 0px;
+	display:flex;
+}
+.tab_ships .ship_header .ship_item .ship_id {
+	text-align:center;
+}
+.tab_ships .ship_header .ship_item .ship_img {
+	display:none;
+}
+.tab_ships .ship_header .ship_item .ship_name {
+	text-align:center;
+}
+.tab_ships .ship_header .ship_item .ship_sortno {
+	width:20px;
+	text-align:center;
 }
 .tab_ships .ship_header .ship_stat img {
 	max-width:19px;
@@ -316,19 +330,33 @@
 	margin:0px 0px 5px 0px;
 }
 .tab_ships .ship_list.scroll_fix {
-	width:692px;
-	overflow-x:hidden;
+	width:685px;
+	overflow-x:auto;
 	overflow-y:scroll;
+}
+.tab_ships .ship_list.scroll_fix::-webkit-scrollbar {
+	width:10px;
+	height:10px;
+}
+.tab_ships .ship_list.scroll_fix::-webkit-scrollbar-track {
+	background:#ddd;
+}
+.tab_ships .ship_list.scroll_fix::-webkit-scrollbar-thumb {
+	background:#666;
 }
 /* Row */
 .tab_ships .ship_list .ship_item {
-	width:675px;
+	display:flex;
+	float:left;
+	width:auto;
+	/*width:675px;*/
 	height:20px;
 	line-height:20px;
 	font-size:12px;
 	margin:0px 0px 2px 0px;
 	overflow:hidden;
 	position:relative;
+	white-space:nowrap;
 }
 .tab_ships .ship_list .ship_item.hidden_by_name {
 	display: none;
@@ -371,7 +399,10 @@
 /* Fields: Basic */
 .tab_ships .ship_item .ship_id {
 	width:44px;
-	text-align:center;
+	text-align:right;
+	padding-right:1px;
+	overflow:hidden;
+	direction:rtl;
 }
 .tab_ships .ship_item .ship_img {
 	position:relative;
@@ -504,7 +535,9 @@
 
 /* Fields: HeartLock and Marriage Ring */
 .tab_ships .ship_item .ship_stat_icon {
-	width:20px;
+	width:0;
+	margin:0;
+	overflow:visible;
 }
 .tab_ships .ship_item .ship_stat_icon img {
 	width:20px;
@@ -514,7 +547,7 @@
 .tab_ships .ship_item .ship_lock img {
 	width:13px;
 	height:13px;
-	margin:-35px 0px 0px 39px;
+	margin:5px 0 0 -28px;
 	position:relative;
 	display:inline;
 	content:url("/assets/img/client/heartlock.png");
@@ -526,7 +559,12 @@
 .tab_ships .ship_item .ship_marry {
 	display:none;
 }
+.tab_ships .ship_item .ship_marry img {
+	margin:-4px 0 0 -22px;
+	position:relative;
+	display:inline;
+}
 
 .tab_ships .page_padding.scroll_fix {
-	padding:0px 3px 0px;
+	padding:0px 5px 0px;
 }

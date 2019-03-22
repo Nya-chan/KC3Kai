@@ -259,9 +259,13 @@
 		---------------------------------*/
 		fillBattleBox :function(nodeInfo, targetBox){
 			//console.debug("Simulated node info:", nodeInfo);
+			$(".node_formation img.f", targetBox).attr("src", KC3Meta.formationIcon(nodeInfo.fformation))
+				.attr("title", KC3Meta.formationText(nodeInfo.fformation));
+			$(".node_formation img.e", targetBox).attr("src", KC3Meta.formationIcon(nodeInfo.eformation))
+				.attr("title", KC3Meta.formationText(nodeInfo.eformation));
 			$(".node_engage", targetBox).text( nodeInfo.engagement[2] );
 			$(".node_engage", targetBox).addClass( nodeInfo.engagement[1] );
-			$(".node_contact", targetBox).text(nodeInfo.fcontact +" vs "+nodeInfo.econtact);
+			$(".node_contact", targetBox).text([nodeInfo.fcontact, nodeInfo.econtact].join(" vs "));
 			$(".node_detect", targetBox).text( nodeInfo.detection[0] );
 			$(".node_detect", targetBox).addClass( nodeInfo.detection[1] );
 			$(".node_airbattle", targetBox).text( nodeInfo.airbattle[0] );
@@ -303,7 +307,7 @@
 			
 			$("body").css("opacity", "0.5");
 			
-			if(this.stegcover64===""){
+			if(this.stegcover64 === ""){
 				this.stegcover64 = $.ajax({
 					async: false,
 					url: "../../../../assets/img/stegcover.b64"
@@ -370,8 +374,13 @@
 					};
 					
 					if(e.which === 3) {
-						window.open("https://kc3kai.github.io/kancolle-replay/battleplayer.html#"
-							+ encodeURIComponent(JSON.stringify(encodeData), "_blank"));
+						if(e.altKey) {
+							window.open("https://kc3kai.github.io/kancolle-replay/battleText.html#"
+								+ JSON.stringify(encodeData), "_blank");
+						} else {
+							window.open("https://kc3kai.github.io/kancolle-replay/battleplayer.html#"
+								+ encodeURIComponent(JSON.stringify(encodeData)), "_blank");
+						}
 						self.exportingReplay = false;
 						$("body").css("opacity", "1");
 						return true;

@@ -467,7 +467,8 @@
 				"type" : "long_text",
 				"options" : {
 					"placeholder" : "SettingsSSDirDesc",
-					"tooltip" : "SettingsSSDirDesc"
+					"tooltip" : "SettingsSSDirDesc",
+					"invalidregexp" : "(?:^[\\\\/]|[\\\\/]\\.\\.?|\\.\\.?[\\\\/]|[\\\\/]{2,}|[?*:\"<>|])"
 				}
 			},
 			{
@@ -722,6 +723,12 @@
 				"options" : {}
 			},
 			{
+				"id" : "alert_taiha_sound_src",
+				"name" : "SettingsAlertCustomSound",
+				"type" : "long_text",
+				"options" : { "placeholder" : "http://" }
+			},
+			{
 				"id" : "alert_taiha_panel",
 				"name" : "SettingsRedShadeOnPanel",
 				"type" : "check",
@@ -917,6 +924,14 @@
 				"options" : {}
 			},
 			{
+				"id" : "focus_game_tab",
+				"name" : "SettingsFocusGameTab",
+				"type" : "check",
+				"options" : {
+					"tooltip": "SettingsFocusGameTabTip"
+				}
+			},
+			{
 				"id" : "fix_game_code",
 				"name" : "SettingsGameLibFixes",
 				"type" : "check",
@@ -971,12 +986,37 @@
 		]
 	},
 	{
-		"section": "SettingsTsunDBSubmission",
+		"section" : "SettingsDataBackupReminder",
 		"help" : "",
+		"contents" : [
+			{
+				"id" : "backupReminder",
+				"name" : "SettingsBackupFrequency",
+				"type" : "radio",
+				"options" : {
+					"choices" : [
+						[ 0, "SettingsBackupFrequencyNone" ],
+						[ 604800000, "SettingsBackupFrequencyWeekly" ],
+						[ 2629746000, "SettingsBackupFrequencyMonthly" ],
+						[ 7889238000, "SettingsBackupFrequencyQuarterly" ]
+					]
+				}
+			}
+		]
+	},
+	{
+		"section": "SettingsTsunDBSubmission",
+		"help" : "https://github.com/KC3Kai/KC3Kai/wiki/Settings:-Database-Submissions#tsundb-extra-submission",
 		"contents" :[
 			{
 				"id" : "TsunDBSubmission_enabled",
 				"name" : "SettingsEnableTsunDBSubmission",
+				"type" : "check",
+				"options" : {}
+			},
+			{
+				"id" : "TsunDBSubmissionExtra_enabled",
+				"name" : "SettingsEnableTsunDBExtraSubmission",
 				"type" : "check",
 				"options" : {}
 			}

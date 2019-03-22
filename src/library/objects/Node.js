@@ -24,12 +24,13 @@ Used by SortieManager
 	KC3Node.debugPrediction = function() { return false; };
 	
 	// Update this list if more extra classes added
-	KC3Node.knownNodeExtraClasses = function(){
-		return [
-			"nc_night_battle", "nc_air_battle",
-			"nc_enemy_combined", "nc_air_raid",
-			"nc_night_to_day"
+	KC3Node.knownNodeExtraClasses = function(isEmptyClassKept = false){
+		const classNameKindIdMap = ["", "",
+			"nc_night_battle", "nc_night_battle",
+			"nc_air_battle", "nc_enemy_combined", "nc_air_raid",
+			"nc_night_to_day", "nc_long_range_raid"
 		];
+		return isEmptyClassKept ? classNameKindIdMap : classNameKindIdMap.filter(n => !!n);
 	};
 	
 	KC3Node.prototype.isInitialized = function(){
@@ -56,12 +57,9 @@ Used by SortieManager
 					KC3Meta.term("BattleKindAirBattleOnly"),
 					KC3Meta.term("BattleKindEnemyCombined"),
 					KC3Meta.term("BattleKindAirDefendOnly"),
-					KC3Meta.term("BattleKindNightToDay")][this.eventKind];
-				this.nodeExtraClass = ["", "",
-					"nc_night_battle", "nc_night_battle",
-					"nc_air_battle", "nc_enemy_combined", "nc_air_raid",
-					"nc_night_to_day"
-					][this.eventKind];
+					KC3Meta.term("BattleKindNightToDay"),
+					KC3Meta.term("BattleKindLongRangeRaid")][this.eventKind];
+				this.nodeExtraClass = KC3Node.knownNodeExtraClasses(true)[this.eventKind] || "";
 			}
 			
 			// If passed formatted enemy list from PVP
@@ -247,6 +245,8 @@ Used by SortieManager
 	
 	KC3Node.prototype.defineAsDud = function( nodeData ){
 		this.type = "";
+		// since Fall 2018
+		this.dudMessage = (nodeData.api_cell_flavor || {}).api_message;
 		return this;
 	};
 	
@@ -264,6 +264,19 @@ Used by SortieManager
 	KC3Node.prototype.isOldBattleData = function(battleData){
 		const data = battleData || this.battleNight || this.battleDay;
 		return !data ? undefined : data.api_f_maxhps === undefined && Array.isArray(data.api_maxhps);
+	};
+	
+	/**
+	 * Check for any one-time special cutin from player main fleet.
+	 * @param predictedFleets - result of predicted fleets.
+	 */
+	KC3Node.prototype.checkSortieSpecialAttacks = function(predictedFleets){
+		const checkSortieSpecialAttack = attacks => attacks.some(attack => (attack.cutin || attack.ncutin) >= 100);
+		const playerMain = predictedFleets.playerMain,
+			flagshipSpecialAttack = checkSortieSpecialAttack(playerMain[0].attacks);
+		if (flagshipSpecialAttack) {
+			this.sortieSpecialCutins = playerMain.map(ship => checkSortieSpecialAttack(ship.attacks));
+		}
 	};
 	
 	/* BATTLE FUNCTIONS
@@ -309,7 +322,8 @@ Used by SortieManager
 		} else {
 			this.eSlot = Array.pad(this.eSlot, 6, -1);
 		}
-		this.eformation = (battleData.api_formation || [])[1] || this.eformation;
+		this.fformation = battleData.api_formation[0] || this.fformation;
+		this.eformation = battleData.api_formation[1] || this.eformation;
 		// api_eKyouka seems being removed since 2017-11-17, kept for compatibility
 		this.eKyouka = battleData.api_eKyouka || [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1];
 		// might use api_f_maxhps_combined instead
@@ -334,7 +348,7 @@ Used by SortieManager
 			this.flarePos = this.flarePos >= 0 ? 1 + (isPlayerCombined ? this.flarePos % 6 : this.flarePos) : -1;
 			this.eFlarePos = this.eFlarePos >= 0 ? 1 + (isEnemyCombined ? this.eFlarePos % 6 : this.eFlarePos) : -1;
 		}
-		if (battleData.api_friendly_info !== undefined) {
+		if(battleData.api_friendly_info !== undefined) {
 			this.friendlySupportFlag = true;
 		}
 		
@@ -379,6 +393,22 @@ Used by SortieManager
 		this.detection = KC3Meta.detection( battleData.api_search ? battleData.api_search[0] : 0 );
 		this.engagement = KC3Meta.engagement( battleData.api_formation[2] );
 		
+		if((battleData.api_name || "").includes("ld_airbattle") || this.eventKind === 6) {
+			this.isLongDistanceAirRaid = true;
+		}
+		/* Features of long range radar ambush battle implemented since Winter 2019:
+		 *   no formation selection, 1 (single) or 14 (combined) by default;
+		 *   shelling phase only, no friendly ship can attack, defend like air raid node;
+		 *   no detection, no contact, no air battle (but LBAS comes), no night gear triggered;
+		 *   night battle background, but API data structures follow day battle;
+		 *   friendly contact icon of in-game right top is fixed to red radar wave sign;
+		 */
+		if((battleData.api_name || "").includes("ld_shooting") || battleData.api_search === undefined) {
+			this.isLongRangeRaid = true;
+			// use special detection values instead if api_search not existed
+			this.detection = ["\u2212\u221a\u2212", KC3Meta.detection(3)[1], KC3Meta.term("BattleKindLongRangeRaid")];
+		}
+		
 		// LBAS attack phase, including jet plane assault
 		this.lbasFlag = battleData.api_air_base_attack !== undefined;
 		if(this.lbasFlag) {
@@ -411,8 +441,7 @@ Used by SortieManager
 		}
 		
 		// Air phases
-		var
-			planePhase  = battleData.api_kouku && battleData.api_kouku.api_stage1 || {
+		var planePhase = battleData.api_kouku && battleData.api_kouku.api_stage1 || {
 				api_touch_plane:[-1,-1],
 				api_f_count    :0,
 				api_f_lostcount:0,
@@ -453,20 +482,31 @@ Used by SortieManager
 		
 		// Bombing phase 1
 		this.planeBombers = { player:[0,0], abyssal:[0,0] };
-		if(attackPhase !== null){
+		if(attackPhase){
 			this.planeBombers.player[0] = attackPhase.api_f_count;
 			this.planeBombers.player[1] = attackPhase.api_f_lostcount;
 			this.planeBombers.abyssal[0] = attackPhase.api_e_count;
 			this.planeBombers.abyssal[1] = attackPhase.api_e_lostcount;
 		}
+		this.takenAirBombingDamages = [];
+		const bombingPhaseMain = (battleData.api_kouku || {}).api_stage3 || {},
+			bombingPhaseEscort = (battleData.api_kouku || {}).api_stage3_combined || {},
+			bombingDamages = [],
+			damageToInteger = v => Math.floor(v);
+		// Although game codes use api_plane_from[1] only as prerequisite
+		if(this.planeBombers.abyssal[0] > 0){
+			bombingDamages.push((bombingPhaseMain.api_fdam || []).map(damageToInteger));
+			bombingDamages.push((bombingPhaseEscort.api_fdam || []).map(damageToInteger));
+		}
+		this.takenAirBombingDamages.push(bombingDamages);
 		
 		// Fighter phase 2
-		if(typeof battleData.api_kouku2 !== "undefined"){
+		if(battleData.api_kouku2){
 			this.planeFighters.player[1] += battleData.api_kouku2.api_stage1.api_f_lostcount;
 			this.planeFighters.abyssal[1] += battleData.api_kouku2.api_stage1.api_e_lostcount;
 			
 			// Bombing phase 2
-			if(battleData.api_kouku2.api_stage2 !== null){
+			if(battleData.api_kouku2.api_stage2){
 				this.planeBombers.player[1] += battleData.api_kouku2.api_stage2.api_f_lostcount;
 				this.planeBombers.abyssal[1] += battleData.api_kouku2.api_stage2.api_e_lostcount;
 				if(!!battleData.api_kouku2.api_stage2.api_air_fire){
@@ -476,6 +516,16 @@ Used by SortieManager
 					this.antiAirFire[1] = battleData.api_kouku2.api_stage2.api_air_fire;
 				}
 			}
+			const bombingDamages2 = [];
+			if(battleData.api_kouku2.api_stage2 && battleData.api_kouku2.api_stage2.api_e_count > 0){
+				bombingDamages2.push(
+					((battleData.api_kouku2.api_stage3 || {}).api_fdam || []).map(damageToInteger)
+				);
+				bombingDamages2.push(
+					((battleData.api_kouku2.api_stage3_combined || {}).api_fdam || []).map(damageToInteger)
+				);
+			}
+			this.takenAirBombingDamages.push(bombingDamages2);
 		}
 		
 		// Jet plane phase, happen before fighter attack phase
@@ -503,10 +553,8 @@ Used by SortieManager
 			}
 		}
 		
-		// Boss Debuffed
-		this.debuffed = typeof battleData.api_boss_damaged !== "undefined" ?
-			(battleData.api_boss_damaged == 1) ? true : false
-			: false;
+		// Boss Debuffed, see `BattleCommonModel.prototype.isBossDamaged`
+		this.debuffed = 1 == (battleData.api_boss_damaged || battleData.api_xal01);
 		
 		// Battle analysis only if on sortie or PvP, not applied to battle simulation, like sortielogs.
 		const isRealBattle = KC3SortieManager.isOnSortie() || KC3SortieManager.isPvP();
@@ -515,13 +563,15 @@ Used by SortieManager
 			const fleetId = this.fleetSent - 1;
 			// To work better on battle simulation, prefer to use `isPlayerCombined`,
 			// which check via API data instead of determining 'current state' of PlayerManager
-			//const isPlayerCombinedSent = fleetId === 0 && PlayerManager.combinedFleet > 0;
+			//const isPlayerCombinedSent = fleetId === 0 && (this.playerCombinedType || PlayerManager.combinedFleet) > 0;
 
 			// Find battle type
 			const player = (() => {
 				if (!isPlayerCombined) { return KC3BattlePrediction.Player.SINGLE; }
-
-				switch (PlayerManager.combinedFleet) {
+				const combinedFleetType = this.playerCombinedType || PlayerManager.combinedFleet;
+				switch (combinedFleetType) {
+					case 0: case undefined:
+						return KC3BattlePrediction.Player.SINGLE;
 					case 1:
 						return KC3BattlePrediction.Player.CTF;
 					case 2:
@@ -529,7 +579,7 @@ Used by SortieManager
 					case 3:
 						return KC3BattlePrediction.Player.TCF;
 					default:
-						throw new Error(`Unknown combined fleet code: ${PlayerManager.combinedFleet}`);
+						throw new Error(`Unknown combined fleet code: ${combinedFleetType}`);
 				}
 			})();
 			const enemy = isEnemyCombined ? KC3BattlePrediction.Enemy.COMBINED : KC3BattlePrediction.Enemy.SINGLE;
@@ -539,7 +589,14 @@ Used by SortieManager
 
 			const dameConCode = (() => {
 				if (KC3SortieManager.isPvP()) { return {}; }
-
+				if (Array.isArray(this.fleetStates) && this.fleetStates.length > (isPlayerCombined & 1)) {
+					return {
+						main: this.fleetStates[0].equip.map(equip => KC3Ship.findDamecon(equip)),
+						escort: isPlayerCombined && this.fleetStates[1].equip.map(equip => KC3Ship.findDamecon(equip)),
+					};
+				} else if (!isRealBattle) {
+					return {};
+				}
 				return {
 					main: PlayerManager.fleets[fleetId].getDameConCodes(),
 					escort: isPlayerCombined && PlayerManager.fleets[1].getDameConCodes(),
@@ -613,8 +670,16 @@ Used by SortieManager
 				this.enemySunk[position] = ship.sunk;
 			});
 
+			this.unexpectedList = this.unexpectedList || [];
+			this.unexpectedList.push(...this.unexpectedDamagePrediction(result.fleets.playerMain,
+				this.fleetSent -1, battleData.api_formation[0], battleData.api_formation[2], isRealBattle));
+			this.unexpectedList.push(...this.unexpectedDamagePrediction(result.fleets.playerEscort,
+				1, battleData.api_formation[0], battleData.api_formation[2], isRealBattle)
+			);
+
+			this.checkSortieSpecialAttacks(result.fleets);
 		}
-		
+
 		if(this.gaugeDamage > -1) {
 			this.gaugeDamage = Math.min(this.enemyFlagshipHp, this.enemyFlagshipHp - this.enemyHP[0].hp);
 			
@@ -699,6 +764,7 @@ Used by SortieManager
 		var isPlayerCombined = nightData.api_fParam_combined !== undefined;
 		this.playerCombined = isPlayerCombined;
 		
+		this.fformation = (nightData.api_formation || [])[0] || this.fformation;
 		this.eformation = (nightData.api_formation || [])[1] || this.eformation;
 		this.eKyouka = nightData.api_eKyouka || [-1,-1,-1,-1,-1,-1];
 
@@ -786,8 +852,8 @@ Used by SortieManager
 			// Find battle type
 			const player = (() => {
 				if (!isPlayerCombined) { return KC3BattlePrediction.Player.SINGLE; }
-
-				switch (PlayerManager.combinedFleet) {
+				const combinedFleetType = this.playerCombinedType || PlayerManager.combinedFleet;
+				switch (combinedFleetType) {
 					case 0: case undefined:
 						return KC3BattlePrediction.Player.SINGLE;
 					case 1:
@@ -797,14 +863,21 @@ Used by SortieManager
 					case 3:
 						return KC3BattlePrediction.Player.TCF;
 					default:
-						throw new Error(`Unknown combined fleet code: ${PlayerManager.combinedFleet}`);
+						throw new Error(`Unknown combined fleet code: ${combinedFleetType}`);
 				}
 			})();
 			const enemy = isEnemyCombined ? KC3BattlePrediction.Enemy.COMBINED : KC3BattlePrediction.Enemy.SINGLE;
 			const time = KC3BattlePrediction.Time.NIGHT;
 			const dameConCode = (() => {
 				if (KC3SortieManager.isPvP()) { return {}; }
-
+				if (Array.isArray(this.fleetStates) && this.fleetStates.length > (isPlayerCombined & 1)) {
+					return {
+						main: this.fleetStates[0].equip.map(equip => KC3Ship.findDamecon(equip)),
+						escort: isPlayerCombined && this.fleetStates[1].equip.map(equip => KC3Ship.findDamecon(equip)),
+					};
+				} else if (!isRealBattle) {
+					return {};
+				}
 				return {
 					main: PlayerManager.fleets[fleetId].getDameConCodes(),
 					escort: isPlayerCombined && PlayerManager.fleets[1].getDameConCodes(),
@@ -867,6 +940,14 @@ Used by SortieManager
 				this.enemySunk[position] = ship.sunk;
 			});
 
+			this.unexpectedList = this.unexpectedList || [];
+			this.unexpectedList.push(...this.unexpectedDamagePrediction(result.fleets.playerMain,
+				this.fleetSent -1, nightData.api_formation[0], nightData.api_formation[2], isRealBattle));
+			this.unexpectedList.push(...this.unexpectedDamagePrediction(result.fleets.playerEscort,
+				1, nightData.api_formation[0], nightData.api_formation[2], isRealBattle)
+			);
+
+			this.checkSortieSpecialAttacks(result.fleets);
 		}
 		
 		if(this.gaugeDamage > -1
@@ -945,7 +1026,8 @@ Used by SortieManager
 					case 'single':   /* Single Victory */
 						break;
 					case 'multiple': /* Kill-based */
-						if((KC3Meta.gauge(ckey.replace("m","")) - (maps[ckey].kills || 0)) > 0)
+						const totalKills = maps[ckey].killsRequired || KC3Meta.gauge(ckey.replace("m",""));
+						if(totalKills - (maps[ckey].kills || 0) > 0)
 							maps[ckey].kills += mainFlagshipKilled;
 						break;
 					case 'gauge-hp': /* HP-Gauge */
@@ -1112,6 +1194,11 @@ Used by SortieManager
 					}
 				}).filter(function(shipId){return shipId;});
 			});
+			
+			// If damecon used in a battle, will record changed equipment for this and later nodes
+			const isAnyDameconConsumed = (this.dameConConsumed || []).some(v => !!v) ||
+				(this.dameConConsumedEscort || []).some(v => !!v);
+			KC3SortieManager.setSlotitemConsumed(isAnyDameconConsumed);
 			
 			var sunkApCnt = 0;
 			for(var i = 0; i < this.eships.length; i++) {
@@ -1496,7 +1583,7 @@ Used by SortieManager
 	/**
 	 * Build HTML tooltip for friendly fleet info and battle result.
 	 */
-	KC3Node.prototype.buildFriendlyBattleMessage = function(battleData = this.battleNight){
+	KC3Node.prototype.buildFriendlyBattleMessage = function(battleData = this.battleNight, sortieTime = this.stime * 1000){
 		//console.debug("Friendly battle", battleData, this.battleDay);
 		const friendlyTable = $('<table>' +
 			'<tr class="header"><th class="type" colspan="3">&nbsp;</th><th class="level">Lv</th><th class="hp">HP</th><th class="stats"></th><th class="equip">&nbsp;</th></tr>' +
@@ -1519,10 +1606,13 @@ Used by SortieManager
 		const sumFriendlyBattleDamages = (friendlyBattle, defenderFleetCount, attackerSide = 0) => {
 			const damages = new Array(defenderFleetCount).fill(0);
 			const hougeki = friendlyBattle.api_hougeki;
-			hougeki.api_at_eflag.forEach((sideFlag, idx) => {
+			hougeki.api_at_eflag.forEach((sideFlag, atkIdx) => {
 				if(sideFlag === attackerSide) {
-					const defender = hougeki.api_df_list[idx][0];
-					damages[defender] += sumSupportDamageArray(hougeki.api_damage[idx]);
+					hougeki.api_df_list[atkIdx].forEach((defender, dmgIdx) => {
+						if(defender >= 0 && defender < defenderFleetCount) {
+							damages[defender] += sumSupportDamageArray([hougeki.api_damage[atkIdx][dmgIdx] || 0]);
+						}
+					});
 				}
 			});
 			return damages;
@@ -1590,10 +1680,10 @@ Used by SortieManager
 		enemyTable.css("font-size", "11px");
 		const enemyShips = battleData.api_ship_ke.slice(0, 6),
 			mainFleetCount = enemyShips.length,
-			enemyShipAfterHps = battleData.api_e_nowhps.slice(0, 6);
+			enemyShipBeforeHps = battleData.api_e_nowhps.slice(0, 6);
 		if(battleData.api_ship_ke_combined) {
 			enemyShips.push(...battleData.api_ship_ke_combined);
-			enemyShipAfterHps.push(...battleData.api_e_nowhps_combined);
+			enemyShipBeforeHps.push(...battleData.api_e_nowhps_combined);
 		}
 		const enemyFleetDamages = sumFriendlyBattleDamages(friendlyBattle,
 			enemyShips.length, 0);
@@ -1607,7 +1697,9 @@ Used by SortieManager
 					.attr("src", KC3Meta.abyssIcon(sid));
 				$(`.s_${shipIdx}`, tRow).append(shipIcon).css("padding-right", 3);
 				$(`.dmg_${shipIdx}`, tRow).append(-enemyFleetDamages[idx]).css("padding-right", 5);
-				const isSunk = enemyFleetDamages[idx] > 0 && enemyShipAfterHps[idx] <= 0;
+				const isSunk = enemyFleetDamages[idx] > 0 && enemyShipBeforeHps[idx] -
+					// before Phase 2, enemyShipBeforeHps meant enemyShipAfterHps
+					(KC3Meta.isPhase2Started(sortieTime) ? enemyFleetDamages[idx] : 0) <= 0;
 				if(isSunk) $(`.dmg_${shipIdx}`, tRow).css("color", "goldenrod");
 			}
 		});
@@ -1725,7 +1817,7 @@ Used by SortieManager
 		}
 		return [totalDamage, [...planeFromSet]];
 	};
-	
+
 	/**
 	 * Not real battle on this node in fact. Enemy raid just randomly occurs before entering node.
 	 * See: http://kancolle.wikia.com/wiki/Land-Base_Aerial_Support#Enemy_Raid
@@ -1733,11 +1825,17 @@ Used by SortieManager
 	KC3Node.prototype.airBaseRaid = function( battleData ){
 		this.battleDestruction = battleData;
 		//console.debug("Raw Air Base Raid data", battleData);
+		this.isAirBaseEnemyRaid = true;
 		this.lostKind = battleData.api_lost_kind;
 		this.eships = this.normalizeArrayIndex(battleData.api_ship_ke);
-		this.eformation = battleData.api_formation[1];
+		// Pad ship array to 6 for saving into encounter record
+		this.eships = Array.pad(this.eships, 6, -1);
 		this.elevels = this.normalizeArrayIndex(battleData.api_ship_lv);
+		this.elevels = Array.pad(this.elevels, 6, -1);
 		this.eSlot = battleData.api_eSlot;
+		this.eSlot = Array.pad(this.eSlot, 6, -1);
+		//this.fformation = battleData.api_formation[0];
+		this.eformation = battleData.api_formation[1];
 		this.engagement = KC3Meta.engagement(battleData.api_formation[2]);
 		this.maxHPs = {
 			ally: battleData.api_f_maxhps,
@@ -1755,7 +1853,7 @@ Used by SortieManager
 				api_e_lostcount:0,
 			},
 			attackPhase = battleData.api_air_base_attack.api_stage2,
-			bomberPhase = battleData.api_air_base_attack.api_stage3;
+			bombingPhase = battleData.api_air_base_attack.api_stage3;
 		this.fplaneFrom = battleData.api_air_base_attack.api_plane_from[0];
 		this.fcontactId = planePhase.api_touch_plane[0];
 		this.fcontact = this.fcontactId > 0 ? KC3Meta.term("BattleContactYes") : KC3Meta.term("BattleContactNo");
@@ -1787,11 +1885,16 @@ Used by SortieManager
 			this.planeBombers.abyssal[0] = attackPhase.api_e_count;
 			this.planeBombers.abyssal[1] = attackPhase.api_e_lostcount;
 		}
-		this.baseDamage = bomberPhase && bomberPhase.api_fdam
-			? sumSupportDamageArray(bomberPhase.api_fdam)
+		this.baseDamage = bombingPhase && bombingPhase.api_fdam
+			? sumSupportDamageArray(bombingPhase.api_fdam)
 			: 0;
+		// Record encountered enemy air raid formation
+		this.saveEnemyEncounterInfo(this.battleDestruction, undefined, undefined, true);
+		if(battleData.api_m1){
+			console.info("Map gimmick flag detected", battleData.api_m1);
+		}
 	};
-	
+
 	KC3Node.prototype.isBoss = function(){
 		// see advanceNode() (SortieManager.js) for api details,
 		// or alternatively at `Core.swf/common.models.bases.BattleBaseData.isBossMap()`
@@ -1802,7 +1905,7 @@ Used by SortieManager
 			(this.eventKind === 1 || this.eventKind === 5 || this.eventKind === 7)
 		);
 	};
-	
+
 	KC3Node.prototype.isValidBoss = function(){
 		if(!this.isBoss()) return false;
 		const thisMap = KC3SortieManager.getCurrentMapData(),
@@ -1811,7 +1914,7 @@ Used by SortieManager
 				eventMapGauge.boss.indexOf(this.id) === -1;
 		return !isInvalidBoss;
 	};
-	
+
 	KC3Node.prototype.isMvpPredictionCapable = function(){
 		// Rule unknown: ship nearest to flagship does not get MVP when same damage dealt
 		const battleRank = this.predictedRankNight || this.predictedRank;
@@ -1846,8 +1949,333 @@ Used by SortieManager
 			}
 		});
 	};
+
+	/**
+	 * Unexpected damage checker that checks damage instances from BP module.
+	 * @see http://kancolle.wikia.com/wiki/Combat/Damage_Calculation
+	 * @param predictedFleet - playerMain/playerEscort array from BP fleets export
+	 * @param fleetnum - player fleet index
+	 * @param formation - player formation id
+	 * @param engagement - engagement id
+	 * @param isRealBattle - indicate node data is from real sortie battle or DB history
+	 * @return {array} with element {Object} that has attributes:
+	 *   * enemy: Enemy formation, id, equips, stats and health before attack
+	 *   * ship: Player formation, position, id, equips, stats, improvements, proficiency, combined fleet type, current health and ammo
+	 *   * damageInstance: Actual damage, expected damage range and critical
+	 *   * isUnexpected: Boolean to check if damage is in expected or unexpected range
+	 */
+	KC3Node.prototype.unexpectedDamagePrediction = function(predictedFleet, fleetnum, formation, engagement,
+		isRealBattle = true) {
+		const unexpectedList = [];
+		let sunkenShips = 0;
+		predictedFleet.forEach(({ attacks }, position) => {
+			let ship = PlayerManager.fleets[fleetnum].ship(position);
+
+			// SHIP SIMULATION FOR SORTIE HISTORY
+			if (!isRealBattle && KC3Node.debugPrediction() && this.nodeData.id) {
+				position = position + sunkenShips;
+				let shipData = this.nodeData["fleet" + (fleetnum + 1)][position];
+				while(this.sunken && this.sunken[this.playerCombined ? fleetnum : 0].includes(shipData.mst_id)) {
+					sunkenShips++;
+					position = position + sunkenShips;
+					shipData = this.nodeData["fleet" + (fleetnum + 1)][position];
+				}
+				const shipMaster = KC3Master.ship(shipData.mst_id);
+				ship = new KC3Ship();
+				ship.shipData = shipData;
+				ship.rosterId = 1;
+				ship.masterId = shipData.mst_id;
+				ship.slots = this.fleetStates && this.fleetStates.length ?
+					this.fleetStates[this.playerCombined ? fleetnum : 0].slots[position] :
+					shipMaster.api_maxeq;
+				ship.equipment = function(slot){
+					switch(typeof slot) {
+						case 'number':
+						case 'string':
+							// assume last element in this.shipData.equip is ex item
+							return slot < 0 || slot >= this.shipData.equip.length ?
+								this.equipment(true)[this.shipData.equip.length - 1] :
+								this.equipment(true)[slot];
+						case 'boolean':
+							// create and cache KC3Gear array based on this.shipData.equip
+							this.gearData = this.gearData ||
+								this.shipData.equip.map((masterId, idx) => new KC3Gear({
+									api_id: masterId > 0 ? idx + 1 : 0, // placeholder for rosterId
+									api_slotitem_id: masterId > 0 ? masterId : 0,
+									api_level: this.shipData.stars[idx] > 0 ? this.shipData.stars[idx] : 0,
+									api_alv: this.shipData.ace[idx] > 0 ? this.shipData.ace[idx] : undefined,
+									api_locked: 1 // assume all gear locked
+								}));
+							return slot ? this.gearData : this.gearData.slice(0, -1);
+						case 'undefined':
+							return this.equipment(false);
+						case 'function':
+							const equipObjs = this.equipment();
+							equipObjs.forEach((item, index) => {
+								slot.call(this, item.itemId, index, item);
+							});
+							// forEach always return undefined, return equipment for chain use
+							return equipObjs;
+					}
+				};
+				ship.nakedAsw = function() {
+					return this.as[0];
+				};
+
+				ship.fp[0] = shipMaster.api_houg[0] + (shipData.kyouka[0] || 0) + ship.equipmentTotalStats("houg");
+				ship.tp[0] = shipMaster.api_raig[0] + (shipData.kyouka[1] || 0) + ship.equipmentTotalStats("raig");
+				ship.as[0] = shipData.stats.as;
+				ship.hp[1] = this.maxHPs.ally[this.playerCombined && fleetnum === 1 ? position + 6 : position];
+				ship.mod = shipData.kyouka;
+
+				if (ship.as[0] === undefined){
+					const aswBound = WhoCallsTheFleetDb.getStatBound(shipData.mst_id, 'asw');
+					ship.as[0] = WhoCallsTheFleetDb.estimateStat(aswBound, shipData.level);
+				}
+
+				if(this.fleetStates && this.fleetStates.length) {
+					ship.ammo = this.fleetStates[this.playerCombined ? fleetnum : 0].ammo[position];
+				} else {
+					// Make a rough guess of current ammo percentage remaining with event node consumption
+					let ammoPercent = 100,
+						reachedNode = false;
+					// Ignore maelstrom/whirlpool for now
+					this.nodeData.nodes.forEach(node => {
+						if (this.id === node.id) { reachedNode = true; }
+						if (reachedNode) { return; }
+						// Cannot tell submarine node from node list?
+						// Normal battle, yasen/day
+						if (node.eventId === 4) { ammoPercent -= (node.eventKind === 2 || node.eventKind === 3) ? 10 : 20; }
+						// Boss node
+						if (node.eventId === 5) { ammoPercent -= 20; }
+						// Aerial battle
+						if (node.eventId === 7 && node.eventKind === 4 ) { ammoPercent -= 20; }
+						// Aerial raid
+						if (node.eventId === 10 ) { ammoPercent -= 4;}
+					});
+					ship.ammo = shipMaster.api_bull_max * ammoPercent / 100;
+					ship.ammo = ship.ammo > 0 ? ship.ammo : 0;
+				}
+			}
+
+			if (!attacks || !attacks.length) { return; }
+			if (ship.isDummy()) { return; }
+			attacks.forEach(attack => {
+				// BATTLE CONDITIONS
+				const damage = attack.damage,
+					cutin = attack.cutin >= 0 ? attack.cutin : attack.ncutin,
+					acc = attack.acc,
+					hp = attack.hp,
+					ciequip = attack.equip,
+					time = attack.cutin >= 0 ? 'Day' : 'Night';
+
+				let nightSpecialAttackType = [],
+					daySpecialAttackType = [];
+
+				// ENEMY STATS
+				const combinedFleetIndexAlign = 6;
+				const isAgainstEnemyEscort = this.enemyCombined &&
+					this.activatedEnemyFleet !== undefined && this.activatedEnemyFleet !== 1,
+					targetIndex = attack.target[0] - (isAgainstEnemyEscort ? combinedFleetIndexAlign : 0);
+				// Enemy arrays will be only 6 elements if abyssal escort fleet activated on night battle
+				let target = this.eships[targetIndex],
+					enemyShip = KC3Master.ship(target);
+
+				// Simulate an enemy ship to obtain armor stats from equipment,
+				// if uses actual ship master ID and methods in KC3Gear, armor bonuses from equipment could be counted for PvP,
+				// but if don't want to consume memory to simulate KC3Ship and KC3Gear instances, just use:
+				const getEquipTotalArmor = gearArr => gearArr.reduce((armor, mstId) => (
+					armor + (mstId > 0 ? KC3Master.slotitem(mstId).api_souk || 0 : 0)
+				), 0);
+				let eShipEquipArmor = getEquipTotalArmor(this.eSlot[targetIndex] || []);
+				/*
+				const eShip = new KC3Ship();
+				eShip.rosterId = 1;
+				eShip.masterId = target;
+				eShip.items = this.eSlot[targetIndex];
+				// eSlot contains gear master IDs, have to simulate the KC3Gear converter too
+				eShip.equipment = function(slot) {
+					// only implement the method to return all gears for equipmentTotalStats
+					this.gearData = this.gearData ||
+						this.items.map((masterId, idx) => new KC3Gear({
+							api_id: masterId > 0 ? idx + 1 : 0,
+							api_slotitem_id: masterId > 0 ? masterId : 0,
+							// no info about enemy equipment's stars and ace
+							api_level: 0,
+							api_locked: 0
+						}));
+					// there is no ex item in eSlot, so add a dummy one
+					return slot ? this.gearData.concat(new KC3Gear()) : this.gearData;
+				};
+				let eShipEquipArmor = eShip.equipmentTotalStats("souk");
+				*/
+
+				let { isSubmarine, isLand } = ship.estimateTargetShipType(target);
+				// PLAYER SPECIAL ATTACKS
+				/*
+				 * CVCI/CVNCI/new DD cut-ins have varying damage modifier, but for now just take the highest one and see if actual exceeds it
+				 * Technically possible to guess exact cut-in from api_si_list (included per attack)
+				 * Since multiple cutins are possible per ship, reassignment to match cutin number from estimation is required
+				 */
+				if (time === "Night") {
+					nightSpecialAttackType = ship.estimateNightAttackType(target, true);
+					// In case of re-roll attacks like 7/8
+					if (nightSpecialAttackType[1] !== cutin) {
+						nightSpecialAttackType = KC3Ship.specialAttackTypeNight(cutin);
+					}
+				} else {
+					daySpecialAttackType = ship.estimateDayAttackType(target, true, 1);
+					if (daySpecialAttackType[1] !== cutin) {
+						// Artillery spotting will keep re-rolling sp attacks
+						daySpecialAttackType = KC3Ship.specialAttackTypeDay(cutin);
+					}
+				}
+				
+				const combinedFleetType = this.playerCombinedType || PlayerManager.combinedFleet || 0;
+				const warfareType = !isSubmarine ? 'Shelling' : 'Antisub',
+					powerBonus = ship.combinedFleetPowerBonus(combinedFleetType, this.enemyCombined, warfareType),
+					combinedFleetFactor = !this.playerCombined ? powerBonus.main : fleetnum === 0 ? powerBonus.main : powerBonus.escort,
+					damageStatus = ['taiha', 'chuuha', 'shouha', 'normal'].find((_, idx) => (idx + 1) / 4 >= hp / ship.hp[1]);
+
+				let eHp = attack.ehp || this.maxHPs.enemy[targetIndex];
+				const unexpectedFlag = isLand || KC3Meta.isEventWorld(KC3SortieManager.map_world) || KC3Node.debugPrediction();
+
+				// Simulating each attack
+				for (let i = 0; i < damage.length; i++) {
+					const result = {};
+					// Remove Flagship protection flag
+					damage[i] = Math.floor(damage[i]);
+					// Skip unused values in CVNCI array of [x, -1, -1]
+					if (damage[i] === -1) { break; }
+
+					// Also ignore scratch damage or miss
+					const scratchDamage = eHp * 0.06 + (eHp - 1) * 0.08;
+					if ((unexpectedFlag || damage[i] > scratchDamage) && acc[i] > 0) {
+
+						const damageInstance = {};
+						const isNightContacted = this.fcontactId === 102;
+						let unexpectedDamage = false,
+							newDepthChargeBonus = 0,
+							remainingAmmoModifier = 1,
+							armor = ((this.eParam[targetIndex] || [])[3] || 0) + eShipEquipArmor;
+
+						let power = time === 'Day' ? ship.shellingFirePower(combinedFleetFactor)
+							: !isLand ? ship.nightBattlePower(isNightContacted) :
+							ship.shellingFirePower(isNightContacted ? 0 : -5);
+						if (warfareType === 'Antisub') { power = ship.antiSubWarfarePower(); }
+						if (time === 'Night' && ship.canCarrierNightAirAttack()) {
+							power = ship.nightAirAttackPower(isNightContacted);
+						}
+						const shellingPower = power;
+						({power} = ship.applyPrecapModifiers(power, warfareType, engagement, formation,
+							nightSpecialAttackType, this.isNightStart, this.playerCombined, target, damageStatus));
+						const precapPower = power;
+						({power} = ship.applyPowerCap(power, time, warfareType));
+
+						// Simplify aerial attack check to just carrier check, unlikely that need to check for edge cases like Hayasui/old CV night attacks
+						({power, newDepthChargeBonus, remainingAmmoModifier} = ship.applyPostcapModifiers(power, warfareType,
+							daySpecialAttackType, 0, acc[i] === 2, ship.isCarrier(), enemyShip.api_stype, false, target));
+						const postcapPower = power;
+						armor -= newDepthChargeBonus;
+
+						const maxDam = Math.floor((power - armor * 0.7) * remainingAmmoModifier);
+						const minDam = Math.floor((power - armor * 0.7 - (armor - 1) * 0.6) * remainingAmmoModifier);
+						if (damage[i] > maxDam) {
+							unexpectedDamage = damage[i] > scratchDamage;
+						}
+						if (unexpectedDamage || unexpectedFlag) {
+							// TsunDB formatting
+							damageInstance.actualDamage = damage[i];
+							damageInstance.isCritical = acc[i] === 2;
+							damageInstance.expectedDamage = [minDam, maxDam];
+							result.damageInstance = damageInstance;
+
+							const hpPercent = Math.max(0, Math.qckInt('floor', hp / ship.hp[1], 3) * 100);
+							result.ship = {
+								id: ship.masterId,
+								damageStatus: Math.ceil(hpPercent / 25),
+								equip: ship.equipment(true).map(g => g.masterId || -1),
+								improvements: ship.equipment(true).map(g => g.stars || -1),
+								proficiency: ship.equipment(true).map(g => g.ace || -1),
+								slots: ship.slots,
+								stats: ship.nakedStats(),
+								position: position,
+								formation: formation,
+								isMainFleet: !this.playerCombined ? true : fleetnum == 0,
+								combinedFleet: combinedFleetType,
+								rAmmoMod: remainingAmmoModifier,
+								spAttackType: cutin,
+								cutinEquips: ciequip,
+								shellingPower: shellingPower,
+								armorReduction: newDepthChargeBonus,
+								precapPower: precapPower,
+								postcapPower: postcapPower,
+								time: time,
+							};
+
+							result.enemy = {
+								id: target,
+								equip: this.eSlot[targetIndex],
+								formation: this.eformation,
+								position: targetIndex,
+								armor: armor,
+								isMainFleet: !this.enemyCombined ? true : attack.target[i] < combinedFleetIndexAlign,
+								hp: eHp,
+							};
+
+							result.isUnexpected = unexpectedDamage;
+							result.landFlag = isLand;
+							result.engagement = engagement;
+							result.debuffed = !!this.debuffed;
+							unexpectedList.push(result);
+						}
+					}
+					// Updating eHp (if needed for multi-hit)
+					eHp -= damage[i];
+				}
+			});
+		});
+
+		if (unexpectedList.length && KC3Node.debugPrediction()) {
+			console.debug("Unexpected damage predicted", unexpectedList);
+		}
+		return unexpectedList;
+	};
+
+	KC3Node.prototype.buildUnexpectedDamageMessage = function(unexpectedList = this.unexpectedList){
+		let tooltips = "";
+		const getScratchDamage = eHp => (
+			[0, 0].map((z, i) =>
+				Math.max(z, Math.floor(eHp * 0.06 + (i === 1 ? (eHp - 1) * 0.08 : 0)))
+			)
+		);
+		if(Array.isArray(unexpectedList)) {
+			unexpectedList.forEach(a => {
+				if(a.isUnexpected) {
+					const shipMaster = KC3Master.ship(a.ship.id),
+						attackerName = KC3Meta.shipName(shipMaster.api_name);
+					const defenderMstId = a.enemy.id,
+						defenderName = KC3Meta.abyssShipName(defenderMstId);
+					const dmg = a.damageInstance;
+					const expectedDamage = dmg.expectedDamage;
+					const scratchDamage = getScratchDamage(a.enemy.hp);
+					const displayedDamage = expectedDamage[1] <= 0 ? scratchDamage :
+						expectedDamage[0] <= 0 ? [
+							Math.min(1, scratchDamage[0]),
+							expectedDamage[1]
+						] : expectedDamage;
+					if(tooltips) tooltips += "\n";
+					tooltips += KC3Meta.term("BattleUnexpectedDamageTip").format(
+						attackerName, defenderName, defenderMstId,
+						dmg.actualDamage, displayedDamage[0], displayedDamage[1]
+					);
+				}
+			});
+		}
+		return tooltips;
+	};
 	
-	KC3Node.prototype.saveEnemyEncounterInfo = function(battleData, updatedName, baseExp){
+	KC3Node.prototype.saveEnemyEncounterInfo = function(battleData, updatedName, baseExp, isAirBaseRaid){
 		// Update name and base exp only if new name offered
 		if(!battleData && !!updatedName){
 			if(!!this.enemyEncounter.uniqid){
@@ -1868,13 +2296,15 @@ Used by SortieManager
 			world: KC3SortieManager.map_world,
 			map: KC3SortieManager.map_num,
 			diff: KC3SortieManager.map_difficulty,
-			node: this.id,
+			node: isAirBaseRaid ? KC3Meta.getAirBaseFakeEdge() : this.id,
 			form: this.eformation,
 			// eships is padded array
 			ke: JSON.stringify(this.eships)
 		};
 		ed.uniqid = [ed.world,ed.map,ed.diff,ed.node,ed.form,ed.ke].filter(v => !!v).join("/");
 		KC3Database.Encounter(ed, true);
+		// Do not continue to save abyssal stats, thank to missing `api_eParam` on Land-Base Air Raid
+		if(!!isAirBaseRaid) { return true; }
 		this.enemyEncounter = ed;
 		// Save enemy info, maybe main fleet
 		(this.eshipsMain || this.eships).forEach((enemyId, i) => {
@@ -1946,7 +2376,9 @@ Used by SortieManager
 					return KC3ShipManager.get(shipSunk).masterId;
 				});
 			}) : [],
-			mvp: this.mvps
+			mvp: this.mvps,
+			// Save fleet current states (fuel, ammo, slots, etc) at the start of the battle
+			fleetStates: KC3SortieManager.getBattleFleetStates()
 		};
 		// Optional properties
 		// Air raid moved to proper place `sortie.nodes`, no longer here
