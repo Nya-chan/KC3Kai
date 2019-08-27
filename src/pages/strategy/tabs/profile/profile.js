@@ -247,7 +247,7 @@
 					});
 			});*/
 			
-			const exportExpedCsv = (forNewExped) => {
+			const exportExpedCsv = (forAsw) => {
 				// CSV Headers
 				let exportData = [
 					"Expedition", "HQ Exp",
@@ -255,14 +255,14 @@
 					"Reward 1", "Reward 2", "Result", "Date", "Fleet#",
 					"Ship #1", "Ship #2", "Ship #3",
 					"Ship #4", "Ship #5", "Ship #6",
-				].concat(forNewExped ? ["Total FP", "Total AA", "Total LoS", "Total ASW"] : [])
+				].concat(forAsw ? ["Total FP", "Total AA", "Total LoS", "Total ASW"] : [])
 				.join(",") + CSV_LINE_BREAKS;
 				const buildRewardItemText = (data, index) => {
 					const flag = data.api_useitem_flag[index - 1],
 						getItem = data["api_get_item" + index];
 					return csvQuoteIfNecessary(
 						(flag === 4 ? KC3Meta.useItemName(getItem.api_useitem_id) :
-						({"0":"None","1":"Bucket","2":"Blowtorch","3":"DevMat","5":"Fcoin"})[flag] || flag)
+						({"0":"None","1":"Bucket","2":"Blowtorch","3":"DevMat"})[flag] || flag)
 						+
 						(flag > 0 && getItem ? " x" + getItem.api_useitem_count : "")
 					);
@@ -301,8 +301,8 @@
 				};
 				// Get data from local DB
 				let db = KC3Database.con.expedition.where("hq").equals(PlayerManager.hq.id);
-				// Only need mission ID > 40 (not only asw, but all news)
-				if(forNewExped) db = db.and(r => r.mission > 40);
+				// Only need mission ID >= 100
+				if(forAsw) db = db.and(r => r.mission >= 100);
 				db.reverse().toArray(function(result){
 					result.forEach(function(expedInfo){
 						const fleetStats = {
@@ -311,7 +311,7 @@
 							los: 0,
 							asw: 0,
 						};
-						const shipsInfo = !Array.isArray(expedInfo.fleet) ? [] : expedInfo.fleet.map((ship, idx) => {
+						const shipsInfo = !Array.isArray(expedInfo.fleet) ? [] : expedInfo.fleet.map(ship => {
 							if(ship.mst_id > 0){
 								const stats = sumShipStats(ship);
 								fleetStats.fp += stats.fp + stats.fpEquip;
@@ -322,18 +322,13 @@
 									// Give up using String.format for better performance
 									KC3Meta.shipName(KC3Master.ship(ship.mst_id).api_name),
 									"Lv:" + ship.level,
-									"Exp:" + expedInfo.shipXP[idx] || "?",
 									"Morale:" + ship.morale,
 									"Drums:" + ship.equip.reduce((drums, id) => drums+=(id===75), 0)
-								].concat(forNewExped ? [
-									"Equip:" + ship.equip.filter(id => !!id).join(":"),
-									"Stars:" + ship.stars.join(":"),
-										["FP+-AA+-LoS+-ASW+-",
+								].concat(forAsw ? ["FP+-AA+-LoS+-ASW+-",
 										stats.fp + stats.fpEquip, stats.fp,
 										stats.aa + stats.aaEquip, stats.aa,
 										stats.los + stats.losEquip, stats.los,
-										stats.asw + stats.aswEquip, stats.asw].join(":")
-									] : []
+										stats.asw + stats.aswEquip, stats.asw].join(":") : []
 								).join("/"));
 							} else {
 								return "-";
@@ -355,7 +350,7 @@
 							csvQuoteIfNecessary(new Date(expedInfo.time * 1000).format("mmm dd, yyyy hh:MM tt")),
 							expedInfo.fleetN
 						].concat(shipsInfo)
-						.concat(forNewExped ? [fleetStats.fp, fleetStats.aa, fleetStats.los, fleetStats.asw] : [])
+						.concat(forAsw ? [fleetStats.fp, fleetStats.aa, fleetStats.los, fleetStats.asw] : [])
 						.join(",") + CSV_LINE_BREAKS;
 					});
 					
@@ -460,7 +455,7 @@
 			$(".tab_profile .export_csv_shipgirl").on("click", function(event){
 				// CSV Headers
 				let exportData = [
-					"ID", "Name", "Yomi", "Romaji", "SType", "Class", "Models", "HP", "FP", "AR", "TP", "AA", "Luck", "Speed", "Slots", "Costs", "BuildMins", "Graph"
+					"ID", "Name", "Yomi", "Romaji", "SType", "Class", "Models", "HP", "FP", "AR", "TP", "AA", "Luck", "Speed", "Slots", "Costs", "BuildMins"
 				].join(",") + CSV_LINE_BREAKS;
 				$.each(KC3Master.all_ships(true), (i, s) => {
 					const isAb = KC3Master.isAbyssalShip(s.api_id);
@@ -482,8 +477,7 @@
 							s.api_soku,
 							(s.api_maxeq || []).slice(0, s.api_slot_num).join('/'),
 							isAb ? "-" : [s.api_fuel_max, s.api_bull_max].join('/'),
-							isAb ? "-" : s.api_buildtime,
-							KC3Master.graph(s.api_id).api_filename
+							isAb ? "-" : s.api_buildtime
 						].join(",") + CSV_LINE_BREAKS;
 					}
 				});
@@ -1008,7 +1002,7 @@
 				type,
 				" ", new Date().format("yyyy-mm-dd"),
 				".", ext
-			].join("").toSafeFilename();
+			].join("");
 		},
 		
 		saveFile: function(filename, data, type){

@@ -458,11 +458,6 @@ AntiAir: anti-air related calculations
 		return mst.api_ctype === 2
 			// if non-Kai excluded
 			&& mst.api_id !== 77 && mst.api_id !== 87;
-			// ~~Ise Kai Ni included, but Hyuuga Kai Ni incapable for both kind 25 and 28~~
-			// https://twitter.com/MadonoHaru/status/1121902964120023040
-			// wtf, it was a bug before 2019-04-30 maint
-			// https://twitter.com/KanColle_STAFF/status/1123197646561136642
-			//&& mst.api_id !== 554;
 	}
 
 	// Battleships capable for 12cm 30tube Rocket Launcher Kai 2
@@ -471,7 +466,6 @@ AntiAir: anti-air related calculations
 			82, // Ise Kai
 			553, // Ise K2
 			88, // Hyuuga Kai
-			554, // Hyuuga K2
 			148, // Musashi Kai
 			546, // Musashi K2
 		].indexOf( mst.api_id ) !== -1;
@@ -485,19 +479,13 @@ AntiAir: anti-air related calculations
 				82, // Jervis Class
 				88, // Nelson Class
 			].indexOf( mst.api_ctype ) !== -1 ||
-			// Kongou Class Kai Ni, Kongou K2C
-			[149, 150, 151, 152, 591].indexOf( mst.api_id ) !== -1;
+			// Kongou Class Kai Ni
+			[149, 150, 151, 152].indexOf( mst.api_id ) !== -1;
 	}
 
 	function masterIdEq( n ) {
 		return function(mst) {
 			return mst.api_id === n;
-		};
-	}
-
-	function ctypeIdEq( n ) {
-		return function(mst) {
-			return mst.api_ctype === n;
 		};
 	}
 
@@ -524,7 +512,6 @@ AntiAir: anti-air related calculations
 		warspiteIcon = 439,
 		gotlandKaiIcon = 579,
 		johnstonIcon = 562,
-		fletcherIcon = 596,
 		haMountIcon = 16,
 		radarIcon = 11,
 		aaFdIcon = 30,
@@ -555,7 +542,8 @@ AntiAir: anti-air related calculations
 	var isIsokazeBk = masterIdEq( isokazeBkIcon );
 	var isHamakazeBk = masterIdEq( hamakazeBkIcon );
 	var isGotlandKai = masterIdEq( gotlandKaiIcon );
-	var isFletcherClass = ctypeIdEq(91);
+	// Both base form and Kai
+	var isJohnston = predAnyOf( masterIdEq(johnstonIcon), masterIdEq(689) );
 
 
 	// turns a "shipObj" into the list of her equipments
@@ -964,11 +952,11 @@ AntiAir: anti-air related calculations
 		)
 	);
 
-	// Fletcher-class all forms (Fletcher, Johnston)
+	// Johnston all forms
 	declareAACI(
 		34, 7, 1.6,
 		[johnstonIcon, haMountKaiRadar, haMountKaiRadar],
-		predAllOf(isFletcherClass),
+		predAllOf(isJohnston),
 		withEquipmentMsts(
 			predAllOf(
 				hasAtLeast( is5inchSingleMountKaiWithGfcs, 2 ))
@@ -977,7 +965,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		35, 6, 1.55,
 		[johnstonIcon, haMountKaiRadar, haMountIcon],
-		predAllOf(isFletcherClass),
+		predAllOf(isJohnston),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( is5inchSingleMountKaiWithGfcs ),
@@ -987,8 +975,8 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		36, 6, 1.55,
 		[johnstonIcon, haMountIcon, haMountIcon, radarIcon],
-		// there are enough slots for Kai only
-		predAllOf(isFletcherClass, slotNumAtLeast(3)),
+		// there are enough slots for Johnston Kai only
+		predAllOf(isJohnston, slotNumAtLeast(3)),
 		withEquipmentMsts(
 			predAllOf(
 				hasAtLeast( is5inchSingleMountKai, 2 ),
@@ -998,7 +986,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		37, 4, 1.45,
 		[johnstonIcon, haMountIcon, haMountIcon],
-		predAllOf(isFletcherClass),
+		predAllOf(isJohnston),
 		withEquipmentMsts(
 			predAllOf(
 				hasAtLeast( is5inchSingleMountKai, 2 ))

@@ -74,7 +74,6 @@ Previously known as "Reactor"
 			// ship type filters settings:
 			//api_oss_setting: {api_language_type: 0, api_oss_items: [1, 1, 1, 1, 1, 1, 1, 1]}
 			// using skin: api_skin_id
-			// flagship position: api_position_id
 		},
 		
 		"api_req_member/require_info":function(params, response, headers){
@@ -150,7 +149,6 @@ Previously known as "Reactor"
 			.setNewsfeed(response.api_data.api_log, utcSeconds * 1000);
 			
 			PlayerManager.combinedFleet = response.api_data.api_combined_flag || 0;
-			PlayerManager.friendlySettings = response.api_data.api_friendly_setting || {};
 			
 			KC3SortieManager.endSortie(response.api_data);
 			
@@ -357,20 +355,6 @@ Previously known as "Reactor"
 			KC3Network.trigger("Consumables");
 		},
 		
-		/* Set friendly support fleet since 2019-05-31.
-		   This settings might disappear after event, so not persistent,
-			and default to {}
-		-------------------------------------------------------*/
-		"api_req_member/set_friendly_request":function(params, response, headers, decodedParams){
-			const newSettings = {
-				// 1 if request friendly fleet
-				api_request_flag: parseInt(decodedParams.api_request_flag, 10),
-				// 1 if request stronger fleet by consuming 1~6 torches
-				api_request_type: parseInt(decodedParams.api_request_type, 10),
-			};
-			PlayerManager.friendlySettings = $.extend(PlayerManager.friendlySettings || {}, newSettings);
-		},
-		
 		
 		/*-------------------------------------------------------*/
 		/*----------------------[ LIBRARY ]----------------------*/
@@ -409,18 +393,14 @@ Previously known as "Reactor"
 		},
 		
 		"api_req_kaisou/open_exslot":function(params, response, headers){
-			var rosterId = parseInt(params.api_id, 10),
-				shipObj  = KC3ShipManager.get(rosterId);
-			// According `main.js#OpenExSlotAPI`,
-			// update ship ex-slot here because no /ship3 or /ship2 call followed
-			shipObj.ex_item = -1;
-			KC3ShipManager.save();
-			// assume KC client has already checked 1 item left at least
+			var sid  = parseInt(params.api_id,10),
+				ship = KC3ShipManager.get(sid),
+				mast = ship.master();
+			// Assume KC client already checked 1 item left at least
 			PlayerManager.consumables.reinforceExpansion -= 1;
 			PlayerManager.setConsumables();
-			console.log("Extra Slot unlocked for", rosterId, shipObj.name());
+			console.log("Extra Slot unlocked for", sid, ship.name());
 			KC3Network.trigger("Consumables");
-			KC3Network.trigger("Fleet");
 		},
 		
 		"api_req_kaisou/marriage":function(params, response, headers){
@@ -492,12 +472,6 @@ Previously known as "Reactor"
 			}
 			if(remodel.report > 0){
 				PlayerManager.consumables.actionReport -= remodel.report;
-			}
-			if(remodel.gunmat > 0){
-				PlayerManager.consumables.newArtilleryMaterial -= remodel.gunmat;
-			}
-			if(remodel.airmat > 0){
-				PlayerManager.consumables.newAviationMaterial -= remodel.airmat;
 			}
 			PlayerManager.setResources(utcHour * 3600, null, material.slice(0, 4));
 			PlayerManager.setConsumables(utcHour * 3600, null, material.slice(4, 8));
@@ -1521,7 +1495,7 @@ Previously known as "Reactor"
 				data     = response.api_data,
 				material = data.api_material,
 				consume  = [0,0,0,0],
-				bonuses  = data.api_bounus || [];
+				bonuses  = data.api_bounus;
 			console.log("Quest clear", quest, data);
 			
 			// Force to mark quest as complete
@@ -1549,7 +1523,7 @@ Previously known as "Reactor"
 				const bonusType = bonus.api_type;
 				// Known types: 1=Consumable, 2=Unlock a fleet, 3=Furniture box, 4=LSC unlock,
 				//   5=LBAS unlock, 6=Exped resupply unlock, 11=Ship, 12=Slotitem, 13=Useitem,
-				//   14=Furniture, 15=Equipment conversion, 16=Equipment consumption, 18=Rank points
+				//   14=Furniture, 15=Aircraft conversion, 16=Equipment consumption
 				if(bonusType === 11){
 					const shipId = (bonus.api_item || {}).api_ship_id;
 					console.log("Quest gained ship", quest, shipId, bonus);
@@ -1751,12 +1725,6 @@ Previously known as "Reactor"
 		/* Expedition Selection Screen
 		  -------------------------------------------------------*/
 		"api_get_member/mission":function(params, response, headers) {
-			if(Array.isArray(response.api_data.api_limit_time)) {
-				// Actual Monthly Expedition reset time in seconds,
-				// might be more in this array for other time periods?
-				PlayerManager.hq.monthlyExpedResetTime = response.api_data.api_limit_time[0] || 0;
-				PlayerManager.hq.save();
-			}
 			KC3Network.trigger("ExpeditionSelection");
 		},
 
@@ -1867,7 +1835,7 @@ Previously known as "Reactor"
 					var
 						rsc = response.api_data.api_get_material,
 						csm = [0,0,0,0],
-						csmap = [0,2,1,3,0,0],
+						csmap = [0,2,1,3],
 						uniqId = "exped" + dbId;
 					
 					// Record expedition gain
@@ -1875,18 +1843,13 @@ Previously known as "Reactor"
 					 1:"bucket", => 5
 					 2:"ibuild", => 4
 					 3:"devmat", => 6
-					 4:"screws", => 7
 					*/
 					response.api_data.api_useitem_flag.forEach(function(x,i){
-						var useMap = csmap[x],
+						var
+							useMap = csmap[x],
 							useItm = response.api_data["api_get_item"+(i+1)];
-						// count for buckets, torches, devmats
 						if(!!useMap && !!useItm) {
 							csm[useMap - 1] += useItm.api_useitem_count;
-						}
-						// count for screws
-						if(x == 4 && !!useItm && useItm.api_useitem_id == 4) {
-							csm[3] += useItm.api_useitem_count;
 						}
 					});
 					
@@ -2296,14 +2259,26 @@ Previously known as "Reactor"
 		/* Ship Modernize
 		-------------------------------------------------------*/
 		"api_req_kaisou/powerup":function(params, response, headers){
-			const consumedShipIds = params.api_id_items.split("%2C");
-			const consumedShips = consumedShipIds.map(id => KC3ShipManager.get(id));
+			// Remove consumed ships and their equipment
+			var consumed_ids = params.api_id_items;
+			$.each(consumed_ids.split("%2C"), function(index, element){
+				KC3ShipManager.remove(element);
+				KC3Network.trigger("ShipSlots");
+				KC3Network.trigger("GearSlots");
+			});
 			
-			// To trigger panel activity notification, and TsunDB data submission
-			const NewShipRaw = response.api_data.api_ship;
-			const OldShipObj = KC3ShipManager.get( NewShipRaw.api_id );
-			const MasterShip = KC3Master.ship( NewShipRaw.api_ship_id );
-			const newShipMod = NewShipRaw.api_kyouka;
+			// Check if successful modernization
+			if(response.api_data.api_powerup_flag==1){
+				KC3QuestManager.get(702).increment(); // G2: Daily Modernization
+				KC3QuestManager.get(703).increment(); // G3: Weekly Modernization
+				KC3Network.trigger("Quests");
+			}
+			
+			// Activity Notification
+			var NewShipRaw = response.api_data.api_ship;
+			var OldShipObj = KC3ShipManager.get( NewShipRaw.api_id );
+			var MasterShip = KC3Master.ship( NewShipRaw.api_ship_id );
+			var newShipMod = NewShipRaw.api_kyouka;
 			
 			KC3Network.trigger("Modernize", {
 				rosterId: response.api_data.api_ship.api_id,
@@ -2333,27 +2308,8 @@ Previously known as "Reactor"
 					MasterShip.api_luck[1] - (MasterShip.api_luck[0] + newShipMod[4]),
 					OldShipObj.maxHp(true) - (OldShipObj.hp[1] - OldShipObj.mod[5] + newShipMod[5]),
 					OldShipObj.maxAswMod() - (OldShipObj.nakedAsw() - OldShipObj.mod[6] + newShipMod[6])
-				],
-				// These properties are used by TsuDBSubmission
-				oldMod: OldShipObj.mod,
-				newMod: newShipMod,
-				consumedMasterIds: consumedShips.map(s => s.masterId),
-				consumedMasterLevels: consumedShips.map(s => s.level)
+				]
 			});
-			
-			// Remove consumed ships and their equipment
-			$.each(consumedShipIds, function(_, rosterId){
-				KC3ShipManager.remove(rosterId);
-				KC3Network.trigger("ShipSlots");
-				KC3Network.trigger("GearSlots");
-			});
-			
-			// Check if successful modernization
-			if(response.api_data.api_powerup_flag == 1){
-				KC3QuestManager.get(702).increment(); // G2: Daily Modernization
-				KC3QuestManager.get(703).increment(); // G3: Weekly Modernization
-				KC3Network.trigger("Quests");
-			}
 			
 			KC3ShipManager.set([NewShipRaw]);
 			KC3ShipManager.save();
@@ -2743,16 +2699,8 @@ Previously known as "Reactor"
 					[280,1,[1,3], true, true], // Bm8: 2nd requirement: [W1-3] S-rank the boss node
 					[280,2,[1,4], true, true], // Bm8: 3rd requirement: [W1-4] S-rank the boss node
 					[280,3,[2,1], true, true], // Bm8: 4th requirement: [W2-1] S-rank the boss node
-					[284,0,[1,4], true, true], // Bq11: 1st requirement: [W1-4] S-rank the boss node
-					[284,1,[2,1], true, true], // Bq11: 2nd requirement: [W2-1] S-rank the boss node
-					[284,2,[2,2], true, true], // Bq11: 3rd requirement: [W2-2] S-rank the boss node
-					[284,3,[2,3], true, true], // Bq11: 4th requirement: [W2-3] S-rank the boss node
 					[822,0,[2,4], true], // Bq1: Sortie to [W2-4] and S-rank the boss node 2 times
 					[854,3,[6,4], true, true], // Bq2: 4th requirement: [W6-4] S-rank the boss node
-					[872,0,[7,2], true, true, [15]], // Bq10: 1st requirement: [W7-2-M] S-rank 2nd boss node
-					[872,1,[5,5], true, true], // Bq10: 2nd requirement: [W5-5] S-rank the boss node
-					[872,2,[6,2], true, true], // Bq10: 3rd requirement: [W6-2] S-rank the boss node
-					[872,3,[6,5], true, true], // Bq10: 4th requirement: [W6-5] S-rank the boss node
 					[875,0,[5,4], true, true], // Bq6: Sortie to [W5-4] S-rank the boss node
 					[888,0,[5,1], true, true], // Bq7: 1st requirement: [W5-1] S-rank the boss node
 					[888,1,[5,3], true, true], // Bq7: 2nd requirement: [W5-3] S-rank the boss node

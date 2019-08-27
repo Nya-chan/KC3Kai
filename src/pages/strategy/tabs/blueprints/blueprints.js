@@ -28,16 +28,11 @@
 				const thisRemodelLevel = RemodelDb.remodelGroup(ship.masterId).indexOf(ship.masterId);
 				return thisRemodelLevel >= Math.max(...dupeRemodelLevels);
 			});
-			this.defineSimpleFilter("hideCompleted", [], 0, (fd, ship) => {
-				if(!fd.currentIndex) return true;
-				return ship.materials.filter(m => !m.used).length > 0;
-			});
 			this.showListRowCallback = this.showRemodelMaterials;
 			this.heartLockMode = 2;
 			this.viewType = "owned";
 			this.hideUnlock = false;
 			this.hideDupe = false;
-			this.hideCompleted = false;
 		}
 
 		/* RELOAD
@@ -54,10 +49,8 @@
 		execute() {
 			const joinPageParams = () => (
 				[this.viewType,
-					this.hideUnlock ? "locked" : (this.hideDupe || this.hideCompleted) && "all",
-					this.hideDupe ? "nodupe" : this.hideCompleted && "all",
-					this.hideCompleted && "nocompleted"
-				].filter(v => !!v)
+					this.hideUnlock ? "locked" : this.hideDupe && "all",
+					this.hideDupe && "nodupe"].filter(v => !!v)
 			);
 			$(".tab_blueprints .view_type input[type=radio][name=view_type]").on("change", (e) => {
 				this.viewType = $(".view_type input[type=radio][name=view_type]:checked").val();
@@ -69,10 +62,6 @@
 			});
 			$(".tab_blueprints .view_type input[type=checkbox][name=hide_dupe]").on("change", (e) => {
 				this.hideDupe = $(".view_type input[type=checkbox][name=hide_dupe]").prop("checked");
-				KC3StrategyTabs.gotoTab(undefined, ...joinPageParams());
-			});
-			$(".tab_blueprints .view_type input[type=checkbox][name=hide_completed]").on("change", (e) => {
-				this.hideCompleted = $(".view_type input[type=checkbox][name=hide_completed]").prop("checked");
 				KC3StrategyTabs.gotoTab(undefined, ...joinPageParams());
 			});
 			this.shipListDiv = $(".tab_blueprints .ship_list");
@@ -87,38 +76,31 @@
 			this.shipListDiv.on("postShow", this.showTotalMaterials);
 			this.loadView(KC3StrategyTabs.pageParams[1],
 				KC3StrategyTabs.pageParams[2] === "locked",
-				KC3StrategyTabs.pageParams[3] === "nodupe",
-				KC3StrategyTabs.pageParams[4] === "nocompleted"
-			);
+				KC3StrategyTabs.pageParams[3] === "nodupe");
 		}
 
-		loadView(viewType = "owned", hideUnlock = false, hideDupe = false, hideCompleted = false) {
+		loadView(viewType = "owned", hideUnlock = false, hideDupe = false) {
 			this.viewType = viewType;
 			this.hideUnlock = hideUnlock;
 			this.hideDupe = hideDupe;
-			this.hideCompleted = hideCompleted;
 			$(".tab_blueprints .view_type input[type=radio][name=view_type][value={0}]"
 				.format(this.viewType)).prop("checked", true);
 			$(".tab_blueprints .view_type input[type=checkbox][name=hide_unlock]")
 				.prop("checked", this.hideUnlock);
 			$(".tab_blueprints .view_type input[type=checkbox][name=hide_dupe]")
 				.prop("checked", this.hideDupe);
-			$(".tab_blueprints .view_type input[type=checkbox][name=hide_completed]")
-				.prop("checked", this.hideCompleted);
 			switch(this.viewType) {
 				case "owned":
 					this.setSorter("lv");
 					this.prepareShipList(true, this.mapRemodelMaterials);
 					this.filterDefinitions.hideUnlock.currentIndex = this.hideUnlock & 1;
 					this.filterDefinitions.hideDupe.currentIndex = this.hideDupe & 1;
-					this.filterDefinitions.hideCompleted.currentIndex = this.hideCompleted & 1;
 					break;
 				case "all":
 					this.setSorter("type");
 					this.prepareShipListFromRemodelDb();
 					this.filterDefinitions.hideUnlock.currentIndex = 0;
 					this.filterDefinitions.hideDupe.currentIndex = 0;
-					this.filterDefinitions.hideCompleted.currentIndex = 0;
 					break;
 				default:
 					console.warn("Unsupported view type:", this.viewType);
@@ -132,8 +114,7 @@
 			this.shipList.length = 0;
 			Object.keys(allRemodelInfo).forEach(key => {
 				const remodelInfo = allRemodelInfo[key];
-				if(remodelInfo.blueprint || remodelInfo.catapult || remodelInfo.report
-					|| remodelInfo.gunmat || remodelInfo.airmat) {
+				if(remodelInfo.blueprint || remodelInfo.catapult || remodelInfo.report || remodelInfo.gunmat) {
 					const shipMaster = KC3Master.ship(remodelInfo.ship_id_from);
 					const shipData = {
 						id: remodelInfo.ship_id_from,
@@ -170,7 +151,7 @@
 			const remodelGroup = RemodelDb.remodelGroup(mappedObj.masterId);
 			mappedObj.materials = [];
 			mappedObj.materialsUsed = 0;
-			for(const masterId of remodelFormIds) {
+			for(let masterId of remodelFormIds) {
 				const remodelInfo = RemodelDb.remodelInfo(masterId);
 				if(remodelInfo) {
 					// Check and mark possibly used material
@@ -209,14 +190,6 @@
 						});
 						mappedObj.materialsUsed += isUsed;
 					}
-					if(remodelInfo.airmat) {
-						mappedObj.materials.push({
-							icon: 77,
-							info: remodelInfo,
-							used: isUsed
-						});
-						mappedObj.materialsUsed += isUsed;
-					}
 				}
 			}
 			return mappedObj;
@@ -224,7 +197,7 @@
 
 		showRemodelMaterials(ship, shipRow) {
 			let firstMaterial = null;
-			for(const material of ship.materials) {
+			for(let material of ship.materials) {
 				firstMaterial = firstMaterial || material;
 				const iconDiv = $("<div />")
 					.addClass("ship_field icon")
@@ -282,7 +255,6 @@
 									m.icon === 65 ? m.info.catapult :
 									m.icon === 78 ? m.info.report :
 									m.icon === 75 ? m.info.gunmat :
-									m.icon === 77 ? m.info.airmat :
 									1).fill(m.icon)
 				))).map(iconArr => {
 					const icon = iconArr[0];
@@ -304,11 +276,10 @@
 					.text("x{0}".format(count || 0))
 					.appendTo(ownedItemDiv);
 			};
-			for(const icon in materialCount) {
+			for(let icon in materialCount) {
 				const totalItemDiv = $("<div />").addClass("summary_item").appendTo(totalDiv);
 				const iconImg = $("<img />")
 					.attr("src", "/assets/img/useitems/" + icon + ".png")
-					.attr("title", KC3Meta.useItemName(icon))
 					.appendTo(totalItemDiv);
 				$("<span></span>")
 					.text("x{0}/{1}".format(
@@ -317,10 +288,8 @@
 					)).appendTo(totalItemDiv);
 				switch(Number(icon)) {
 					case 58:
-						const medalIcon = iconImg.clone()
-							.attr("src", "/assets/img/useitems/57.png")
-							.attr("title", KC3Meta.useItemName(57));
-						appendOwnedItem(medalIcon, PlayerManager.consumables.medals);
+						appendOwnedItem(iconImg.clone().attr("src", "/assets/img/useitems/57.png"),
+							PlayerManager.consumables.medals);
 						appendOwnedItem(iconImg, PlayerManager.consumables.blueprints);
 						break;
 					case 65:
@@ -328,9 +297,6 @@
 						break;
 					case 75:
 						appendOwnedItem(iconImg, PlayerManager.consumables.newArtilleryMaterial);
-						break;
-					case 77:
-						appendOwnedItem(iconImg, PlayerManager.consumables.newAviationMaterial);
 						break;
 					case 78:
 						appendOwnedItem(iconImg, PlayerManager.consumables.actionReport);
@@ -430,16 +396,6 @@
 					.appendTo(line);
 				$("<span></span>").css("margin-right", 10)
 					.text(remodelInfo.gunmat)
-					.appendTo(line);
-			}
-			if(remodelInfo.airmat) {
-				$("<img />")
-					.attr("src", "/assets/img/useitems/77.png")
-					.width(15).height(15).css("margin-right", 2)
-					.css("vertical-align", "top")
-					.appendTo(line);
-				$("<span></span>").css("margin-right", 10)
-					.text(remodelInfo.airmat)
 					.appendTo(line);
 			}
 			if(remodelInfo.devmat) {

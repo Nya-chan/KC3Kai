@@ -97,21 +97,23 @@
 	white-space:normal;
 }
 .tab_mstgear .gearInfo .types {
-	width:368px;
+	width:270px;
 	height:20px;
+	float:left;
 	line-height:20px;
-	margin:0px 0px 2px 0px;
+	margin:0px 0px 10px 0px;
 	text-overflow:ellipsis;
 	overflow:hidden;
 	white-space:nowrap;
 }
 .tab_mstgear .gearInfo .rarity {
-	width:368px;
+	width:98px;
 	height:20px;
+	float:right;
 	line-height:20px;
 	font-size:20px;
 	color:#ec6;
-	margin:-2px 0px 4px 0px;
+	margin:0px 0px 10px 0px;
 }
 
 /* STATS */
@@ -145,8 +147,7 @@
 	height:20px;
 	float:left;
 	padding:0px 0px 0px 5px;
-	font-weight:bold;
-	white-space:nowrap;
+	font-weight: bold;
 }
 .tab_mstgear .gearInfo .scrap {
 	height:20px;
@@ -211,9 +212,6 @@
 	width:30px;
 	height:30px;
 	vertical-align:top;
-	object-fit: cover;
-	border-radius: 50%;
-	image-rendering: auto;
 }
 
 /* INTRO */

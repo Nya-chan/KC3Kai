@@ -120,8 +120,7 @@
 							dv: MasterItem.api_baku,
 							ht: MasterItem.api_houm,
 							rn: MasterItem.api_leng,
-							or: MasterItem.api_distance,
-							rk: KC3GearManager.antiLandDiveBomberIds.includes(ThisItem.masterId) && 1,
+							or: MasterItem.api_distance
 						},
 						instances: []
 					};
@@ -241,7 +240,6 @@
 				this.slotitem_stat(ItemElem, ThisSlotitem, "ht");
 				this.slotitem_stat(ItemElem, ThisSlotitem, "rn");
 				this.slotitem_stat(ItemElem, ThisSlotitem, "or");
-				this.slotitem_stat(ItemElem, ThisSlotitem, "rk");
 				
 				ThisSlotitem.instances.forEach(ThisPlane => {
 					const rosterId = ThisPlane.itemId;
@@ -323,9 +321,7 @@
 		/* Determine if an item has a specific stat
 		--------------------------------------------*/
 		slotitem_stat :function(ItemElem, SlotItem, statName){
-			if(statName === "rk") {
-				$(".stats .item_rk", ItemElem).toggle(!!SlotItem.stats.rk);
-			} else if(SlotItem.stats[statName] !== 0 && (statName !== "or" ||
+			if(SlotItem.stats[statName] !== 0 && (statName !== "or" ||
 				(statName === "or" && KC3GearManager.landBasedAircraftType3Ids.indexOf(SlotItem.type_id)>-1)
 			)){
 				$(".stats .item_"+statName+" span", ItemElem).text(

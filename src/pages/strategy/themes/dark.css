@@ -1305,7 +1305,7 @@ button, input, select, textarea {
 
 /* Badge */
 .tab_badge .export_box {
-	background:#131313;
+    background:#131313;
 }
 .tab_badge .export_parts .export_value {
 	background:#333333 !important;
@@ -1594,9 +1594,9 @@ button, input, select, textarea {
 	overflow:hidden;
 }
 .tab_fleet .fleet_ship .ship_pic img {
-	width:210px;
+	width:140px;
 	height:140px;
-	margin:-32px 0px 0px -48px
+	margin:-32px 0px 0px -16px
 }
 
 .tab_fleet .fleet_ship .ship_lv {
@@ -2039,21 +2039,7 @@ button, input, select, textarea {
 .tab_mstship .shipInfo .equipExSlot .equippableType {
 	background:#444;
 }
-.tab_mstship .shipInfo .gearBonuses {
-	background: #444 !important;
-}
-.tab_mstship .shipInfo .gearBonuses:nth-child(2n+1) {
-	background: #333 !important;
-}
-.tab_mstship .shipInfo .bonusList .statIcon img{
-	filter: invert(1);
-}
-.tab_mstship .shipInfo .tokubest .to-quotes {
-	background: #2b2b5a !important;
-}
-.tab_mstship .shipInfo .bonusList hr {
-	border-color: #FFF !important;
-}
+
 /* GEARS LIBRARY
 --------------------------------*/
 .tab_mstgear .gearRecords {
@@ -2077,13 +2063,6 @@ button, input, select, textarea {
 	background:#084 !important;
 }
 
-.tab_gears .slotitem .info .upgradeDays a {
-	background: rgba(255, 255, 255, 0.15) !important;
-}
-
-.tab_gears .slotitem .info .upgradeDays .sel {
-	color: #FFF !important;
-}
 /* SHIP COMPARE
 --------------------------------*/
 .tab_compare .compare_select_back {
@@ -2189,9 +2168,6 @@ button, input, select, textarea {
 .tab_expedpast .exped_item .exped_info {
 	color: white;
 }
-.tab_expedpast .exped_item .exped_reward {
-	color: #bbb;
-}
 
 .tab_expedpast .pagination > li > a {
 	color: white;
@@ -2239,10 +2215,10 @@ button, input, select, textarea {
 }
 
 .tab_quotes .part_right .voice_entity.inherit .source {
-	color: #00ffff;
+    color: #00ffff;
 }
 .tab_quotes .part_right .voice_entity.direct .source {
-	color: #00ff00;
+    color: #00ff00;
 }
 /* TRANSLATIONS
 --------------------------------*/
@@ -2273,9 +2249,9 @@ button, input, select, textarea {
 	border:1px solid #555 !important;
 }
 .tab_expedtable .btn-group button {
-	background-color: #141414;
-	background-image: none;
-	border: 0px none !important;
+    background-color: #141414;
+    background-image: none;
+    border: 0px none !important;
 	border-radius:0px !important;
 	color: #aaa;
 }

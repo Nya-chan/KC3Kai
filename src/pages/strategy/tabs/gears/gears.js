@@ -10,7 +10,7 @@
 		_holders: {},
 		_comparator: {},
 		_currentTypeId: 1, // keep track of current type_id
-		_allProperties: ["fp","tp","aa","ar","as","ev","ls","dv","ht","rn","or","rk"],
+		_allProperties: ["fp","tp","aa","ar","as","ev","ls","dv","ht","rn","or"],
 		_defaultCompareMethod: {
 			// main guns
 			"t1": "fp",
@@ -118,8 +118,7 @@
 					// additionally, if they look the same on the given stat
 					// we compare all properties by taking their sum.
 					if (result === 0) {
-						return sumAllGetter(b) - sumAllGetter(a)
-							|| a.id - b.id;
+						return sumAllGetter(b) - sumAllGetter(a);
 					} else {
 						return result;
 					}
@@ -165,8 +164,6 @@
 		Prepares static data needed
 		---------------------------------*/
 		init :function(){
-			const akashiData = $.ajax('../../data/akashi.json', { async: false }).responseText;
-			this.upgrades = JSON.parse(akashiData);
 			this.initComparator();
 		},
 
@@ -224,8 +221,7 @@
 							dv: MasterItem.api_baku,
 							ht: MasterItem.api_houm,
 							rn: MasterItem.api_leng,
-							or: MasterItem.api_distance,
-							rk: KC3GearManager.antiLandDiveBomberIds.includes(ThisItem.masterId) && 1,
+							or: MasterItem.api_distance
 						},
 						held: [],
 						extras: [],
@@ -424,24 +420,9 @@
 				}
 			});
 
-			// show special stats icon for interceptor and land base fighter
-			if(KC3GearManager.interceptorsType3Ids.includes(Number(type_id))){
-				$(".itemSorters .sortControl.ht").attr("title", KC3Meta.term("ShipAccAntiBomber"));
-				$(".itemSorters .sortControl.ht img").attr("src", KC3Meta.statIcon("ib"));
-				$(".itemSorters .sortControl.ev").attr("title", KC3Meta.term("ShipEvaInterception"));
-				$(".itemSorters .sortControl.ev img").attr("src", KC3Meta.statIcon("if"));
-			} else {
-				$(".itemSorters .sortControl.ht").attr("title", KC3Meta.term("ShipAccuracy"));
-				$(".itemSorters .sortControl.ht img").attr("src", KC3Meta.statIcon("ht"));
-				$(".itemSorters .sortControl.ev").attr("title", KC3Meta.term("ShipEvasion"));
-				$(".itemSorters .sortControl.ev img").attr("src", KC3Meta.statIcon("ev"));
-			}
-
 			const q = ".tab_gears .itemSorters .sortControl.type";
 			if (type_id === "all") {
 				$(q).removeClass("hide");
-				// there are too many sorters
-				$(".tab_gears .itemSorters .sortControl.rk").addClass("hide");
 			} else {
 				$(q).addClass("hide");
 			}
@@ -511,7 +492,7 @@
 			}
 
 			SlotItems.sort( comparator );
-			const dayOfWeek = Date.getJstDate().getDay();
+
 			const allProperties = this._allProperties;
 			$.each(SlotItems, function(index, ThisSlotitem) {
 				const ItemElem = $(".tab_gears .factory .slotitem").clone().appendTo(".tab_gears .item_list");
@@ -524,19 +505,6 @@
 					.on("click", self.gearClickFunc);
 				$(".english", ItemElem).text(ThisSlotitem.english);
 				$(".japanese", ItemElem).text(ThisSlotitem.japanese);
-
-				["sun", "mon", "tue", "wed", "thu", "fri", "sat"].forEach((day, dayIndex) => {
-					if (self.upgrades[day] && Array.isArray(self.upgrades[day][ThisSlotitem.id])) {
-						$("<a></a>").text(Date.getDayName(dayIndex))
-							.attr("title",
-								self.upgrades[day][ThisSlotitem.id].map(shipId =>
-									KC3Meta.shipName(KC3Master.ship(shipId).api_name)
-								).join(", ")
-							).attr("href", `#akashi-${day}`)
-							.toggleClass("sel", dayIndex === dayOfWeek)
-							.appendTo($(".upgradeDays", ItemElem));
-					}
-				});
 
 				allProperties.forEach( function(v,i) {
 					self.slotitem_stat(ItemElem, ThisSlotitem, v);
@@ -580,23 +548,9 @@
 		/* Determine if an item has a specific stat
 		--------------------------------------------*/
 		slotitem_stat :function(ItemElem, SlotItem, statName){
-			if(statName === "rk") {
-				$(".stats .item_rk", ItemElem).toggle(!!SlotItem.stats.rk);
-			} else if(SlotItem.stats[statName] !== 0 && (statName !== "or" ||
+			if(SlotItem.stats[statName] !== 0 && (statName !== "or" ||
 				(statName === "or" && this._landPlaneTypes.indexOf(SlotItem.type_id)>-1)
 			)){
-				// accuray icon -> anti-bomber
-				if(statName === "ht" &&
-					KC3GearManager.interceptorsType3Ids.includes(Number(SlotItem.type_id))){
-					$(".stats .item_ht", ItemElem).attr("title", KC3Meta.term("ShipAccAntiBomber"));
-					$(".stats .item_ht img", ItemElem).attr("src", KC3Meta.statIcon("ib"));
-				}
-				// evasion icon -> interception
-				if(statName === "ev" &&
-					KC3GearManager.interceptorsType3Ids.includes(Number(SlotItem.type_id))){
-					$(".stats .item_ev", ItemElem).attr("title", KC3Meta.term("ShipEvaInterception"));
-					$(".stats .item_ev img", ItemElem).attr("src", KC3Meta.statIcon("if"));
-				}
 				if(statName === "rn"){
 					$(".stats .item_{0} span".format(statName), ItemElem)
 						.text(KC3Meta.gearRange(SlotItem.stats[statName]));

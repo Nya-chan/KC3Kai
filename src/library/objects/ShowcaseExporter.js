@@ -565,10 +565,9 @@
     };
 
     ShowcaseExporter.prototype._drawIcon = function (x, y, shipId) {
-        this.ctx.imageSmoothingQuality = 'high';
         this.ctx.drawImage(
             this._shipImages[shipId],
-            (this._shipImages[shipId].width*0.166), 0, (this._shipImages[shipId].width*0.66), this._shipImages[shipId].height,
+            0, 0, this._shipImages[shipId].width, this._shipImages[shipId].height,
             x, y, this.rowParams.height, this.rowParams.height
         );
     };

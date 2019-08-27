@@ -760,12 +760,10 @@
 
   Hougeki.parseJson = (isAllySideFriend, attackJson) => {
     const { parseDamage, parseAttacker, parseDefender, parseAttackerFriend, parseDefenderFriend,
-      parseInfo, isNelsonTouch, isNagatoCutin, isMutsuCutin, isColoradoCutin,
+      parseInfo, isNelsonTouch, isNagatoCutin, isMutsuCutin,
       parseSpecialCutin } = KC3BattlePrediction.battle.phases.hougeki;
 
-    const isSpecialCutin = isNelsonTouch(attackJson) ||
-      isNagatoCutin(attackJson) || isMutsuCutin(attackJson) ||
-      isColoradoCutin(attackJson);
+    const isSpecialCutin = isNelsonTouch(attackJson) || isNagatoCutin(attackJson) || isMutsuCutin(attackJson);
     return isSpecialCutin ? parseSpecialCutin(isAllySideFriend, attackJson) : {
       damage: parseDamage(attackJson),
       attacker: isAllySideFriend ? parseAttackerFriend(attackJson) : parseAttacker(attackJson),
@@ -774,26 +772,20 @@
     };
   };
 
-  // 1 Special CutIn (Nelson Touch / Nagato / Mutsu / Colorado) may attack 3 different targets,
+  // 1 Special CutIn (Nelson Touch / Nagato / Mutsu) may attack 3 different targets,
   // cannot ignore elements besides 1st one in api_df_list[] any more.
   Hougeki.parseSpecialCutin = (isAllySideFriend, attackJson) => {
-    const { parseDamage, parseDefender, parseInfo, isRealAttack,
-      parseAttacker, parseAttackerFriend, parseAttackerSpecial,
-      isNelsonTouch, isNagatoCutin, isMutsuCutin, isColoradoCutin } = KC3BattlePrediction.battle.phases.hougeki;
+    const { parseDamage, parseNelsonTouchAttacker, parseNagatoCutinAttacker, parseMutsuCutinAttacker,
+      parseDefender, parseInfo, isRealAttack, isNelsonTouch, isNagatoCutin } = KC3BattlePrediction.battle.phases.hougeki;
 
     const { api_df_list: defenders, api_damage: damages } = attackJson;
     return defenders.map((defender, index) => ({
       damage: parseDamage({ api_damage: [damages[index]] }),
       attacker: isNelsonTouch(attackJson) ?
-          parseAttackerSpecial(Object.assign({}, attackJson, {attackerPos: [0, 2, 4], isAllySideFriend, index})) :
+        parseNelsonTouchAttacker(Object.assign({}, attackJson, {isAllySideFriend, index})) :
         isNagatoCutin(attackJson) ?
-          parseAttackerSpecial(Object.assign({}, attackJson, {attackerPos: [0, 0, 1], isAllySideFriend, index})) :
-        isMutsuCutin(attackJson) ?
-          parseAttackerSpecial(Object.assign({}, attackJson, {attackerPos: [0, 0, 1], isAllySideFriend, index})) :
-        isColoradoCutin(attackJson) ?
-          parseAttackerSpecial(Object.assign({}, attackJson, {attackerPos: [0, 1, 2], isAllySideFriend, index})) :
-        // Unreachable exception
-        (isAllySideFriend ? parseAttackerFriend(attackJson) : parseAttacker(attackJson)),
+        parseNagatoCutinAttacker(Object.assign({}, attackJson, {isAllySideFriend, index})) :
+        parseMutsuCutinAttacker(Object.assign({}, attackJson, {isAllySideFriend, index})),
       // Assume abyssal enemy and PvP cannot trigger it yet
       defender: parseDefender({ api_df_list: [defender] }),
       info: parseInfo(attackJson, index),
@@ -802,18 +794,27 @@
 
   Hougeki.isRealAttack = ({ defender }) => defender.position !== -1;
 
-  Hougeki.isNelsonTouch   = ({ api_at_type, api_sp_list }) => (api_at_type || api_sp_list) === 100;
-  Hougeki.isNagatoCutin   = ({ api_at_type, api_sp_list }) => (api_at_type || api_sp_list) === 101;
-  Hougeki.isMutsuCutin    = ({ api_at_type, api_sp_list }) => (api_at_type || api_sp_list) === 102;
-  Hougeki.isColoradoCutin = ({ api_at_type, api_sp_list }) => (api_at_type || api_sp_list) === 103;
+  Hougeki.isNelsonTouch = ({ api_at_type, api_sp_list }) => (api_at_type || api_sp_list) === 100;
+  Hougeki.isNagatoCutin = ({ api_at_type, api_sp_list }) => (api_at_type || api_sp_list) === 101;
+  Hougeki.isMutsuCutin  = ({ api_at_type, api_sp_list }) => (api_at_type || api_sp_list) === 102;
 
-  // According MVP result, Nelson Touch attackers might be set to corresponding
-  //   ship position (1st Nelson, 3th, 5th), not fixed to Nelson (api_at_list: 0);
-  // For Nagato/Mutsu, 3 attacks assigned to 1st flagship twice, 2nd ship once;
-  // For Colorado, 3 attacks assigned to first 3 ships;
-  Hougeki.parseAttackerSpecial = ({ isAllySideFriend, index, attackerPos, api_at_eflag }) => ({
+  // According MVP result, attacker might be set to corresponding
+  // ship position (1st Nelson, 3th, 5th), not fixed to Nelson (api_at_list: 0).
+  Hougeki.parseNelsonTouchAttacker = ({ isAllySideFriend, index, api_at_eflag }) => ({
     side: api_at_eflag === 1 ? Side.ENEMY : isAllySideFriend ? Side.FRIEND : Side.PLAYER,
-    position: attackerPos[index] || 0,
+    position: [0, 2, 4][index] || 0,
+  });
+
+  // 3-times attacks counted for 1st Nagato twice, 2nd ship once
+  Hougeki.parseNagatoCutinAttacker = ({ isAllySideFriend, index, api_at_eflag }) => ({
+    side: api_at_eflag === 1 ? Side.ENEMY : isAllySideFriend ? Side.FRIEND : Side.PLAYER,
+    position: [0, 0, 1][index] || 0,
+  });
+
+  // Uncertain: the same with Nagato? 3-times attacks counted for 1st Mutsu twice, 2nd ship once
+  Hougeki.parseMutsuCutinAttacker = ({ isAllySideFriend, index, api_at_eflag }) => ({
+    side: api_at_eflag === 1 ? Side.ENEMY : isAllySideFriend ? Side.FRIEND : Side.PLAYER,
+    position: [0, 0, 1][index] || 0,
   });
 
   Hougeki.parseDamage = ({ api_damage }) =>
