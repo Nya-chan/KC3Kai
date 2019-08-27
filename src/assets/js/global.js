@@ -127,7 +127,7 @@ dateFormat.masks = {
 	isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
 };
 
-// Internationalization strings
+// Internationalization strings (English only)
 dateFormat.i18n = {
 	dayNames: [
 		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
@@ -137,6 +137,18 @@ dateFormat.i18n = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 		"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
 	]
+};
+// These will be filled with real localized strings later
+dateFormat.l10n = { dayNames: [], monthNames: [] };
+// Get localized weekday name, dow is 0-based
+Date.getDayName = function(dow, forLong) {
+	return dateFormat.l10n.dayNames[Math.abs(Number(dow) % 7)
+		+ (!!forLong && forLong !== "short" ? 7 : 0)];
+};
+// Get localized month name, month is 1-based
+Date.getMonthName = function(month, forLong) {
+	return dateFormat.l10n.monthNames[Math.abs((Number(month) - 1) % 12)
+		+ (!!forLong && forLong !== "short" ? 12 : 0)];
 };
 
 /* GET DATE IN Japan Standard TimeZone
@@ -151,7 +163,7 @@ Date.getJstDate = function() {
 	var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
 	// create new Date object for different city
 	// using supplied offset
-	return new Date(utc + (3600000*9));
+	return new Date(utc + (3600000 * 9));
 };
 
 /**
@@ -300,6 +312,31 @@ String.prototype.toCamelCase = function(isToUpper) {
 		if(p2) return p2.toUpperCase();
 		return isToUpper ? p1.toUpperCase() : p1.toLowerCase();
 	});
+};
+
+/**
+ * Replace illegal chars with safe char to make a filename-safe string.
+ * @param replacement - a string used to replace unsafe char, "-" by default.
+ * @param isPathAllowed - allow directory separator: '/', '\'.
+ *
+ * All potential problemtic chars for `saveAs` API will be replaced with '-',
+ * but for `chrome.downloads` API, runtime.lastError `Invalid filename` will be set instead,
+ * even they are safe for the file system of some platforms,
+ * about illegal chars defined by Chromium, see `IllegalCharacters::IllegalCharacters()` at
+ *   https://github.com/chromium/chromium/blob/master/base/i18n/file_util_icu.cc
+ */
+String.prototype.toSafeFilename = function(replacement, isPathAllowed) {
+	if(replacement == undefined) replacement = "-";
+	var filenameReservedReg = !!isPathAllowed ?
+		/[:<>|~?*\x00-\x1F\uFDD0-\uFDEF"]/g :
+		/[:<>|~?*\x00-\x1F\uFDD0-\uFDEF"\/\\]|^[.]|[.]$/g;
+	// These names not allowed on Windows platform, something like `nul.zip` neither,
+	// Chromium denies them even on other platforms, so does for: device.*, desktop.ini, thumbs.db
+	// see https://github.com/chromium/chromium/blob/master/net/base/filename_util.cc
+	var win32ReservedNames = /^((CON|PRN|AUX|NUL|CLOCK\$|COM[1-9]|LPT[1-9])(\..*)?|device(\..*)?|desktop.ini|thumbs.db)$/i;
+	if(!isPathAllowed && win32ReservedNames.test(this))
+		return (replacement || "_") + this.replace(filenameReservedReg, replacement);
+	return this.replace(filenameReservedReg, replacement);
 };
 
 /**
