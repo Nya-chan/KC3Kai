@@ -13,6 +13,11 @@
 	font-size:12px;
 }
 
+.tab_mstship ol,
+.tab_mstship ul {
+	padding-left:1em;
+}
+
 /* FILTERS
 --------------------------------*/
 .tab_mstship .filters {
@@ -47,17 +52,17 @@
 	float:left;
 	overflow-y: scroll;
 	overflow-x: hidden;
-	padding:5px;
+	padding:5px 0px;
 	border:1px solid #ccc;
 	background:#ffc;
 	border-radius: 8px 0px 0px 8px;
 }
 .tab_mstship .shipRecord {
-	width:170px;
+	width:auto;
 	height:20px;
 	line-height:20px;
 	margin:0px 0px 2px 0px;
-	border-radius: 5px;
+	padding-left:5px;
 }
 .tab_mstship .shipRecord:hover {
 	background:#cfc;
@@ -70,6 +75,9 @@
 .tab_mstship .shipRecord .shipIcon img {
 	width:20px;
 	height:20px;
+	vertical-align:text-bottom;
+	object-fit: cover;
+	image-rendering: auto;
 }
 .tab_mstship .shipRecord .shipName {
 	width:150px;
@@ -77,6 +85,7 @@
 	float:left;
 	padding:0px 0px 0px 5px;
 	white-space:nowrap;
+	overflow:visible;
 }
 
 /* SHIP INFO
@@ -101,10 +110,36 @@
 	float:left;
 	margin:0px 5px 5px 0px;
 	background:#006c91;
+	overflow:hidden;
+	text-align:center;
 }
-.tab_mstship .shipInfo .cgswf embed {
-	width:218px;
-	height:300px;
+.tab_mstship .shipInfo .cgswf .image {
+	width:100%;
+	height:100%;
+}
+.tab_mstship .shipInfo .cgswf .big_mode {
+	float:left;
+	position:relative;
+	width:32px;
+	height:100%;
+	top:-100%;
+	z-index:999;
+	cursor:pointer;
+}
+.tab_mstship .shipInfo .cgswf .big_mode:hover {
+	background:rgba(0,0,255,0.5);
+}
+.tab_mstship .shipInfo .cgswf .dmg_mode {
+	float:right;
+	position:relative;
+	width:32px;
+	height:100%;
+	top:-100%;
+	z-index:999;
+	cursor:pointer;
+}
+.tab_mstship .shipInfo .cgswf .dmg_mode:hover {
+	background:rgba(255,0,0,0.5);
 }
 
 /* Ship Name*/
@@ -154,11 +189,12 @@
 	height:20px;
 	float:left;
 	line-height:16px;
+	text-align:center;
 }
 .tab_mstship .shipInfo .ship_stat_icon img {
-	width:16px;
+	max-width:19px;
 	height:16px;
-	margin:2px;
+	margin:2px 1px 2px 0px;
 }
 .tab_mstship .shipInfo .ship_stat_name {
 	width:45px;
@@ -229,13 +265,17 @@
 	margin:2px 0px 0px -10px;
 	padding-left: 12px;
 	z-index:1;
-	color: white;
+	color:white;
 	background:#444;
 	border-radius:0px 3px 3px 0px;
 	font-size:12px;
 	text-overflow: ellipsis;
 	overflow:hidden;
 	white-space: nowrap; 
+}
+.tab_mstship .shipInfo .equipment .slotitem .star {
+	color:#45a9a5;
+	font-size:11px;
 }
 
 /* Abyssal JSON */
@@ -317,12 +357,13 @@
 	width:20px;
 	height:20px;
 	line-height:16px;
+	text-align:center;
 	float:left;
 }
 .tab_mstship .shipInfo .more .rsc_icon img {
-	width:16px;
+	max-width:19px;
 	height:16px;
-	margin:2px;
+	margin:2px 1px;
 }
 .tab_mstship .shipInfo .more .rsc_value {
 	width:50px;
@@ -471,6 +512,48 @@
 	padding-left:10px;
 	padding-right:5px;
 }
+
+/* EQUIPPABLE
+--------------------------------*/
+.tab_mstship .shipInfo .equipSlots,
+.tab_mstship .shipInfo .equipExSlot {
+	width:453px;
+}
+.tab_mstship .shipInfo .equipSlots .equippableType,
+.tab_mstship .shipInfo .equipExSlot .equippableType {
+	float:left;
+	width:224px;
+	height:20px;
+	margin:0px 2px 1px 0px;
+	font-size:12px;
+	line-height:20px;
+	border-radius:6px;
+}
+.tab_mstship .shipInfo .equipSlots .typeIcon,
+.tab_mstship .shipInfo .equipExSlot .typeIcon,
+.tab_mstship .shipInfo .equipSlots .typeIcon img,
+.tab_mstship .shipInfo .equipExSlot .typeIcon img {
+	width:20px;
+	height:20px;
+	vertical-align:text-bottom;
+}
+.tab_mstship .shipInfo .equipSlots .typeIcon,
+.tab_mstship .shipInfo .equipExSlot .typeIcon {
+	float:left;
+}
+.tab_mstship .shipInfo .equipSlots .typeName,
+.tab_mstship .shipInfo .equipExSlot .typeName {
+	float:left;
+	width:200px;
+	margin:0px 2px 0px 2px;
+	text-overflow:ellipsis;
+	overflow:hidden;
+	white-space:nowrap;
+}
+.tab_mstship .shipInfo .equipExSlot .label {
+	color:inherit;
+}
+
 /* AACI
 --------------------------------*/
 .tab_mstship .shipInfo .aaci {
@@ -501,6 +584,8 @@
 	width:20px;
 	height:20px;
 	margin-top:-2px;
+	object-fit: cover;
+	image-rendering: auto;
 }
 .tab_mstship .shipInfo .aaci .equipIcons {
 	width:100px;
@@ -626,6 +711,140 @@
 	font-weight:normal;
 	background:inherit;
 	text-shadow:inherit;
+}
+/* GEAR BONUS
+-------------------------------*/
+.tab_mstship .shipInfo .bonusList {
+	width: 455px;
+}
+
+.tab_mstship .shipInfo .bonusList .synergyIcon img,
+.tab_mstship .shipInfo .bonusList .gearIcon img,
+.tab_mstship .shipInfo .bonusList .gearType img {
+	width: 30px;
+	height: 30px;
+}
+
+.tab_mstship .shipInfo .bonusList hr {
+	margin: 7px auto;
+	opacity: 0.3;
+	border-color: #000;
+}
+
+.tab_mstship .shipInfo .bonusList .basicBonusInfo,
+.tab_mstship .shipInfo .bonusList .bonusStatsList,
+.tab_mstship .shipInfo .bonusList .gearStatBonus,
+.tab_mstship .shipInfo .bonusList .gearLevelBonus,
+.tab_mstship .shipInfo .bonusList .synergyFlag,
+.tab_mstship .shipInfo .bonusList .synergyBonusRow {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+
+.tab_mstship .shipInfo .bonusList .gearBonuses {
+	padding: 5px 0;
+}
+
+.tab_mstship .shipInfo .gearBonuses {
+	background: #ddd;
+	border-radius: 5px;
+	margin: 5px 0;
+}
+
+.tab_mstship .shipInfo .gearBonuses:nth-child(2n+1) {
+	background: #ccc;
+}
+
+.tab_mstship .shipInfo .bonusList .gearId {
+	padding-left: 10px;
+}
+
+.tab_mstship .shipInfo .bonusList .gearId,
+.tab_mstship .shipInfo .bonusList .gearName,
+.tab_mstship .shipInfo .bonusList .synergyType,
+.tab_mstship .shipInfo .bonusList .gearCount,
+.tab_mstship .shipInfo .bonusList .bonusStatsList,
+.tab_mstship .shipInfo .bonusList .gearLevel {
+	line-height: 30px;
+	height: 30px;
+	vertical-align: middle;
+}
+.tab_mstship .shipInfo .bonusList .synergyType {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.tab_mstship .shipInfo .bonusList .gearName {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	width: 375px;
+	overflow: hidden;
+}
+
+.tab_mstship .shipInfo .bonusList .gearId,
+.tab_mstship .shipInfo .bonusList .gearIcon,
+.tab_mstship .shipInfo .bonusList .gearLevel,
+.tab_mstship .shipInfo .bonusList .synergyIcon,
+.tab_mstship .shipInfo .bonusList .gearType {
+	width: 45px;
+}
+.tab_mstship .shipInfo .bonusList .gearIcon {
+	width: 35px;
+}
+
+.tab_mstship .shipInfo .bonusList .synergy .synergyFlag span {
+	font-size: 20px;
+	line-height: 30px;
+	vertical-align: middle;	
+}
+
+.tab_mstship .shipInfo .bonusList .synergy .synergyFlag .synergyType span {
+	content: "*";
+	vertical-align: top;
+	color: #ff5151;
+	font-weight: 700;
+	font-size: 20px;
+	margin-left:4px;
+}
+
+.tab_mstship .shipInfo .bonusList .synergyFlags {
+    padding-left: 9px;
+} 
+
+.tab_mstship .shipInfo .bonusList .gearLevel {
+	text-align: right;
+}
+
+.tab_mstship .shipInfo .bonusList .leveledBonusStatsList,
+.tab_mstship .shipInfo .bonusList .synergyGears {
+	padding-left: 40px;
+}
+
+.tab_mstship .shipInfo .bonusList .leveledBonusStatsList .bonusStatsList {
+	padding-left: 20px;
+}
+
+.tab_mstship .shipInfo .bonusList .gearCount {
+	width: 20px;
+	text-align: right;
+}
+
+
+.tab_mstship .shipInfo .bonusList .gearStatBonus {
+	margin-right: 5px;
+}
+.tab_mstship .shipInfo .bonusList .gearStatBonus .statIcon {
+	margin-right: 2px;
+}
+.tab_mstship .shipInfo .bonusList .gearStatBonus .statIcon img {
+	max-width: 22px;
+	height: 18px;
+}
+
+.tab_mstship .shipInfo .bonusList .statValue {
+	margin-right: 2px;
 }
 
 /* SPECIAL (Salt Check)

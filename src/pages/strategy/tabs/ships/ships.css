@@ -78,8 +78,9 @@
 }
 
 .tab_ships .show_name_filter {
+	float: left;
 	height: 18px;
-	margin: 0px 0px 2px 0px;
+	margin: 0px 2px 2px 0px;
 }
 .tab_ships .show_name_filter .name_label {
 	float: left;
@@ -91,10 +92,56 @@
 .tab_ships .show_name_filter .name_criteria {
 	float: left;
 	font-size: 12px;
-	width: 188px;
+	width: 322px;
 	height: 18px;
 	padding: 1px 3px;
 	line-height: 18px;
+}
+.tab_ships .show_name_filter .name_criteria.error{
+	color: #f00;
+}
+
+.tab_ships .ship_level_filter {
+	float: left;
+	height: 18px;
+	margin: 0px 2px 2px 24px;
+}
+.tab_ships .ship_level_filter .level_start_label {
+	float: left;
+	font-weight: bold;
+	font-size: 12px;
+	padding-right: 5px;
+	line-height: 18px;
+}
+.tab_ships .ship_level_filter .level_end_label {
+	float: left;
+	font-weight: bold;
+	font-size: 12px;
+	padding-right: 5px;
+	line-height: 18px;
+	margin: 0 0 0 6px;
+}
+.tab_ships .ship_level_filter .level_start_input {
+	float: left;
+	font-size: 12px;
+	width: 30px;
+	height: 18px;
+	padding: 1px 3px;
+	line-height: 18px;
+}
+.tab_ships .ship_level_filter .level_start_input.error {
+	color: #f00;
+}
+.tab_ships .ship_level_filter .level_end_input {
+	float: left;
+	font-size: 12px;
+	width: 30px;
+	height: 18px;
+	padding: 1px 3px;
+	line-height: 18px;
+}
+.tab_ships .ship_level_filter .level_end_input.error {
+	color: #f00;
 }
 
 .tab_ships .advanced_sorter {
@@ -213,9 +260,23 @@
 	font-size:12px;
 	font-weight:bold;
 	margin:0px 0px 3px 0px;
+	display:flex;
+}
+.tab_ships .ship_header .ship_item .ship_id {
+	text-align:center;
+}
+.tab_ships .ship_header .ship_item .ship_img {
+	display:none;
+}
+.tab_ships .ship_header .ship_item .ship_name {
+	text-align:center;
+}
+.tab_ships .ship_header .ship_item .ship_sortno {
+	width:20px;
+	text-align:center;
 }
 .tab_ships .ship_header .ship_stat img {
-	width:16px;
+	max-width:19px;
 	height:16px;
 	margin:2px;
 	vertical-align:text-bottom;
@@ -269,19 +330,33 @@
 	margin:0px 0px 5px 0px;
 }
 .tab_ships .ship_list.scroll_fix {
-	width:692px;
-	overflow-x:hidden;
+	width:685px;
+	overflow-x:auto;
 	overflow-y:scroll;
+}
+.tab_ships .ship_list.scroll_fix::-webkit-scrollbar {
+	width:10px;
+	height:10px;
+}
+.tab_ships .ship_list.scroll_fix::-webkit-scrollbar-track {
+	background:#ddd;
+}
+.tab_ships .ship_list.scroll_fix::-webkit-scrollbar-thumb {
+	background:#666;
 }
 /* Row */
 .tab_ships .ship_list .ship_item {
-	width:675px;
+	display:flex;
+	float:left;
+	width:auto;
+	/*width:675px;*/
 	height:20px;
 	line-height:20px;
 	font-size:12px;
 	margin:0px 0px 2px 0px;
 	overflow:hidden;
 	position:relative;
+	white-space:nowrap;
 }
 .tab_ships .ship_list .ship_item.hidden_by_name {
 	display: none;
@@ -324,7 +399,10 @@
 /* Fields: Basic */
 .tab_ships .ship_item .ship_id {
 	width:44px;
-	text-align:center;
+	text-align:right;
+	padding-right:1px;
+	overflow:hidden;
+	direction:rtl;
 }
 .tab_ships .ship_item .ship_img {
 	position:relative;
@@ -334,6 +412,8 @@
 	width:20px;
 	height:20px;
 	vertical-align:top;
+	object-fit: cover;
+	image-rendering: auto;
 }
 .tab_ships .ship_item .ship_img img.ship_kekkon {
 	position:absolute;
@@ -368,9 +448,15 @@
 	white-space:nowrap;
 	position:relative;
 }
-.tab_ships .ship_item .ship_name.ship_kekkon {
-	/*width:112px;*/
+/*
+.tab_ships .ship_item .ship_name:after {
+	content:attr(data-ship-name);
 }
+.tab_ships .ship_item .ship_name.class_name:after {
+	content:attr(data-full-name);
+}
+*/
+
 .tab_ships .ship_item .ship_type {
 	width:30px;
 	text-align:center;
@@ -421,6 +507,10 @@
 	overflow:hidden;
 	position:relative;
 }
+.tab_ships .ship_item .slot5 .ship_equip_icon {
+	transform:scaleX(0.8);
+	width:14px;
+}
 .tab_ships .ship_item .ship_equip img {
 	width:17px;
 	height:18px;
@@ -447,7 +537,9 @@
 
 /* Fields: HeartLock and Marriage Ring */
 .tab_ships .ship_item .ship_stat_icon {
-	width:20px;
+	width:0;
+	margin:0;
+	overflow:visible;
 }
 .tab_ships .ship_item .ship_stat_icon img {
 	width:20px;
@@ -457,13 +549,24 @@
 .tab_ships .ship_item .ship_lock img {
 	width:13px;
 	height:13px;
-	margin:-35px 0px 0px 39px;
+	margin:5px 0 0 -28px;
 	position:relative;
+	display:inline;
+	content:url("/assets/img/client/heartlock.png");
 }
+.tab_ships .ship_item .ship_lock.unlock img {
+	content:url("/assets/img/client/heartlock-x.png");
+}
+
 .tab_ships .ship_item .ship_marry {
 	display:none;
 }
+.tab_ships .ship_item .ship_marry img {
+	margin:-4px 0 0 -22px;
+	position:relative;
+	display:inline;
+}
 
 .tab_ships .page_padding.scroll_fix {
-	padding:0px 3px 0px;
+	padding:0px 5px 0px;
 }

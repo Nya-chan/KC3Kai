@@ -74,17 +74,18 @@ body {
 	height:24px;
 	float:left;
 	font-size:20px;
-	/*font-weight:bold;*/
 	line-height:24px;
 	margin:0px 10px 0px 0px;
 	color:#0099FF;
 }
 .section a {
-	width:200px;
+	text-decoration:none;
+}
+.section a.more {
+	width:170px;
 	height:24px;
 	float:right;
 	margin:0px 10px 0px 0px;
-	text-decoration:none;
 	text-align:right;
 }
 .section .icon {
@@ -110,31 +111,33 @@ body {
 /* Settings Boxes */
 .settingBox {
 	width:750px;
-	/*height:40px;*/
-	/*background:#FFE7CE;*/
+	min-height:45px;
 	background:#f6f6f6;
 	border-radius:8px 20px 20px 8px;
 	margin:0px 0px 5px 20px;
 	padding:0 0 5px 0;
 	overflow:hidden;
-	position: relative;
+	position:relative;
+	display:table;
 }
 .settingBox .title {
-	width:200px;
+	width:210px;
 	height:40px;
-	line-height:40px;
-	float:left;
+	line-height:20px;
 	font-size:14px;
 	font-weight:bold;
-	margin:0px 0px 0px 15px;
+	padding-left:10px;
+	display:table-cell;
+	vertical-align:middle;
 }
 .settingBox .options {
 	width:440px;
 	float:left;
 	margin:0px 5px 0px 0px;
+	display:table-cell;
 }
 .settingBox .note {
-	width:192px;
+	max-width:192px;
 	height:40px;
 	line-height:40px;
 	float:left;
@@ -143,7 +146,7 @@ body {
 	color:#009900;
 	display:none;
 	position:absolute;
-	right:16px;
+	right:10px;
 	top:12px;
 	pointer-events:none;
 }
@@ -237,7 +240,6 @@ body {
 	max-width:400px;
 	height:100px;
 	min-height:100px;
-	max-height:100px;
 	font-size:12px;
 	font-family:monospace;
 	margin:9px 5px 0px 0px;
@@ -257,7 +259,6 @@ body {
 	max-width:440px;
 	height:100px;
 	min-height:100px;
-	max-height:100px;
 	font-size:12px;
 	font-family:monospace;
 	margin:9px 5px 0px 0px;

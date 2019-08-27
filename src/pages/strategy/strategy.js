@@ -57,6 +57,7 @@
 		// show dev-only pages conditionally
 		if ( ConfigManager.devOnlyPages ) {
 			$("#menu .submenu.dev-only").show();
+			$("#content").addClass("dev-only");
 		}
 		
 		// Click a menu item
@@ -262,6 +263,17 @@
 			return this;
 		};
 	}(jQuery));
+	
+	// Allow user to set any option except for dataType, cache, and url
+	jQuery.cachedScript = function(url, options, success) {
+		options = $.extend(options || {}, {
+			dataType: "script",
+			cache: true,
+			url: url,
+			success: success,
+		});
+		return jQuery.ajax(options);
+	};
 	
 	/**
 	 * Simulate throttle/debounce func like the ones in lodash

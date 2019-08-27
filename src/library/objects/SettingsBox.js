@@ -113,9 +113,11 @@ To be dynamically used on the settings page
 						self.soundPreview.pause();
 					}
 					switch(ConfigManager.alert_type){
-						case 1: self.soundPreview = new Audio("../../../../assets/snd/pop.mp3"); break;
+						case 1: self.soundPreview = new Audio("/assets/snd/pop.mp3"); break;
 						case 2: self.soundPreview = new Audio(ConfigManager.alert_custom); break;
-						case 3: self.soundPreview = new Audio("../../../../assets/snd/ding.mp3"); break;
+						case 3: self.soundPreview = new Audio("/assets/snd/ding.mp3"); break;
+						case 4: self.soundPreview = new Audio("/assets/snd/dong.mp3"); break;
+						case 5: self.soundPreview = new Audio("/assets/snd/bell.mp3"); break;
 						default: self.soundPreview = false; break;
 					}
 					if(self.soundPreview){
@@ -134,7 +136,7 @@ To be dynamically used on the settings page
 		$(".options", this.element).append(
 			$("<input/>")
 			.attr("type", "text")
-			.attr("placeholder", KC3Meta.term( options.placeholder ) )
+			.attr("placeholder", KC3Meta.term( (options || {}).placeholder ) )
 			.attr("title", KC3Meta.term( (options || {}).tooltip ) )
 			.addClass("long_text")
 			.prop("disabled", this.disabled)
@@ -144,6 +146,18 @@ To be dynamically used on the settings page
 				if(isDangerous($(this).parent().parent(),self.config,$(this).val())) {
 					$(this).val(ConfigManager[self.config]);
 					return false;
+				}
+				// Invalid Value Attempt
+				if(options && $(this).val() && (options.invalidregexp || options.validregexp)) {
+					var ng = options.invalidregexp && new RegExp(options.invalidregexp).exec($(this).val());
+					var gd = options.validregexp && new RegExp(options.validregexp).exec($(this).val());
+					if(ng !== null || gd === null) {
+						console.log("Validation failed, N:/{1}/ G:/{2}/ I:`{0}`".format(
+							$(this).val(), options.invalidregexp, options.validregexp), ng);
+						elementControl($(this).parent().siblings(".note"), 'red', KC3Meta.term("SettingsErrorSuper"));
+						$(this).val(ConfigManager[self.config]);
+						return false;
+					}
 				}
 				ConfigManager.loadIfNecessary();
 				ConfigManager[ self.config ] = $(this).val();
@@ -179,14 +193,18 @@ To be dynamically used on the settings page
 			elementControl($(this).parent().siblings(".note"),'',KC3Meta.term("SettingsErrorNG"));
 
 			// If changed sound type, test play the alert sound
-			if(self.config == "alert_type"){
+			const baseKey = "alert_type",
+				configKeys = self.config.split(baseKey);
+			if(configKeys[0] === ""){
 				if(self.soundPreview){
 					self.soundPreview.pause();
 				}
-				switch(ConfigManager.alert_type){
-					case 1: self.soundPreview = new Audio("../../../../assets/snd/pop.mp3"); break;
-					case 2: self.soundPreview = new Audio(ConfigManager.alert_custom); break;
-					case 3: self.soundPreview = new Audio("../../../../assets/snd/ding.mp3"); break;
+				switch(ConfigManager[baseKey + configKeys[1]]){
+					case 1: self.soundPreview = new Audio("/assets/snd/pop.mp3"); break;
+					case 2: self.soundPreview = new Audio(ConfigManager["alert_custom" + configKeys[1]]); break;
+					case 3: self.soundPreview = new Audio("/assets/snd/ding.mp3"); break;
+					case 4: self.soundPreview = new Audio("/assets/snd/dong.mp3"); break;
+					case 5: self.soundPreview = new Audio("/assets/snd/bell.mp3"); break;
 					default: self.soundPreview = false; break;
 				}
 				if(self.soundPreview){

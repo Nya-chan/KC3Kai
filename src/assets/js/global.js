@@ -3,7 +3,7 @@
 \*******************************/
 /* GOOGLE ANALYTICS
 -------------------------------*/
-if (typeof NO_GA == "undefined") {
+if (!window.NO_GA) {
 	var _gaq = _gaq || [];
 	_gaq.push(['_setAccount', 'UA-9789944-12']);
 	(function() {
@@ -43,7 +43,7 @@ var dateFormat = function () {
 		};
 
 	// Regexes and supporting functions are cached through closure
-	return function (date, mask, utc) {
+	return function (date, mask, utc, locale) {
 		var dF = dateFormat;
 
 		// You can't provide utc if you skip other args (use the "UTC:" mask prefix)
@@ -77,12 +77,12 @@ var dateFormat = function () {
 			flags = {
 				d:    d,
 				dd:   pad(d),
-				ddd:  dF.i18n.dayNames[D],
-				dddd: dF.i18n.dayNames[D + 7],
+				ddd:  locale ? date.toLocaleString(locale, {weekday: "short"}) : dF.i18n.dayNames[D],
+				dddd: locale ? date.toLocaleString(locale, {weekday: "long"}) : dF.i18n.dayNames[D + 7],
 				m:    m + 1,
 				mm:   pad(m + 1),
-				mmm:  dF.i18n.monthNames[m],
-				mmmm: dF.i18n.monthNames[m + 12],
+				mmm:  locale ? date.toLocaleString(locale, {month: "short"}) : dF.i18n.monthNames[m],
+				mmmm: locale ? date.toLocaleString(locale, {month: "long"}) : dF.i18n.monthNames[m + 12],
 				yy:   String(y).slice(2),
 				yyyy: y,
 				h:    H % 12 || 12,
@@ -120,13 +120,14 @@ dateFormat.masks = {
 	shortTime:      "h:MM TT",
 	mediumTime:     "h:MM:ss TT",
 	longTime:       "h:MM:ss TT Z",
+	fullDateTime:   "yyyy-mm-dd dddd HH:MM:ss Z",
 	isoDate:        "yyyy-mm-dd",
 	isoTime:        "HH:MM:ss",
 	isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
 	isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
 };
 
-// Internationalization strings
+// Internationalization strings (English only)
 dateFormat.i18n = {
 	dayNames: [
 		"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
@@ -136,6 +137,18 @@ dateFormat.i18n = {
 		"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 		"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
 	]
+};
+// These will be filled with real localized strings later
+dateFormat.l10n = { dayNames: [], monthNames: [] };
+// Get localized weekday name, dow is 0-based
+Date.getDayName = function(dow, forLong) {
+	return dateFormat.l10n.dayNames[Math.abs(Number(dow) % 7)
+		+ (!!forLong && forLong !== "short" ? 7 : 0)];
+};
+// Get localized month name, month is 1-based
+Date.getMonthName = function(month, forLong) {
+	return dateFormat.l10n.monthNames[Math.abs((Number(month) - 1) % 12)
+		+ (!!forLong && forLong !== "short" ? 12 : 0)];
 };
 
 /* GET DATE IN Japan Standard TimeZone
@@ -150,7 +163,7 @@ Date.getJstDate = function() {
 	var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
 	// create new Date object for different city
 	// using supplied offset
-	return new Date(utc + (3600000*9));
+	return new Date(utc + (3600000 * 9));
 };
 
 /**
@@ -231,6 +244,32 @@ Object.safePropertyPath = function(isGetProp, root, props) {
 	return isGetProp ? root : true;
 };
 
+/** Sum values in Objects with same properties */
+Object.sumValuesByKey = function(){
+	return Array.from(arguments).reduce(function(acc, o){
+		for(var k in o){
+			if(o.hasOwnProperty(k))
+				acc[k] = Number(acc[k] || 0) + Number(o[k]);
+		}
+		return acc;
+	}, {});
+};
+
+/** Swap the position of keys and values for a simple 1-1 mapping dictionary object */
+Object.swapMapKeyValue = function(map, isNumericKey){
+	if(typeof map !== "object") return map;
+	var result = {};
+	Object.keys(map).forEach(function(key){
+		// only simple value type can be stringified to the new key
+		var value = map[key];
+		if(typeof value !== "string" && typeof value !== "number")
+			value = String(value);
+		// key will be string by default, even it is number in original map,
+		// and duplicated key will simply overwrite old ones.
+		result[value] = !!isNumericKey ? Number(key) : key;
+	});
+	return result;
+};
 
 /* PRIMITIVE */
 /*******************************\
@@ -261,6 +300,80 @@ String.prototype.toArray = function() {
 String.prototype.capitalize = function() {
 	return this.charAt(0).toUpperCase() + this.slice(1).toLowerCase();
 };
+
+/**
+ * String identifier to camel case.
+ * Will remove spaces, [_$] and also [@+-/*\,.%&#!?:;]. Upper first letter, but not lower left letters of word.
+ * @param isToUpper - to upper camel case instead of lower camel case.
+ */
+String.prototype.toCamelCase = function(isToUpper) {
+	return this.replace(/[_$@\+\-\*\/\\\.,%&#!?:;]/g, ' ').trim().replace(/^([A-Za-z])|[\s]+(\w)/g,
+	function(match, p1, p2) {
+		if(p2) return p2.toUpperCase();
+		return isToUpper ? p1.toUpperCase() : p1.toLowerCase();
+	});
+};
+
+/**
+ * Replace illegal chars with safe char to make a filename-safe string.
+ * @param replacement - a string used to replace unsafe char, "-" by default.
+ * @param isPathAllowed - allow directory separator: '/', '\'.
+ *
+ * All potential problemtic chars for `saveAs` API will be replaced with '-',
+ * but for `chrome.downloads` API, runtime.lastError `Invalid filename` will be set instead,
+ * even they are safe for the file system of some platforms,
+ * about illegal chars defined by Chromium, see `IllegalCharacters::IllegalCharacters()` at
+ *   https://github.com/chromium/chromium/blob/master/base/i18n/file_util_icu.cc
+ */
+String.prototype.toSafeFilename = function(replacement, isPathAllowed) {
+	if(replacement == undefined) replacement = "-";
+	var filenameReservedReg = !!isPathAllowed ?
+		/[:<>|~?*\x00-\x1F\uFDD0-\uFDEF"]/g :
+		/[:<>|~?*\x00-\x1F\uFDD0-\uFDEF"\/\\]|^[.]|[.]$/g;
+	// These names not allowed on Windows platform, something like `nul.zip` neither,
+	// Chromium denies them even on other platforms, so does for: device.*, desktop.ini, thumbs.db
+	// see https://github.com/chromium/chromium/blob/master/net/base/filename_util.cc
+	var win32ReservedNames = /^((CON|PRN|AUX|NUL|CLOCK\$|COM[1-9]|LPT[1-9])(\..*)?|device(\..*)?|desktop.ini|thumbs.db)$/i;
+	if(!isPathAllowed && win32ReservedNames.test(this))
+		return (replacement || "_") + this.replace(filenameReservedReg, replacement);
+	return this.replace(filenameReservedReg, replacement);
+};
+
+/**
+ * Pad the current string with a given string (repeated, if needed)
+ * so that the resulting string reaches a given length.
+ * @see https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
+ */
+String.prototype.pad = function (targetLength, padString, isPadEnd) {
+	// truncate if number or convert non-number to 0
+	targetLength = targetLength >> 0;
+	padString = String((typeof padString !== 'undefined' ? padString : ' '));
+	if (this.length > targetLength) {
+		return String(this);
+	} else {
+		targetLength = targetLength - this.length;
+		if (targetLength > padString.length) {
+			// append to original to ensure we are longer than needed
+			padString += padString.repeat(targetLength / padString.length);
+		}
+		// pad from start by default
+		return !!isPadEnd ? String(this) + padString.slice(0, targetLength) :
+			padString.slice(0, targetLength) + String(this);
+	}
+};
+/**
+ * Polyfill of padStart() and padEnd()
+ */
+if (!String.prototype.padStart) {
+	String.prototype.padStart = function(targetLength, padString) {
+		return this.pad(targetLength, padString, false);
+	};
+}
+if (!String.prototype.padEnd) {
+	String.prototype.padEnd = function(targetLength, padString) {
+		return this.pad(targetLength, padString, true);
+	};
+}
 
 /**
  * String.format("msg {0} is {1}", args) - convenient placeholders replacing,
@@ -294,21 +407,27 @@ String.prototype.format = function(params) {
 
 /* SECONDS TO HH:MM:SS
 -------------------------------*/
-String.prototype.toHHMMSS = function () {
-	var sec_num = parseInt(this, 10); // don't forget the second param
+String.prototype.toHHMMSS = function (showDays) {
+	var sec_num = parseInt(this, 10);
 	var time;
 	if(isNaN(sec_num)) {
 		time = "--:--:--";
 	} else {
 		var isNeg   = sec_num < 0;
-
 		if(isNeg) sec_num = -sec_num;
-
+		var secsLeft = sec_num, days = 0;
 		var hours   = (Math.floor(sec_num / 3600)).toDigits(2);
-		var minutes = (Math.floor((sec_num - (hours * 3600)) / 60)).toDigits(2);
-		var seconds = (sec_num - (hours * 3600) - (minutes * 60)).toDigits(2);
-
-		time    = (isNeg ? "-" : "")+hours+':'+minutes+':'+seconds;
+		secsLeft    -= hours * 3600;
+		if(showDays) {
+			days    = Math.floor(sec_num / 86400);
+			hours   = (Math.floor((sec_num % 86400) / 3600)).toDigits(2);
+		}
+		var minutes = (Math.floor(secsLeft / 60)).toDigits(2);
+		secsLeft   -= minutes * 60;
+		var seconds = (secsLeft).toDigits(2);
+		time = (isNeg ? "-" : (showDays ? "+" : "")) +
+			(showDays ? days + " " : "") +
+			hours + ':' + minutes + ':' + seconds;
 	}
 	return time;
 };
@@ -568,20 +687,49 @@ Array.pad = function(array, length, value, original){
 	}
 	return array;
 };
+// To avoid for...in iteration hitting this function, uses Object.defineProperty like other polyfill
+Object.defineProperty(Array.prototype, "sumValues", {
+	enumerable: false, // although it is false by default
+	/**
+	 * A convenient method to sum all the numbers in Array.
+	 * Equivalent to a code like `[].reduce((acc, v) => acc + v, 0)`.
+	 * @param getter - an optional function to convert each element to numeric value
+	 */
+	value: function sumValues(getter) {
+		var thisArray = this;
+		return thisArray.reduce(function(acc, v, i) {
+			return acc + (Number(typeof getter === "function" ? getter(v, i, acc, thisArray) : v) || 0);
+		}, 0);
+	}
+});
 
-/*******************************\
-|*** Object                     |
-\*******************************/
-/** Sum values in Objects with same properties */
-Object.sumValuesByKey = function(){
-	return Array.from(arguments).reduce(function(acc, o){
-		for(var k in o){
-			if(o.hasOwnProperty(k))
-				acc[k] = Number(acc[k] || 0) + Number(o[k]);
+Object.defineProperty(Array.prototype, "joinIfNeeded", {
+	enumerable: false,
+	/**
+	 * A convenient method to join Array elements with space if char between 2 elements are ascii.
+	 * @param separator - an optional string to use other separator instead of space.
+	 * @param testCallback - an optional function to test interfacing chars are ascii or not.
+	 */
+	value: function joinIfNeeded(separator, testCallback) {
+		separator = separator || " ";
+		testCallback = testCallback || function(prevStr, nextStr) {
+			var tailChar = String(prevStr).slice(-1).charCodeAt(0),
+				headChar = String(nextStr).charCodeAt(0);
+			return tailChar > 32 && tailChar < 256 && headChar > 32 && headChar < 256;
+		};
+		var thisArray = this, resultArray = [];
+		if(thisArray.length) {
+			if(thisArray.length === 1) resultArray.push(thisArray[0]);
+			thisArray.reduce(function(lastElm, thisElm, i) {
+				if(i === 1) resultArray.push(lastElm);
+				if(testCallback(lastElm, thisElm)) resultArray.push(separator);
+				resultArray.push(thisElm);
+				return thisElm;
+			});
 		}
-		return acc;
-	}, {});
-};
+		return resultArray.join("");
+	}
+});
 
 /*******************************\
 |*** Date                       |
@@ -635,8 +783,8 @@ Object.sumValuesByKey = function(){
 	}
 
 	Object.defineProperties(Date.prototype,{
-		format: { value: function format(mask, utc) {
-			return dateFormat(this, mask, utc);
+		format: { value: function format(mask, utc, locale) {
+			return dateFormat(this, mask, utc, locale);
 		}},
 		shiftHour : { get: function () { return shiftTime.bind(this,'Hours'); } },
 		shiftDate : { get: function () { return shiftTime.bind(this,'Date' ); } },

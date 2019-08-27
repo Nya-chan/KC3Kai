@@ -63,11 +63,14 @@ See Manifest File [manifest.json] under "background" > "scripts"
 		/* SET API LINK
 		From osapi content script, the API Link has been extracted
 		Save the link onto localStorage and disable extracting API further
-		If came from menu "Extract API Link", so open "Play via API" and close DMM source
+		~~If came from menu "Extract API Link", so open "Play via API" and close DMM source~~
 		------------------------------------------*/
 		"set_api_link" :function(request, sender, callback){
 			// Set api link on internal storage
-			localStorage.absoluteswf = request.swfsrc;
+			localStorage.absoluteswf = request.swfsrc || "";
+			// Remember version string of current game main.js
+			const gameVerStr = (localStorage.absoluteswf.match(/&version=[\d\.]+\b/) || [])[0];
+			localStorage.gameVersion = (gameVerStr || "").split("=")[1] || "";
 			
 			// If refreshing API link, close source tabs and re-open game frame
 			if(JSON.parse(localStorage.extract_api)){ // localStorage has problems with native boolean
@@ -91,8 +94,8 @@ See Manifest File [manifest.json] under "background" > "scripts"
 					// Handler on notification box clicked
 					var clickHandler = function(clickedId){
 						if(clickedId === createdId){
-							var gameTabId = request.tabId;
 							chrome.notifications.clear(clickedId);
+							var gameTabId = request.tabId;
 							if(gameTabId){
 								chrome.tabs.get(gameTabId, function(tab){
 									chrome.windows.update(tab.windowId, { focused: true });
@@ -161,6 +164,19 @@ See Manifest File [manifest.json] under "background" > "scripts"
 				response({ value: false });
 			}
 			return true;
+		},
+		
+		/* FOCUS ON GAME TAB
+		Force browser to switch and focus on current game tab.
+		------------------------------------------*/
+		"focusGameTab" :function(request, sender, callback){
+			var gameTabId = request.tabId;
+			if(gameTabId){
+				chrome.tabs.get(gameTabId, function(tab){
+					chrome.windows.update(tab.windowId, { focused: true });
+					chrome.tabs.update(gameTabId, { active: true });
+				});
+			}
 		},
 		
 		/* ACTIVATE GAME
@@ -275,9 +291,9 @@ See Manifest File [manifest.json] under "background" > "scripts"
 						chrome.windows.getCurrent(function(wind){
 							(new TMsg(request.tabId, "gamescreen", "getWindowSize", {}, function(size){
 								chrome.windows.update(wind.id, {
-									width: Math.ceil(800*ZoomFactor*size.game_zoom)
+									width: Math.ceil(1200*ZoomFactor*size.game_zoom)
 										+ (wind.width- Math.ceil(size.width*ZoomFactor) ),
-									height: Math.ceil((480+size.margin_top)*size.game_zoom*ZoomFactor)
+									height: Math.ceil((720+size.margin_top)*size.game_zoom*ZoomFactor)
 										+ (wind.height- Math.ceil(size.height*ZoomFactor) )
 								});
 							})).execute();
@@ -477,10 +493,12 @@ See Manifest File [manifest.json] under "background" > "scripts"
 					$.ajax({
 						url: soundUrl,
 						method: "GET",
+						/*
 						headers: {
 							// Referer not allowed to be set by browser
 							"X-Requested-With": "ShockwaveFlash/" + detectFlashVersionString()
 						},
+						*/
 						async: true,
 						cache: true,
 						processData: false,
@@ -497,6 +515,25 @@ See Manifest File [manifest.json] under "background" > "scripts"
 			} else {
 				sendSubtitleToGameScreen();
 			}
+		},
+		
+		/* LIVE RELOAD META DATA
+		Such as Quotes, Quotes of subtitles
+		------------------------------------------*/
+		"reloadMeta" :function(request, sender, response){
+			var metaType = request.type;
+			if(localStorage.dmmplay == "true" && ConfigManager.dmm_customize) {
+				// Reload meta at background for DMM takeover
+				if(metaType === "Quotes") {
+					KC3Meta.loadQuotes();
+				} else if(metaType === "Quests") {
+					KC3Meta.reloadQuests();
+				}
+			}
+			(new TMsg(request.tabId, "gamescreen", "reloadMeta", {
+				metaType: metaType,
+				meta: KC3Meta
+			})).execute();
 		},
 		
 		/* GET VERSIONS

@@ -7,7 +7,7 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 	"use strict";
 	
 	window.KC3SortieManager = {
-		onSortie: 0,
+		onSortie: false,
 		onPvP: false,
 		onCat: false,
 		fleetSent: 1,
@@ -21,8 +21,10 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 		supportFleet: [],
 		fcfCheck: [],
 		escapedList: [],
+		materialBefore: false,
 		materialGain: Array.apply(null, {length:8}).map(v => 0),
 		sinkList: {main:[], escr:[]},
+		slotitemConsumed: false,
 		sortieTime: 0,
 		
 		startSortie :function(world, mapnum, fleetNum, stime, eventData){
@@ -38,6 +40,13 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			const thisMap = this.getCurrentMapData();
 			this.map_difficulty = world < 10 ? 0 : thisMap.difficulty || 0;
 			this.hqExpGained = 0;
+			this.materialBefore = PlayerManager.hq.lastMaterial.concat(
+				PlayerManager.consumables.torch,
+				PlayerManager.consumables.buckets,
+				PlayerManager.consumables.devmats,
+				PlayerManager.consumables.screws
+			);
+			this.slotitemConsumed = false;
 			this.boss = {
 				info: false,
 				bosscell: -1,
@@ -63,15 +72,20 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 				fleet4: PlayerManager.fleets[3].sortieJson(),
 				support1: this.getSupportingFleet(false),
 				support2: this.getSupportingFleet(true),
-				lbas: this.getWorldLandBases(world),
+				lbas: this.getWorldLandBases(world, mapnum),
 				time: stime
 			};
 			// Add optional properties
 			// Record states of unclear normal (or EO) maps
-			if((world < 10 && mapnum > 4) || typeof thisMap.kills !== "undefined"){
+			if(world < 10 && (mapnum > 4 || thisMap.kind === "multiple")){
 				sortie.mapinfo = { "api_cleared": thisMap.clear };
-				if(typeof thisMap.kills !== "undefined"){
+				if(thisMap.kills !== false || thisMap.killsRequired){
 					sortie.mapinfo.api_defeat_count = thisMap.kills || 0;
+					if(thisMap.killsRequired > 0)
+						sortie.mapinfo.api_required_defeat_count = thisMap.killsRequired;
+				}
+				if(thisMap.gaugeNum > 1){
+					sortie.mapinfo.api_gauge_num = thisMap.gaugeNum;
 				}
 			}
 			// Record boss HP gauge states of event maps
@@ -80,7 +94,8 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 				$.extend(mergedEventInfo, eventData, {
 					// api_state not stored, use this instead
 					"api_cleared": thisMap.clear,
-					"api_gauge_type": thisMap.gaugeType
+					"api_gauge_type": thisMap.gaugeType,
+					"api_gauge_num": thisMap.gaugeNum || 1
 				});
 				// api_dmg seems always 0 on sortie start
 				delete mergedEventInfo.api_dmg;
@@ -101,10 +116,11 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 				this.sortieTime = stime;
 				this.save();
 			} else {
+				this.onSortie = 0;
+				this.sortieTime = stime;
 				// Save on database and remember current sortie id
 				KC3Database.Sortie(sortie, function(id){
 					self.onSortie = id;
-					self.sortieTime = stime;
 					self.save();
 					// Lazy save event map hp to stat.onBoss.hpdat after sortie id confirmed
 					if(eventData){
@@ -118,12 +134,21 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 					}
 				});
 			}
+			// Remember morale values of sortied ships on sortieing started for GunFit tests
+			if(ConfigManager.TsunDBSubmissionExtra_enabled){
+				this.initialMorale = fleet.ships.map((rid, idx) => {
+					const ship = fleet.ship(idx);
+					return !ship.isDummy() ? ship.morale : 0;
+				});
+			} else {
+				this.initialMorale = [];
+			}
 		},
 		
 		snapshotFleetState :function(){
 			PlayerManager.hq.lastSortie = PlayerManager.cloneFleets();
 			// remember index(es) of sent fleet(s) to battle
-			this.focusedFleet = (PlayerManager.combinedFleet && this.fleetSent === 1) ? [0,1] : [this.fleetSent-1];
+			this.focusedFleet = this.isCombinedSortie() ? [0,1] : [this.fleetSent-1];
 			// remember index(es) of sent fleet(s) to exped support
 			this.supportFleet = [];
 			if(!this.isPvP()){
@@ -141,35 +166,52 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			PlayerManager.hq.save();
 		},
 		
+		getBattleFleetStates :function(addEquip = this.slotitemConsumed, addMorale = false){
+			const fleetStates = this.focusedFleet.map(id => PlayerManager.fleets[id]).map(fleet => {
+				const fleetState = {
+					fuel: fleet.ships.map(ship => KC3ShipManager.get(ship).fuel),
+					ammo: fleet.ships.map(ship => KC3ShipManager.get(ship).ammo),
+					slots: fleet.ships.map(ship => KC3ShipManager.get(ship).slots),
+				};
+				// Could add more if necessary to track these properties of ships
+				if(addEquip) fleetState.equip = fleet.ships.map(ship => KC3ShipManager.get(ship).equipment(true).map(g => g.masterId));
+				if(addMorale) fleetState.morale = fleet.ships.map(ship => KC3ShipManager.get(ship).morale);
+				return fleetState;
+			});
+			return fleetStates;
+		},
+		
 		getSupportingFleet :function(bossSupport){
-			function supportFormula(expedNum, isBoss){
-				// expedition ID extended since 207-10-18, 101 no longer the start of event support
-				// starts from 301 since 2017-11-17, might be retrieved from master missions with disp no S1, S2
-				const eventStartId = 301 - 1;
-				const mission = KC3Master.mission(expedNum);
-				let world = mission ? mission.api_maparea_id : 0;
-				const event = world >= 10 || expedNum > eventStartId;
-				if(event) expedNum -= eventStartId;
-				world = world || Math.floor((expedNum - 1) / 8) + 1;
-				const n = (expedNum - 1) % 8;
-				return (world === 5 || event) && (isBoss ? n === 1 : n === 0);
-			}
-			for(var i = 2; i <= 4; i++)
+			const isSupportExpedition = (expedId, isBoss) => {
+				const m = KC3Master.mission(expedId);
+				// check sortied world matches with exped world
+				return m && m.api_maparea_id === this.map_world &&
+					// check is the right support exped display number
+					(isBoss ? ["34", "S2"] : ["33", "S1"]).includes(m.api_disp_no);
+			};
+			for(let i = 2; i <= 4; i++)
 				if(PlayerManager.fleets[i-1].active){
-					var fleetExpedition = PlayerManager.fleets[i-1].mission[1];
-					if(supportFormula(fleetExpedition, bossSupport)){
+					const fleetExpedition = PlayerManager.fleets[i-1].mission[1];
+					if(isSupportExpedition(fleetExpedition, bossSupport)){
 						return i;
 					}
 				}
 			return 0;
 		},
 		
-		getWorldLandBases :function(world){
+		getWorldLandBases :function(world, map){
+			// Now mapinfo declares max land base amount can be sortied via `api_air_base_decks`
+			const mapInfo = this.getCurrentMapData(world, map),
+				maxLbasAllowed = mapInfo.airBase,
+				// Ignore regular maps that not allow to use land base, such as 6-1, 6-2, 6-3
+				// For event maps, not sure if devs make 0 sortie but air raid defense needed map?
+				isIgnoreThisMap = world < 10 && map !== undefined && !!mapInfo.id && !maxLbasAllowed;
 			const lbas = [];
 			$.each(PlayerManager.bases, function(i, base){
-				if(base.rid > -1 && base.map === world
-					// Only sortie and defend needed
-					&& [1,2].indexOf(base.action) > -1){
+				if(base.rid > -1 && base.map === world && !isIgnoreThisMap
+					// Not only sortie and defend, all actions saved for future loading
+					//&& [1,2].indexOf(base.action) > -1
+				){
 					lbas.push(base.sortieJson());
 				}
 			});
@@ -199,7 +241,7 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 		},
 		
 		isOnSortie: function() {
-			return this.onSortie > 0 || this.isOnUnsavedSortie();
+			return Number.isInteger(this.onSortie) || this.isOnUnsavedSortie();
 		},
 		
 		isOnUnsavedSortie: function() {
@@ -212,13 +254,17 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 		
 		isSortieAt: function(world, map) {
 			// Always return false on event maps
-			// (speculated map_world for events > 10 as expedition format follows)
-			return (this.map_world == world && this.map_world < 10) &&
+			// (speculated map_world for events >= 10 as expedition format follows)
+			return (this.map_world == world && !KC3Meta.isEventWorld(this.map_world)) &&
 				(this.map_num == (map || this.map_num));
 		},
 		
 		isPvP: function(){
 			return this.isSortieAt(-1) || this.onPvP;
+		},
+		
+		isCombinedSortie: function() {
+			return !!PlayerManager.combinedFleet && this.fleetSent === 1;
 		},
 		
 		setBoss :function( cellno, comp ){
@@ -227,6 +273,21 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			this.boss.comp = comp;
 			this.boss.letters = [KC3Meta.nodeLetter(this.map_world, this.map_num, cellno)];
 			console.debug("Boss node info on start", this.boss);
+		},
+		
+		setSlotitemConsumed :function(cond, requestParams){
+			if(cond === undefined && !!requestParams){
+				const dameconUsedType = parseInt(requestParams.api_recovery_type, 10) || 0,
+					resupplyUsedFlag = requestParams.api_supply_flag == 1,
+					rationUsedFlag = requestParams.api_ration_flag == 1;
+				// 1: repair team used, 2: repair goddess used
+				cond = dameconUsedType > 0 || resupplyUsedFlag || rationUsedFlag;
+			}
+			if(typeof cond === "function"){
+				this.slotitemConsumed = this.slotitemConsumed || !!cond.call(this);
+			} else if(!!cond){
+				this.slotitemConsumed = true;
+			}
 		},
 		
 		onBossAvailable :function(nodeObj){
@@ -262,10 +323,11 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 				nodeKind = "Selector";
 			}
 			// Battle avoided node (message might be: Enemy not found / Peace sea / etc)
-			// api_event_id = 6
-			// api_event_kind = 0/1/3/4/5/6/7/8/9
-			else if (nodeData.api_event_id === 6) {
-				// Might use another name to show a different message?
+			// api_event_id = 1 or 6
+			// api_event_kind = 0/1/3~25 (id 6, kind 2 used by route selection above)
+			else if (nodeData.api_event_id === 6 || nodeData.api_event_id === 1) {
+				// Might use another name to show a different message
+				// since Phase 2, possible to see `nodeData.api_cell_flavor.api_message`
 				nodeKind = "Dud";
 			}
 			// Resource Node
@@ -302,12 +364,13 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			// api_event_kind = 4 (aerial exchange battle), eg: 1-6 DFL
 			// api_event_kind = 5 (enemy combined), eg: 6-5 Boss M
 			// api_event_kind = 6 (defensive aerial battle), eg: 6-4 DFG; 6-5 GH
-			// api_event_kind = 7 (night to day battle), new for event fall 2017, all stages in 1 call
+			// api_event_kind = 7 (night to day battle), since event fall 2017, all stages in 1 call
+			// api_event_kind = 8 (long range radar ambush battle), since event winter 2019
 			// api_event_id = 4 (normal battle)
 			// api_event_id = 5 (boss battle)
 			// api_event_id = 7 (aerial battle / reconnaissance (api_event_kind = 0))
 			// api_event_id = 10 (long distance aerial raid)
-			else if ([1, 2, 3, 4, 5, 6, 7].indexOf(nodeData.api_event_kind) >= 0) {
+			else if ([1, 2, 3, 4, 5, 6, 7, 8].indexOf(nodeData.api_event_kind) >= 0) {
 				// api_event_id not used, might cause misjudging if new id added
 				nodeKind = "Battle";
 			} else {
@@ -316,7 +379,8 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 				nodeKind = "Dud";
 			}
 			
-			// According testing, boss node not able to be indicated since api_bosscell_no return random values even edge is still hidden
+			// According testing, boss node not able to be indicated since api_bosscell_no return random values even edge is still hidden,
+			// now we use manually configures to indicate known boss nodes (and their corresponding map gauges), see `fud_quarterly.json`
 			const bossLetter = KC3Meta.nodeLetter(this.map_world, this.map_num, nodeData.api_bosscell_no);
 			if(Array.isArray(this.boss.letters) && this.boss.letters.indexOf(bossLetter) < 0)
 				this.boss.letters.push(bossLetter);
@@ -386,11 +450,44 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 				PlayerManager.hq.checkRankPoints();
 				PlayerManager.hq.updateLevel( resultData.api_member_lv, resultData.api_member_exp);
 			}
+			if(resultData.api_m1){
+				console.info("Map gimmick flag detected", resultData.api_m1);
+			}
+		},
+		
+		/**
+		 * @param node - current battle node instance by default.
+		 * @param position - 0-based index of ship position, ranged in [0, 6].
+		 * @param isOnEscortFleet - if ship is on escort fleet of combined fleet.
+		 * @return true if ship at specified position is not taken any damage in any wave of opening airstrike,
+		 *         will return undefined if bombing phase not occur or no data for specified ship.
+		 * @see Node.js#takenAirBombingDamages - contains all waves of opening airstrike damages dealt to player fleets,
+		 *      for now excluding LBAS battle (no damage can be taken), jet assaults (PvP ignored).
+		 * @see main.js#TaskAircraftFlightBase.prototype._antiAircraft
+		 * @see main.js#TaskAirWarAntiAircraft.prototype._start
+		 *      in-game `12cm 30tube Rocket Launcher Kai Ni` animation will show the banner if damage <= 0.
+		 */
+		isPlayerNotTakenAirBombingDamage :function(node, position, isOnEscortFleet){
+			const thisNode = node || this.currentNode();
+			if(Array.isArray(thisNode.takenAirBombingDamages)) {
+				let isUndefined = false;
+				const found = thisNode.takenAirBombingDamages.find(wave => {
+					const fleetIdx = isOnEscortFleet ? 1 : 0;
+					if(!Array.isArray(wave[fleetIdx]) || wave[fleetIdx][position] === undefined) {
+						isUndefined = true;
+						return true;
+					} else if(wave[fleetIdx][position] <= 0) {
+						return true;
+					}
+				}) !== undefined;
+				return isUndefined ? undefined : found;
+			}
+			return undefined;
 		},
 		
 		updateMvps :function(mvps){
 			if(Array.isArray(mvps) && mvps.length){
-				if(PlayerManager.combinedFleet && this.fleetSent === 1){
+				if(this.isCombinedSortie()){
 					const mainMvp = mvps[0] || 1,
 						escortMvp = mvps[1] || 1,
 						mainFleet = PlayerManager.fleets[0],
@@ -420,38 +517,75 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			});
 		},
 		
-		checkFCF :function( escapeData ){
-			if ((typeof escapeData !== "undefined") && (escapeData !== null)) {
-				console.debug("FCF triggered");
-
-				const taihadShip = this.getRetreatedShip(escapeData.api_escape_idx);
-				const escortShip = this.getRetreatedShip(escapeData.api_tow_idx);
-
-				this.fcfCheck = [taihadShip, escortShip].filter(function (ship) {
-					return typeof ship !== 'undefined';
-				});
-				
-				console.log("Has set fcfCheck to", this.fcfCheck);
+		checkFCF :function(escapeData){
+			if (escapeData) {
+				const getRetreatableShipId = (escapeIdx) => {
+					if (!escapeIdx || !escapeIdx[0]) { return 0; }
+					// Although there may be more elements in escape array, but only 1st element used
+					// since only 1 ship (topmost one) can be retreated per battle
+					const shipIndex = escapeIdx[0];
+					// If combined fleets sent, index > 6 belongs to escort fleet
+					if (this.isCombinedSortie() && shipIndex > 6) {
+						return PlayerManager.fleets[1].ship(shipIndex - 7).rosterId;
+					}
+					return PlayerManager.fleets[this.fleetSent - 1].ship(shipIndex - 1).rosterId;
+				};
+				const taihadShip = getRetreatableShipId(escapeData.api_escape_idx);
+				const escortShip = getRetreatableShipId(escapeData.api_tow_idx);
+				this.fcfCheck = [taihadShip, escortShip].filter(rosterId => rosterId > 0);
+				console.log("FCF escape-able ships have set to", this.fcfCheck);
 			}
 		},
-
-		getRetreatedShip: function (escapeIdx) {
-			if (!escapeIdx) { return undefined; }
-
-			const shipIndex = escapeIdx[0];
-			if (PlayerManager.combinedFleet && shipIndex > 6) {
-				return PlayerManager.fleets[this.fleetSent].ship(shipIndex - 7).rosterId;
-			}
-			return PlayerManager.fleets[this.fleetSent - 1].ship(shipIndex - 1).rosterId;
+		
+		getCurrentFCF :function(){
+			// For now only to event map, can sortie with CF and SF
+			const isSortieAtEvent = KC3Meta.isEventWorld(this.map_world);
+			const sortiedFleets = this.focusedFleet.map(id => PlayerManager.fleets[id]);
+			if(!isSortieAtEvent || !sortiedFleets.length || !this.fcfCheck.length)
+				return { isAvailable: false };
+			const isCombinedSortie = sortiedFleets.length >= 2;
+			const flagship = sortiedFleets[0].ship(0);
+			const taihaShip = KC3ShipManager.get(this.fcfCheck[0]);
+			const escortShip = isCombinedSortie && KC3ShipManager.get(this.fcfCheck[1]);
+			const isNextNodeFound = !!this.currentNode().nodeData.api_next;
+			const canUseFCF = !isCombinedSortie ?
+				// is Striking Force (fleet #3) sortied (both check)
+				this.fleetSent === 3 && sortiedFleets[0].ships[6] > 0
+				// And flagship has SF-FCF (FCF incapable) (client check)
+				&& flagship.hasEquipment(272)
+				// And not flagship Taiha (supposed server-side checked already)
+				//&& taihaShip.fleetPosition()[0] > 0
+				// And current battle is not the final node (client check)
+				&& isNextNodeFound
+				:
+				// Main fleet flagship has FCF (client check)
+				flagship.hasEquipment(107)
+				// And Taiha ship not flagship of main and escort (server check)
+				//&& taihaShip.fleetPosition()[0] > 0
+				// And escort-able DD available (flagship DD incapable) (server check)
+				//&& !!escortShip && !escortShip.isDummy() && !escortShip.isAbsent()
+				//&& escortShip.fleetPosition()[0] > 0
+				//&& !escortShip.isTaiha()
+				// And current battle is not the final node (client check)
+				&& isNextNodeFound
+				;
+			return {
+				isAvailable: canUseFCF,
+				isCombined: isCombinedSortie,
+				shipToRetreat: taihaShip,
+				shipToEscort: escortShip,
+				sortiedFleets: sortiedFleets,
+				shipIdsToBeAbsent: this.fcfCheck.slice(0)
+			};
 		},
 		
 		sendFCFHome :function(){
-			console.debug("Setting escape flag for fcfCheck", this.fcfCheck);
-			this.fcfCheck.forEach(function(fcfShip){
+			console.debug("FCF escape-able ships", this.fcfCheck);
+			this.fcfCheck.forEach(function(fcfShip) {
 				KC3ShipManager.get(fcfShip).didFlee = true;
 			});
-			[].push.apply(this.escapedList,this.fcfCheck.splice(0));
-			console.log("New escapedList", this.escapedList);
+			[].push.apply(this.escapedList, this.fcfCheck.splice(0));
+			console.log("Have escaped ships", this.escapedList);
 		},
 		
 		addSunk :function(shizuList){
@@ -479,7 +613,7 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 		
 		updateNodeCompassResults: function(){
 			if(this.isOnSavedSortie()) {
-				KC3Database.updateNodes(this.onSortie, this.nodes.map(node => {
+				KC3Database.updateSortie(this.onSortie, {"nodes": this.nodes.map(node => {
 					// Basic edge ID and parsed type (dud === "")
 					const toSave = { id: node.id, type: node.type };
 					// Raw API result data
@@ -502,10 +636,19 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 					if(node.nodeDesc)
 						toSave.desc = node.nodeDesc;
 					return toSave;
-				}));
+				})});
 			}
 		},
-
+		
+		updateSortiedLandBases: function(){
+			PlayerManager.saveBases();
+			if(this.isOnSavedSortie()) {
+				KC3Database.updateSortie(this.onSortie, {
+					"lbas": this.getWorldLandBases(this.map_world, this.map_num)
+				});
+			}
+		},
+		
 		// return empty object if not found
 		getAllMapData: function(){
 			return localStorage.getObject("maps") || {};
@@ -544,7 +687,7 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			const pvpData = JSON.parse(localStorage.statistics || '{"pvp":{"win":0,"lose":0}}').pvp;
 			return this.isPvP() ? (
 				"pvp" + (this.onSortie = (Number(pvpData.win) + Number(pvpData.lose) + (diff||1)))
-			) : ("sortie" + (this.isOnUnsavedSortie() ? 0 : this.onSortie));
+			) : ("sortie" + (this.isOnUnsavedSortie() ? 0 : this.onSortie || 0));
 		},
 		
 		endSortie :function(portApiData){
@@ -558,6 +701,9 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			var sentBattleSupportFleets = Array.isArray(PlayerManager.hq.lastSortie)
 				? this.focusedFleet.concat(this.supportFleet) : [];
 			sentBattleSupportFleets.map(id => PlayerManager.hq.lastSortie[id]).forEach(function(fleet, fleetIdx){
+				if(!fleet){
+					console.error("Last sortie fleets snapshot lost", sentBattleSupportFleets, PlayerManager.hq.lastSortie);
+				}
 				fleet.forEach(function(after, ship_pos){
 					var fleet_id = sentBattleSupportFleets[fleetIdx] + 1,
 						rosterId = after.rosterId,
@@ -599,6 +745,15 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 					}
 				});
 			});
+			// Count torches consumed by powerful friend fleet,
+			// assuming materialGain and consumables already updated before this invoked
+			if(this.materialBefore && !!PlayerManager.friendlySettings.api_request_type) {
+				const usedTorch = this.materialBefore[4] + this.materialGain[4] - PlayerManager.consumables.torch;
+				if(usedTorch > 0) {
+					cons.resc[4] -= usedTorch;
+					console.log("Powerful friend fleet consumption detected", usedTorch);
+				}
+			}
 			if(cons.name !== "sortie0") {
 				console.log("Before " + cons.name +" sent fleets", sentBattleSupportFleets, PlayerManager.hq.lastSortie);
 				console.log("After " + cons.name +" battle consumption and fleets", cons.resc, PlayerManager.cloneFleets());
@@ -634,7 +789,7 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			PlayerManager.hq.lastSortie = null;
 			// Record event debuff flags
 			if(portApiData && portApiData.api_event_object
-				&& this.map_world >= 10 && this.map_num > 0){
+				&& KC3Meta.isEventWorld(this.map_world) && this.map_num > 0){
 				const eventObject = portApiData.api_event_object;
 				const thisMap = this.getCurrentMapData(this.map_world, this.map_num);
 				if(eventObject.api_m_flag){
@@ -643,6 +798,12 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 				if(eventObject.api_m_flag2){
 					thisMap.debuffSound = (thisMap.debuffSound || 0) + 1;
 				}
+				// first found at event Winter 2018
+				/*
+				if(eventObject.api_m_flag3){
+					thisMap.selectedOperation = eventObject.api_m_flag3;
+				}
+				*/
 				this.setCurrentMapData(thisMap, this.map_world, this.map_num);
 			}
 			
@@ -656,8 +817,11 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			if(PlayerManager.combinedFleet && sentFleet === 1){
 				this.cleanMvpShips(PlayerManager.fleets[0]);
 				this.cleanMvpShips(PlayerManager.fleets[1]);
+				PlayerManager.fleets[0].setEscapeShip();
+				PlayerManager.fleets[1].setEscapeShip();
 			} else {
 				this.cleanMvpShips(PlayerManager.fleets[sentFleet - 1]);
+				PlayerManager.fleets[sentFleet - 1].setEscapeShip();
 			}
 			for(var ectr in this.escapedList){
 				KC3ShipManager.get( this.escapedList[ectr] ).didFlee = false;
@@ -668,16 +832,242 @@ Stores and manages states and functions during sortie of fleets (including PvP b
 			this.supportFleet = [];
 			this.fcfCheck = [];
 			this.escapedList = [];
+			this.initialMorale = [];
+			this.materialBefore = false;
 			this.materialGain.fill(0);
 			this.sinkList.main.splice(0);
 			this.sinkList.escr.splice(0);
 			KC3ShipManager.pendingShipNum = 0;
 			KC3GearManager.pendingGearNum = 0;
-			this.onSortie = 0;
+			this.onSortie = false;
 			this.onPvP = false;
 			this.onCat = false;
+			this.slotitemConsumed = false;
 			this.sortieTime = 0;
 			this.save();
+		},
+
+		/**
+		 * Prepares encounter/real battle data for simulator export while on sortie.
+		 * @param enemyData - an instance include enemy formation and ship master IDs of fleets.
+		 * @param resultFleets - predicated fleets data from BP module output.
+		 * @param realBattle - indicates real battle data not from encounter.
+		 * @return the constructed data object for exporting to simulator.
+		 * @see https://kc3kai.github.io/kancolle-replay/simulator-import-help.html
+		 */
+		prepareSimData :function(enemyData, resultFleets = {}, realBattle = false) {
+			const thisNode = this.currentNode();
+			const combined = this.isCombinedSortie();
+			const fleet = PlayerManager.fleets[this.fleetSent - 1];
+			const fleetF = {
+				ships: this.prepareSimPlayerFleetShips(fleet, realBattle),
+				formation: (ConfigManager.aaFormation < 7 && !combined) || (ConfigManager.aaFormation > 10 && combined) ? ConfigManager.aaFormation
+					: !combined ? 1 : 14
+			};
+			if (combined) {
+				fleetF.shipsC = this.prepareSimPlayerFleetShips(PlayerManager.fleets[1], realBattle);
+				fleetF.combineType = PlayerManager.combinedFleet;
+			}
+			const fleetE = {
+				ships: this.prepareSimEnemyFleetShips(enemyData.main, resultFleets.enemyMain)
+			};
+			if (enemyData.escort && enemyData.escort.length > 0) {
+				fleetE.shipsC = this.prepareSimEnemyFleetShips(enemyData.escort, resultFleets.enemyEscort);
+			}
+			const nodes = [{
+				fleetE: fleetE
+			}];
+			const result = {
+				numSims: 10000,
+				fleetF: fleetF,
+				nodes: nodes,
+			};
+			// If real battle, we can ignore stuff like lbas/support fleets since we are only interested in yasen prediction
+			if (realBattle) {
+				result.nodes[0].NBOnly = 1;
+				const battleData = thisNode.battleDay || thisNode.battleNight;
+				fleetF.formation = battleData.api_formation[0];
+				fleetE.formation = battleData.api_formation[1];
+				return result;
+			}
+			
+			// For simulating from encounters, we need to prepare LBAS, Support Fleets and Enemy Formation
+			fleetE.formation = enemyData.formation;
+			const isBoss = thisNode.isBoss();
+			const supportFleetNum = this.getSupportingFleet(isBoss);
+			if (supportFleetNum > 0) {
+				const supportFleet = PlayerManager.fleets[supportFleetNum - 1];
+				result.fleetSupportB = {
+					ships: this.prepareSimPlayerFleetShips(supportFleet),
+					formation: fleetF.formation,
+				};
+			}
+			// Simulator options
+			const eventKind = thisNode.eventKind;
+			if (eventKind === 2) {
+				result.nodes[0].NBOnly = 1;
+			}
+			else if (eventKind === 4) {
+				result.nodes[0].airOnly = 1;
+			}
+			else if (eventKind === 6) {
+				result.nodes[0].airRaid = 1;
+			}
+			else if (isBoss) {
+				result.nodes[0].doNB = 1;
+			}
+			// Export LBAS (if any)
+			const bases = PlayerManager.bases.filter(base => base.action === 1 && base.map === this.map_world);
+			// Convert to node letter in case airstrike selected node id different from route node id (multiple path to same node)
+			const thisNodeName = KC3Meta.nodeLetter(this.map_world, this.map_num, thisNode.id);
+			let sortiedBaseNo = 0;
+			if (bases.length > 0) {
+				const lbas = [], waves = [], simPlayerEqIdMax = 308;
+				bases.forEach(base => {
+					const strikeNodes = (base.strikePoints || []).map(edge => (
+						KC3Meta.nodeLetter(this.map_world, this.map_num, edge)
+					));
+					if (!strikeNodes.length || !strikeNodes.includes(thisNodeName)) { return; }
+					sortiedBaseNo += 1;
+					const equips = [], slotdata = [];
+					base.planes.forEach(plane => {
+						const gear = KC3GearManager.get(plane.api_slotid);
+						if (gear.isDummy()) { return; }
+						const eqData = {
+							masterId: gear.masterId,
+							improve: gear.stars,
+							proficiency: gear.ace
+						};
+						slotdata.push(plane.api_count);
+						if (gear.masterId > simPlayerEqIdMax) {
+							eqData.stats = this.buildEquipMasterStats(gear.masterId);
+						}
+						equips.push(eqData);
+					});
+					lbas.push({
+						equips: equips,
+						slots: slotdata
+					});
+					strikeNodes.forEach(nodeName => {
+						if (nodeName === thisNodeName) waves.push(sortiedBaseNo);
+					});
+				});
+				result.lbas = lbas;
+				result.nodes[0].lbas = waves;
+			}
+			return result;
+		},
+		
+		prepareSimEnemyFleetShips :function(masterIdList, predicatedShips){
+			// Enemies here are abyssal ships, PvP not supported
+			const simAbyssMasterIdMax = 1845;
+			const buildEnemyStats = (masterId, idx) => {
+				const ship = { masterId: masterId };
+				if (predicatedShips) {
+					ship.HPInit = predicatedShips[idx].hp;
+				}
+				// If new enemy and not in sim yet, fill stats
+				if (masterId > simAbyssMasterIdMax) {
+					const master = KC3Master.ship(masterId) || {};
+					ship.stats = {
+						type: master.api_stype,
+					};
+					if (KC3Master.abyssalShip(masterId)) {
+						const stats = KC3Master.abyssalShip(masterId);
+						ship.stats.HP = stats.api_taik;
+						ship.stats.FP = stats.api_houg;
+						ship.stats.TP = stats.api_raig;
+						ship.stats.AA = stats.api_tyku;
+						ship.stats.AR = stats.api_souk;
+						const equips = stats.kc3_slots || [];
+						ship.stats.SLOTS = stats.api_maxeq || equips.map(() => 0);
+						ship.equips = equips.map(id => ({
+							masterId: id,
+							stats: this.buildEquipMasterStats(id)
+						}));
+					}
+				}
+				return ship;
+			};
+			// Assumed ID-0 ships are in the last part, to ensure index matches with predicatedShips array
+			return masterIdList.filter(id => id > 0).map(buildEnemyStats);
+		},
+		
+		prepareSimPlayerFleetShips :function(fleet, realBattle = false) {
+			const simPlayerEqIdMax = 308;
+			const buildShipStats = ship => {
+				if (ship.isDummy() || ship.isAbsent()) return;
+				const shipMst = ship.master();
+				const stats = {
+					HP: ship.hp[1],
+					FP: ship.fp[0],
+					TP: ship.tp[0],
+					AA: ship.aa[0],
+					AR: ship.ar[0],
+					LUK: ship.lk[0],
+					EV: ship.ev[0],
+					ASW: ship.as[0],
+					LOS: ship.ls[0],
+					RNG: ship.range,
+					SPD: ship.speed,
+					SLOTS: ship.slots,
+					type: shipMst.api_stype
+				};
+				const equips = ship.equipment(true).filter(g => !g.isDummy()).map(gear => {
+					const equip = {
+						masterId: gear.masterId,
+						improve: gear.stars,
+						proficiency: gear.ace
+					};
+					// If equip data not in sim yet, fill with stats
+					if (equip.masterId > simPlayerEqIdMax) {
+						equip.stats = this.buildEquipMasterStats(gear.masterId);
+					}
+					return equip;
+				});
+				let morale = ship.morale;
+				// Undo KC3 morale decrement in Node.js, ignore case for -9 and align morale to sim cutoffs
+				if (realBattle) {
+					morale += 3;
+				} else if (morale > 49 && morale < 53) {
+					morale += 3;
+				}
+				return {
+					masterId: ship.masterId,
+					LVL: ship.level,
+					stats: stats,
+					HPInit: !realBattle ? ship.hp[0] : ship.afterHp[0],
+					fuelInit: ship.fuel / shipMst.api_fuel_max,
+					ammoInit: ship.ammo / shipMst.api_bull_max,
+					morale: morale,
+					equips: equips,
+					includesEquipStats: 1
+				};
+			};
+			return fleet.shipsUnescaped().map(buildShipStats);
+		},
+		
+		buildEquipMasterStats :function(masterId) {
+			const gearMaster = KC3Master.slotitem(masterId),
+				stats = {},
+				simulatorKeys = {
+					FP: "api_houg",
+					TP: "api_raig",
+					AA: "api_tyku",
+					AR: "api_souk",
+					EV: "api_houk",
+					ASW: "api_tais",
+					LOS: "api_saku",
+					ACC: "api_houm",
+					DIVEBOMB: "api_baku",
+					RNG: "api_leng"
+				};
+			for (const key in simulatorKeys) {
+				const apiName = simulatorKeys[key];
+				stats[key] = gearMaster[apiName];
+			}
+			stats.type = gearMaster.api_type[3];
+			return stats;
 		}
 		
 	};

@@ -42,7 +42,7 @@
 					arr.push(x);
 			}
 			// figure out a list of possible goal levels in ascending order.
-			// a goal level might be remodel level or 99 (can be married) / 165 (full exp)
+			// a goal level might be remodel level or 99 (can be married) / 175 (full exp)
 			var possibleNextLevels = RemodelDb.nextLevels( masterId );
 			setAdd(possibleNextLevels, KC3Ship.getMarriedLevel() - 1);
 			setAdd(possibleNextLevels, KC3Ship.getMaxLevel());
@@ -230,6 +230,22 @@
 							return isUp * (+$(b).find(".ship_exp .ship_value").text() - +$(a).find(".ship_exp .ship_value").text());
 						} else if (sortType == "shiptype") {
 							return isUp * ($(b).find(".ship_info .ship_type").text().localeCompare($(a).find(".ship_info .ship_type").text()));
+						} else if (sortType == "gameorder") {
+							const getID = e => Number($(e).attr("id").substr(7));
+							const getShip = e => KC3ShipManager.get(getID(e));
+							const [ridA, ridB] = [getID(a), getID(b)];
+							const [shipA, shipB] = [getShip(a), getShip(b)];
+							const [masterA, masterB] = [shipA.master(), shipB.master()];
+							return isUp * (
+								// Using the in-game combined order priority to ship class,
+								//   not the default one with 'Lv' icon.
+								// This also used by our ship list page and showcase exporter.
+								// Btw, order icon is always a 'down' arrow in-game,
+								//   we adapt it as our default 'up' arrow, so following conditions are reversed.
+								masterB.api_sort_id - masterA.api_sort_id ||
+								shipA.level - shipB.level ||
+								ridA - ridB
+							);
 						}
 					};
 					sortedElements.sort(function(a, b) {
@@ -332,6 +348,7 @@
 				$(".ship_rank select", editingBox).val( grindData[4] );
 				$(".ship_fs input", editingBox).prop("checked", grindData[5]);
 				$(".ship_mvp input", editingBox).prop("checked", grindData[6]);
+				$(".ship_baseexp input", editingBox).val( grindData[7] );
 
 				$(".ship_value" , editingBox).hide();
 				$(".ship_input" , editingBox).show();
@@ -353,7 +370,8 @@
 					/*3*/ 0, // node
 					/*4*/ parseInt($(".ship_rank select", editingBox).val(), 10), // battle rank
 					/*5*/ $(".ship_fs input", editingBox).prop("checked")?1:0, // flagship
-					/*6*/ $(".ship_mvp input", editingBox).prop("checked")?1:0 // mvp
+					/*6*/ $(".ship_mvp input", editingBox).prop("checked")?1:0, // mvp
+					/*7*/ parseInt($(".ship_baseexp input", editingBox).val(), 10), // base exp
 				];
 
 				self.save();
@@ -390,6 +408,7 @@
 				$(".goal_rank .goal_value",goalBox).text( self.rankNames[tdata.rank] );
 				$(".goal_fs .goal_value",goalBox).text( tdata.flagship? "Yes":"No" );
 				$(".goal_mvp .goal_value",goalBox).text( tdata.mvp? "Yes":"No" );
+				$(".goal_baseexp .goal_value", goalBox).text( tdata.baseExp );
 
 				// "edit" mode
 				$(".goal_type input",goalBox)
@@ -398,6 +417,7 @@
 				$(".goal_rank select",goalBox).val( tdata.rank );
 				$(".goal_fs input", goalBox).prop("checked", tdata.flagship);
 				$(".goal_mvp input", goalBox).prop("checked", tdata.mvp);
+				$(".goal_baseexp input", goalBox).val(tdata.baseExp);
 
 				// enable / disable
 				if (! tdata.enable) {
@@ -467,6 +487,7 @@
 				var rankNum = parseInt($(".goal_rank select", t).val(), 10);
 				var flagship = $(".goal_fs input", t).prop("checked");
 				var mvp = $(".goal_mvp input", t).prop("checked");
+				var baseExp = parseInt($(".goal_baseexp input", t).val(), 10);
 
 				var obj = self.goalTemplates[t.index()];
 				var result = {
@@ -474,7 +495,9 @@
 					map: map,
 					rank: rankNum,
 					flagship: flagship,
-					mvp: mvp };
+					mvp: mvp,
+					baseExp: baseExp,
+				};
 				// use extend to make sure "enable" field is properly kept
 				self.goalTemplates[t.index()] = $.extend(obj, result);
 				GoalTemplateManager.save( self.goalTemplates );
@@ -750,7 +773,8 @@
 					/*3*/ 1, // node
 					/*4*/ 6, // E=1 D=2 C=3 B=4 A=5 S=6 SS=7
 					/*5*/ 0, // flagship
-					/*6*/ 0 // mvp
+					/*6*/ 0, // mvp
+					/*7*/ 0, // base exp
 				];
 
 				var i;
@@ -777,6 +801,8 @@
 
 			// Base Experience: MAP
 			$(".ship_map .ship_value", goalBox).text( shipGoal.grindMap );
+			// Inputed Base Experience
+			$(".ship_baseexp .ship_value", goalBox).text( shipGoal.baseExp );
 
 			// Exp Modifier: MVP
 			$(".ship_mvp .ship_value", goalBox).text( shipGoal.isMvp ? "Yes" : "No" );

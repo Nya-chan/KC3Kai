@@ -251,13 +251,23 @@
 		}
 		
 		// Panel customizations: custom css
-		if(ConfigManager.pan_custom_css !== ""){
-			var customCSS = document.createElement("style");
-			customCSS.type = "text/css";
-			customCSS.innerHTML = ConfigManager.pan_custom_css;
-			$("head").append(customCSS);
-		}
+		var customCSS = document.createElement("style");
+		customCSS.type = "text/css";
+		customCSS.id = "pan_custom_css";
+		customCSS.innerHTML = ConfigManager.pan_custom_css;
+		$("head").append(customCSS);
 
+		// Listen config key changed
+		window.addEventListener("storage", function({key, timeStamp, url}){
+			if(key === ConfigManager.keyName()) {
+				ConfigManager.load();
+				console.debug("Reload ConfigManager caused by", (url || "").match(/\/\/[^\/]+\/([^\?]+)/)[1]);
+
+				if($("#pan_custom_css").html() != ConfigManager.pan_custom_css)
+					$("#pan_custom_css").html(ConfigManager.pan_custom_css);
+			}
+		});
+		
 		// Close CatBomb modal
 		$(".modalBox").on("click", ".closebtn", function(){
 			$(this).parent().parent().fadeOut(300);
@@ -405,7 +415,7 @@
 			}
 		});
 		
-		// Resize window to 800x480
+		// Resize window to 1200x720
 		$(".module.controls .btn_resize").on("click", function(){
 			// Send fit-screen request to service to be forwarded to gameplay page
 			(new RMsg("service", "fitScreen", {
@@ -501,6 +511,7 @@
 		//Activate();
 		
 		// Start Network listener
+		KC3Network.initConfigs();
 		KC3Network.addGlobalListener(function(event, data){
 			if(isRunning || event == "HomeScreen" || event == "GameStart"){
 				if(typeof NatsuiroListeners[event] != "undefined"){
@@ -774,7 +785,7 @@
 				// Show ships on main fleet
 				$.each(MainFleet.ships, function(index, rosterId){
 					if(rosterId > -1){
-						(new KC3NatsuiroShipbox(".sship", rosterId))
+						(new KC3PlainShipbox(".sship", rosterId))
 							.commonElements()
 							.defineShort( MainFleet )
 							.appendTo(".module.fleet .shiplist_main");
@@ -784,7 +795,7 @@
 				// Show ships on escort fleet
 				$.each(EscortFleet.ships, function(index, rosterId){
 					if(rosterId > -1){
-						(new KC3NatsuiroShipbox(".sship", rosterId))
+						(new KC3PlainShipbox(".sship", rosterId))
 							.commonElements()
 							.defineShort( EscortFleet )
 							.appendTo(".module.fleet .shiplist_escort");
@@ -839,7 +850,7 @@
 				// Show ships on selected fleet
 				$.each(CurrentFleet.ships, function(index, rosterId){
 					if(rosterId > -1){
-						(new KC3NatsuiroShipbox(".lship", rosterId))
+						(new KC3PlainShipbox(".lship", rosterId))
 							.commonElements()
 							.defineLong( CurrentFleet )
 							.toggleClass("seven", CurrentFleet.countShips() >= 7)
@@ -1017,25 +1028,31 @@
 			}else{
 				$(".module.status").hide();
 			}
-			
-			// TAIHA ALERT CHECK
-			if (
-				PlayerManager.fleets.filter((obj, i) => {
+
+			// TAIHA ALERT CONDITIONS CHECK
+			const isTaihaToBeAlerted = ConfigManager.alert_taiha
+				&& !KC3SortieManager.isPvP()
+				&& PlayerManager.fleets.filter((obj, i) => {
 						const cf = PlayerManager.combinedFleet,   // Marks combined flag
 							fs = KC3SortieManager.fleetSent,      // Which fleet that requires to focus out
 							so = KC3SortieManager.isOnSortie();   // Is it on sortie or not? if not, focus all fleets.
 						return !so || ((cf && fs === 1) ? i <= 1 : i == fs - 1);
 					})
-					.map    ((fleetObj) => fleetObj.ships.slice(1))    // Convert to non-flagship ID arrays
-					.reduce ((acc, arr) => acc.concat(arr))            // Join IDs into an array
-					.filter ((shipId)   => shipId > 0)                 // Remove ID -1
-					.map    ((shipId)   => KC3ShipManager.get(shipId)) // Convert to Ship instance
-					.some   ((shipObj)  => { // Check if any ship is Taiha, not flee, no damecon found
-						return !shipObj.didFlee && shipObj.isTaiha()
-							&& (!ConfigManager.alert_taiha_damecon || shipObj.findDameCon().pos < 0);
+					.map((fleetObj) => fleetObj.ships.slice(1))  // Convert to non-flagship ID arrays
+					.reduce((acc, arr) => acc.concat(arr))       // Join IDs into an array
+					.filter((shipId) => shipId > 0)              // Remove ID -1
+					.map((shipId) => KC3ShipManager.get(shipId)) // Convert to Ship instance
+					.some((shipObj) => {
+						// Check if any ship is Taiha, not flee, no damecon found
+						return !shipObj.isAbsent()
+							&& shipObj.isTaiha()
+							&& (!ConfigManager.alert_taiha_damecon || shipObj.findDameCon().pos < 0)
+							&& (!ConfigManager.alert_taiha_unlock || !!shipObj.lock);
 					})
-			) {
-				if(ConfigManager.alert_taiha){
+				&& (KC3SortieManager.isOnSortie() || !ConfigManager.alert_taiha_homeport);
+
+			if(isTaihaToBeAlerted){
+				if(ConfigManager.alert_taiha_panel){
 					$("#critical").show();
 					if(critAnim){ clearInterval(critAnim); }
 					critAnim = setInterval(function() {
@@ -1091,16 +1108,23 @@
 			
 			// Show world map and difficulty
 			$(".module.activity .map_world").text(
-				(KC3SortieManager.map_world>10 ? 'E' : KC3SortieManager.map_world)
+				(KC3Meta.isEventWorld(KC3SortieManager.map_world) ? 'E' : KC3SortieManager.map_world)
 				+"-"
 				+KC3SortieManager.map_num
-				+((KC3SortieManager.map_world>10)
-					?["",
+				+ ((KC3SortieManager.map_world >= 41)
+					? [ "",
+					  KC3Meta.term("EventRankCasualAbbr"),
 					  KC3Meta.term("EventRankEasyAbbr"),
 					  KC3Meta.term("EventRankNormalAbbr"),
-					  KC3Meta.term("EventRankHardAbbr")]
+					  KC3Meta.term("EventRankHardAbbr") ]
 					[ KC3SortieManager.map_difficulty ]
-					:"")
+					: KC3Meta.isEventWorld(KC3SortieManager.map_world)
+					? [ "",
+					  KC3Meta.term("EventRankEasyAbbr"),
+					  KC3Meta.term("EventRankNormalAbbr"),
+					  KC3Meta.term("EventRankHardAbbr") ]
+					[ KC3SortieManager.map_difficulty ]
+					: "")
 			);
 			
 			// Map Gauge and status
@@ -1119,10 +1143,9 @@
 						
 					// If kill-based gauge
 					}else{
-						var totalKills = KC3Meta.gauge( thisMapId.replace("m","") );
+						var totalKills = thisMap.killsRequired || KC3Meta.gauge( thisMapId.replace("m","") );
 						//console.debug("wm", KC3SortieManager.map_world, KC3SortieManager.map_num);
 						//console.debug("thisMapId", thisMapId);
-						//console.debug("KC3Meta", KC3Meta._gauges);
 						//console.debug("totalKills", totalKills);
 						var killsLeft = totalKills - thisMap.kills;
 						if(totalKills){
@@ -1464,7 +1487,7 @@
 				var MasterItem = KC3Master.slotitem( data.itemMasterId );
 				var countExisting = KC3GearManager.countByMasterId( data.itemMasterId );
 				
-				icon = "../../../../assets/img/items/"+MasterItem.api_type[3]+".png";
+				icon = KC3Meta.itemIcon(MasterItem.api_type[3]);
 				$(".activity_crafting .equipIcon img").attr("src", icon);
 				$(".activity_crafting .equipName").text( PlayerItem.name() );
 				
@@ -1555,11 +1578,8 @@
 			clearBattleData();
 			$(".module.activity .map_world").text("PvP");
 			
-			// Process PvP Battle
-			var thisPvP = (new KC3Node(0, 0, Date.now())).defineAsBattle();
-			KC3SortieManager.appendNode(thisPvP);
-			thisPvP.isPvP = true;
-			thisPvP.engage( data.battle,data.fleetSent );
+			// Processed PvP Battle
+			var thisPvP = KC3SortieManager.currentNode();
 			
 			// Hide useless information
 			$(".module.activity .battle_support img").attr("src", "../../../../assets/img/ui/dark_support-x.png").css("visibility","hidden");
@@ -1761,6 +1781,8 @@
 					 1:"bucket",
 					 2:"ibuild",
 					 3:"devmat",
+					 4:"screws",
+					 5:"coin",
 					10:"box1",
 					11:"box2",
 					12:"box3",
@@ -1839,13 +1861,13 @@
 		if(fcontactId > 0){
 			var fcpMaster = KC3Master.slotitem(fcontactId);
 			fContactIcon = $("<img />")
-				.attr("src", "../../../../assets/img/items/"+fcpMaster.api_type[3]+".png")
+				.attr("src", KC3Meta.itemIcon(fcpMaster.api_type[3]))
 				.attr("title", KC3Meta.gearName(fcpMaster.api_name));
 		}
 		if(econtactId > 0){
 			var ecpMaster = KC3Master.slotitem(econtactId);
 			eContactIcon = $("<img />")
-				.attr("src", "../../../../assets/img/items/"+ecpMaster.api_type[3]+".png")
+				.attr("src", KC3Meta.itemIcon(ecpMaster.api_type[3]))
 				.attr("title", KC3Meta.gearName(ecpMaster.api_name));
 		}
 		$(contactSpan)
@@ -1859,7 +1881,7 @@
 		if(parseInt(MasterItem["api_"+StatProperty], 10) !== 0){
 			var thisStatBox = $("#factory .equipStat").clone().appendTo(".module.activity .activity_crafting .equipStats");
 			
-			$("img", thisStatBox).attr("src", "../../../../assets/img/stats/"+Code+".png");
+			$("img", thisStatBox).attr("src", KC3Meta.statIcon(Code));
 			$(".equipStatText", thisStatBox).text( MasterItem["api_"+StatProperty] );
 		}
 	}

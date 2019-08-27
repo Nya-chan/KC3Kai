@@ -15,10 +15,13 @@ Does not include Ships and Gears which are managed by other Managers
 		bases: [],
 		baseConvertingSlots: [],
 		fleetCount: 1,
+		questCount: 5,
 		repairSlots: 2,
 		repairShips: [-1,-1,-1,-1,-1],
 		buildSlots: 2,
 		combinedFleet: 0,
+		friendlySettings: {},
+		extraSupply: [0, 0],
 		statistics: {},
 		maxResource: 300000,
 		maxConsumable: 3000,
@@ -64,6 +67,7 @@ Does not include Ships and Gears which are managed by other Managers
 			// Update related managers with new data if exists
 			Object.assignIfDefined(PlayerManager.consumables, "fcoin", data.fcoin);
 			PlayerManager.fleetCount = data.fleetCount;
+			PlayerManager.questCount = data.questCount;
 			PlayerManager.repairSlots = data.repairSlots;
 			PlayerManager.buildSlots = data.buildSlots;
 			KC3ShipManager.max = data.maxShipSlots;
@@ -207,6 +211,7 @@ Does not include Ships and Gears which are managed by other Managers
 		},
 
 		setBuildDocks :function( data ){
+			const buildingShips = [];
 			$.each(data, function(ctr, kdock){
 				if(kdock.api_state > 0){
 					const faceId = kdock.api_created_ship_id;
@@ -226,7 +231,39 @@ Does not include Ships and Gears which are managed by other Managers
 				}else{
 					KC3TimerManager.build( kdock.api_id ).deactivate();
 				}
+				buildingShips.push({
+					num: kdock.api_id,
+					state: kdock.api_state,
+					id: kdock.api_created_ship_id,
+					completeTime: kdock.api_complete_time,
+					lsc: kdock.api_item1 > 999,
+				});
 			});
+			localStorage.buildingShips = JSON.stringify(buildingShips);
+			return this;
+		},
+
+		setBuildDocksByCache :function(){
+			if(!!localStorage.buildingShips){
+				try {
+					const buildingShips = JSON.parse(localStorage.buildingShips);
+					$.each(buildingShips, function(idx, kdock){
+						if(kdock.state > 0){
+							const faceId = kdock.id;
+							const timer = KC3TimerManager.build(kdock.num);
+							timer.activate(kdock.completeTime, faceId);
+							timer.lsc = kdock.lsc;
+							timer.newShip = ConfigManager.info_dex_owned_ship ?
+								! PictureBook.isEverOwnedShip(faceId) :
+								! KC3ShipManager.masterExists(faceId);
+						} else {
+							KC3TimerManager.build(kdock.num).deactivate();
+						}
+					});
+				} catch (err) {
+					console.error("Error while processing cached building ship", err);
+				}
+			}
 			return this;
 		},
 
@@ -370,6 +407,7 @@ Does not include Ships and Gears which are managed by other Managers
 		prepareDeckbuilder: function() {
 			return {
 				version: 4,
+				hqlv: PlayerManager.hq.level,
 				f1: PlayerManager.fleets[0].deckbuilder(),
 				f2: PlayerManager.fleets[1].deckbuilder(),
 				f3: PlayerManager.fleets[2].deckbuilder(),
@@ -444,6 +482,69 @@ Does not include Ships and Gears which are managed by other Managers
 				this.consumables = $.extend(this.consumables, JSON.parse(localStorage.consumables));
 			}
 			return this;
+		},
+
+		getConsumableById :function(useitemId, attrNameOnly = false){
+			// ID mapping see also `api_get_member/useitem` at Kcsapi.js#282
+			const attrNameMap = {
+				"1": "buckets",
+				"2": "torch",
+				"3": "devmats",
+				"4": "screws",
+				"10": "furniture200",
+				"11": "furniture400",
+				"12": "furniture700",
+				"31": "fuel",
+				"32": "ammo",
+				"33": "steel",
+				"34": "bauxite",
+				"44": "fcoin",
+				"49": "dockKey",
+				"50": "repairTeam",
+				"51": "repairGoddess",
+				"52": "furnitureFairy",
+				"53": "portExpansion",
+				"54": "mamiya",
+				"55": "ring",
+				"56": "chocolate",
+				"57": "medals",
+				"58": "blueprints",
+				"59": "irako",
+				"60": "presents",
+				"61": "firstClassMedals",
+				"62": "hishimochi",
+				"63": "hqPersonnel",
+				"64": "reinforceExpansion",
+				"65": "protoCatapult",
+				"66": "ration",
+				"67": "resupplier",
+				"68": "mackerel",
+				"69": "mackerelCan",
+				"70": "skilledCrew",
+				"71": "nEngine",
+				"72": "decoMaterial",
+				"73": "constCorps",
+				"74": "newAircraftBlueprint",
+				"75": "newArtilleryMaterial",
+				"76": "rationSpecial",
+				"77": "newAviationMaterial",
+				"78": "actionReport",
+				"79": "straitMedal",
+				"80": "xmasGiftBox",
+				"81": "shogoMedalHard",
+				"82": "shogoMedalNormal",
+				"83": "shogoMedalEasy",
+				"84": "shogoMedalCasual",
+				"85": "rice",
+				"86": "umeboshi",
+				"87": "nori",
+				"88": "tea",
+				"89": "dinnerTicket",
+				"90": "setsubunBeans",
+			};
+			// You may need to `loadConsumables` first for Strategy Room
+			return useitemId === undefined ? attrNameMap :
+				attrNameOnly ? attrNameMap[useitemId] : this.consumables[attrNameMap[useitemId]];
 		},
 
 		saveBases :function(){

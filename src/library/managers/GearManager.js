@@ -11,12 +11,17 @@ Saves and loads list to and from localStorage
 		list: {},
 		max: 500,
 		pendingGearNum: 0,
+		unsetSlotitemByType2: {},
 
 		// These IDs can be updated at `fud_weekly.json`
 		carrierBasedAircraftType3Ids: [6,7,8,9,10,21,22,33,39,40,43,45,46],
 		// Dupe `api_cost`, `api_distance` fixed for non aircraft gears since 2017-03-17
 		landBasedAircraftType3Ids: [6,7,8,9,10,33,37,38,39,40,43,44,45,46,47],
 		antiAirFighterType2Ids: [6,7,8,11,45,47,48,56,57],
+		antiLandDiveBomberIds: [64,148,233,277,305,306,319],
+		// WiP modifiers applied to enemy fleet's AA fire formula:
+		// https://twitter.com/muu_1106/status/1124658313428213760
+		evadeAntiAirFireIds: [79,80,81,93,94,99,100,143,144,154,170,199,200,237,322,323],
 		airStrikeBomberType2Ids: [7,8,11,41,47,57,58],
 		aswAircraftType2Ids: [7,8,11,25,26,41,47,57,58],
 		interceptorsType3Ids: [38,44],
@@ -34,11 +39,46 @@ Saves and loads list to and from localStorage
 		landBaseOtherSortieAmmoCostPerSlot: 0.62,
 		landBaseReconnMaxSlot: 4,
 		landBaseOtherMaxSlot: 18,
-		landBaseReconnType2Ids: [9,10,41],
+		landBaseReconnType2Ids: [9,10,41,49],
 		// Jet aircraft mechanism still in progress
 		jetAircraftType2Ids: [56,57,58,59],
 		jetBomberSteelCostRatioPerSlot: 0.2,
 		// steel_consumption = floor(api_cost * current_slot * 0.2)
+
+		// Daihatsu landing craft anti-installation power modifiers per types and improvements
+		// Array format is [t2Bonus, t89Bonus, normalBonus, shikonBonus, tokuBonus]
+		landingCraftModifiers: {
+			// Soft-skinned
+			0: {
+				modifier: [1.5,1.5,1,1.8,1.15],
+				improvement: [0.03,0,0,0,0]
+			},
+			// Artillery Imp
+			1: {
+				modifier: [2.4,2.15,1.8,2.2,2.05],
+				improvement: [0.08,0.043,0.0036,0,0],
+			},
+			// Isolated Island Princess
+			2: {
+				modifier: [2.4,2.15,1.8,3.5,1],
+				improvement: [0.08,0.043,0.0036,0,0],
+			},
+			// Supply Depot Princess (no info on Daihatsu improvement)
+			3: {
+				modifier: [1.9,2.15,1.65,1.7,1],
+				improvement: [0.051,0.026,0,0,0],
+			},
+			// Summer Harbor Princess (no info on Shikon 11th tank)
+			4: {
+				modifier: [2.8,3.7,1.8,1,1],
+				improvement: [0.093,0.074,0.036,0,0],
+			},
+			// Summer Supply Deport Princess (currently only Shikon 11th tank)
+			5: {
+				modifier: [1,1,1,2.2,1],
+				improvement: [0,0,0,0,0],
+			},
+		},
 
 		// Get a specific item by ID
 		// NOTE: if you want to write test-cases, avoid setting KC3GearManager.list["x0"]
@@ -68,7 +108,7 @@ Saves and loads list to and from localStorage
 			var x;
 			for (var ind in this.list) {
 				x = this.list[ind];
-				if (cond.call(x,x)) {
+				if (cond.call(x, x)) {
 					n += 1;
 				}
 			}
@@ -76,33 +116,69 @@ Saves and loads list to and from localStorage
 		},
 		
 		// Count number of equipment by master item
-		countByMasterId :function(slotitem_id){
-			return this.count( function() {
-				return this.masterId == slotitem_id;
-			});
+		countByMasterId :function(slotitem_id, isUnlock, isNoStar){
+			return this.count(gear => (
+				gear.masterId == slotitem_id
+					&& (!isUnlock || !gear.lock)
+					&& (!isNoStar || !gear.stars)
+			));
 		},
 		
-		// Count number of equipment is not equipped by any ship or land-base
-		// Assume KC3ShipManager and PlayerManager are up to date
-		countFree :function(slotitem_id, isUnlock){
+		// To collect unequipped slotitem ID list,
+		// but correctly should search in `unsetSlotitemByType2` from `api_get_member/unsetslot`.
+		collectEquippedIds :function(lbasIncluded = true){
 			const heldRosterIds = [];
 			const rosterIdFilter = id => id > 0;
 			const landBasePlaneIdMap = p => p.api_slotid;
-			// Collect roster IDs of equipped (held) items by ships, land bases
+			// Collect roster IDs of equipped (held) items by ships, land bases (optional)
+			// Assume KC3ShipManager and PlayerManager are up to date
 			for(let key in KC3ShipManager.list){
 				heldRosterIds.push(...KC3ShipManager.list[key].items.filter(rosterIdFilter));
 			}
-			for(let base of PlayerManager.bases){
-				heldRosterIds.push(...base.planes.map(landBasePlaneIdMap).filter(rosterIdFilter));
+			if(lbasIncluded){
+				for(let base of PlayerManager.bases){
+					heldRosterIds.push(...base.planes.map(landBasePlaneIdMap).filter(rosterIdFilter));
+				}
+				for(let id of PlayerManager.baseConvertingSlots){
+					heldRosterIds.push(id);
+				}
 			}
-			for(let id of PlayerManager.baseConvertingSlots){
-				heldRosterIds.push(id);
+			return heldRosterIds;
+		},
+		
+		// Find specific piece of equipment equipped on which ship or land-base,
+		// Will return an Array if aircraft is moving from a land-base.
+		equippedBy :function(itemId){
+			if(itemId > 0 && this.get(itemId).exists()){
+				const rosterIdFilter = id => id === itemId;
+				const landBasePlaneIdMap = p => p.api_slotid;
+				for(let key in KC3ShipManager.list){
+					const ship = KC3ShipManager.list[key];
+					if(ship.items.some(rosterIdFilter) || ship.ex_item === itemId)
+						return ship;
+				}
+				for(let base of PlayerManager.bases){
+					if(base.planes.map(landBasePlaneIdMap).some(rosterIdFilter))
+						return base;
+				}
+				if(PlayerManager.baseConvertingSlots.includes(itemId)){
+					return PlayerManager.baseConvertingSlots;
+				}
+				return false;
 			}
-			return this.count( gear => {
-				return gear.masterId == slotitem_id
+			// returning undefined indicates invalid item
+			return;
+		},
+		
+		// Count number of equipment is not equipped by any ship or land-base
+		countFree :function(slotitem_id, isUnlock, isNoStar){
+			const heldRosterIds = this.collectEquippedIds(true);
+			return this.count(gear => (
+				gear.masterId == slotitem_id
 					&& heldRosterIds.indexOf(gear.itemId) === -1
-					&& (!isUnlock || gear.lock === 0);
-			});
+					&& (!isUnlock || !gear.lock)
+					&& (!isNoStar || !gear.stars)
+			));
 		},
 		
 		// Look for items by specified conditions
@@ -116,6 +192,14 @@ Saves and loads list to and from localStorage
 				}
 			}
 			return result;
+		},
+		
+		// Look for equipment is not equipped by any ship or land-base
+		findFree :function( cond ){
+			const heldRosterIds = this.collectEquippedIds(true);
+			return this.find(g => (
+				heldRosterIds.indexOf(g.itemId) === -1 && cond.call(g, g)
+			));
 		},
 		
 		// Add or replace an item on the list
