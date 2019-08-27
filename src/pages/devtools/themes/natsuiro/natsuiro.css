@@ -74,7 +74,8 @@ html,body {
 }
 #catBomb .content {
 	width:400px;
-	height:120px;
+	min-height:120px;
+	max-height:220px;
 	background-color: #fdd;
 	margin:-60px auto 0px -200px;
 	color:#c44;
@@ -136,7 +137,8 @@ html,body {
 }
 #gameUpdate .content {
 	width:400px;
-	height:120px;
+	min-height:120px;
+	max-height:220px;
 	background-color: #dfd;
 	margin:-60px auto 0px -200px;
 	color:#0c0;
@@ -352,6 +354,7 @@ html,body {
 	border-radius:5px 5px 0px 0px;
 	filter:brightness(0.7) drop-shadow(1px 0px 0px black) opacity(0.62);
 	-webkit-filter:brightness(0.7) drop-shadow(1px 0px 0px black) opacity(0.62);
+	background:rgba(100, 100, 100, 0.618);
 }
 #atab_activity {
 	cursor:default;
@@ -475,6 +478,9 @@ html,body {
 	width:25px;
 	height:25px;
 	margin:2px;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .expeditions .timer-img.locked {
 	background-image:url(../../../../assets/img/ui/lock.png);
@@ -520,6 +526,9 @@ html,body {
 	height:20px;
 	margin:2px;
 	display:none;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .timer_box .timer-time {
 	width:60px;
@@ -675,17 +684,21 @@ html,body {
 }
 .module.activity .sortie_node.nc_resource {
 	background:#007A00;
+	text-shadow:none;
 }
 .module.activity .sortie_node.nc_maelstrom {
 	background:#D2C6FF;
 	color:#000;
+	text-shadow:none;
 }
 .module.activity .sortie_node.nc_select {
 	background:#FFF;
 	color:#000;
+	text-shadow:none;
 }
 .module.activity .sortie_node.nc_avoid {
 	background:#00B3B1;
+	text-shadow:none;
 }
 .module.activity .sortie_node.nc_night_battle {
 	background:#4233C3;
@@ -778,6 +791,9 @@ ABYSS FLEET
 	position: absolute;
     bottom: 0;
     left: 50%;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .abyss_single .sink_icons .shown img {
 	display:inline;
@@ -807,6 +823,9 @@ ABYSS FLEET
 	position:relative;
 	top:-1px;
 	left:-1px;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .abyss_ships .boss {
 	border-color:#5ef;
@@ -974,6 +993,7 @@ ABYSS FLEET
 	color:#fff;
 	background:#a69de6;
 	overflow:hidden;
+	text-shadow:none;
 	pointer-events:none;
 	display:none;
 }
@@ -989,6 +1009,7 @@ ABYSS FLEET
 	color:#ff0;
 	background:#5b5;
 	overflow:hidden;
+	text-shadow:none;
 	pointer-events:none;
 	display:none;
 }
@@ -1054,6 +1075,11 @@ ABYSS FLEET
 	height:15px;
 	vertical-align:top;
 }
+.module.activity .battle_drop img {
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
+}
 .module.activity .battle_drop.new_ship {
 	filter:drop-shadow(0px 0px 3px #1f1);
 	-webkit-filter:drop-shadow(0px 0px 3px #1f1);
@@ -1112,6 +1138,7 @@ ABYSS FLEET
 	border:1px solid #70D800;
 	border-radius:7px;
 	margin: 10px auto;
+	text-shadow:none;
 }
 .module.activity .node_res_icon {
 	width:18px;
@@ -1216,10 +1243,12 @@ ABYSS FLEET
 .module.activity .node_type_text.dud {
 	background:#79E7FF;
 	border:1px solid #1ABAEF;
+	text-shadow:none;
 }
 .module.activity .node_type_text.select {
 	background:#FFF;
 	border:1px solid #CCC;
+	text-shadow:none;
 }
 
 /*------- ACTIVITY: CRAFTING -------*/
@@ -1472,6 +1501,9 @@ ABYSS FLEET
 	width:18px;
 	height:18px;
 	vertical-align:top;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .activity_expedition .expres_ship_exp {
     display: inline;
@@ -1506,6 +1538,9 @@ ABYSS FLEET
 	height:40px;
 	position:relative;
 	margin:-1px 0px 0px -1px;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .activity_modernization .mod_ship_name {
 	width:125px;
@@ -1588,9 +1623,11 @@ ABYSS FLEET
 }
 .module.activity .activity_expeditionPlanner .dropdown_title.expPlanner_text_passed{
 	color:#006600;
+	text-shadow:none;
 }
 .module.activity .activity_expeditionPlanner .dropdown_title.expPlanner_text_failed{
 	color:#cc0000;
+	text-shadow:none;
 }
 
 .module.activity .activity_expeditionPlanner .expPlan_dropdown_menu {
@@ -1610,6 +1647,7 @@ ABYSS FLEET
 	text-decoration: none;
 	border-style: solid;
 	border-width: 3px;
+	text-shadow:none;
 }
 
 .module.activity .activity_expeditionPlanner li {
@@ -1632,7 +1670,7 @@ ABYSS FLEET
 	padding: 0;
 	width: 50%;
 	font-size: 13px;
-	line-height: 16px;
+	line-height: 15px;
 }
 
 .module.activity .activity_expeditionPlanner li ui li {
@@ -1644,14 +1682,12 @@ ABYSS FLEET
 	width: 50px;
 }
 
-
 .module.activity .activity_expeditionPlanner li ul ul {
 	top:0%;
 	left:100%;
 	cursor:pointer;
 	width:100%;
 }
-
 
 .module.activity .activity_expeditionPlanner .expPlan_dropdown_topEntry {
 	display: none;
@@ -1740,6 +1776,9 @@ ABYSS FLEET
 .module.activity .activity_expeditionPlanner .expPlanner_shipReqBox {
 	margin-right:10px;
 }
+.module.activity .activity_expeditionPlanner .requirements {
+	display:inline-block;
+}
 .module.activity .activity_expeditionPlanner .requirements_textbox {
 	display:inline-block;
 	margin-left:2px;
@@ -1798,6 +1837,9 @@ ABYSS FLEET
 	height:40px;
 	position:relative;
 	margin:-1px 0px 0px -1px;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .activity_gunfit .fit_profile_name {
 	width:125px;
@@ -1860,6 +1902,7 @@ ABYSS FLEET
 	padding:1px 0px 1px 0px;
 	color:#000;
 	background:#aaa;
+	text-shadow:none;
 }
 .module.activity .activity_gunfit .fit_value .fit_current {
 	float:left;
@@ -2005,6 +2048,9 @@ ABYSS FLEET
 	height:18px;
 	margin-top:-2px;
 	margin-left:-2px;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .activity_gunfit .aaci .equipIcons {
 	width:62px;
@@ -2207,6 +2253,9 @@ ABYSS FLEET
 .module.activity .activity_pvp .pvp_enemy_pic img {
 	width: 33px;
 	height: 33px;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .activity_pvp .pvp_enemy_name {
 	width: calc(50% - 28px);
@@ -2218,6 +2267,9 @@ ABYSS FLEET
 	color: #3ec0bf;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+.module.activity .activity_pvp .pvpEnemyInfo.friend .pvp_enemy_name {
+	color: #3ec03e;
 }
 .module.activity .activity_pvp .pvp_enemy_level {
 	width: 20px;
@@ -2251,6 +2303,7 @@ ABYSS FLEET
 	background-color: #eee;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	text-shadow:none;
 }
 .module.activity .activity_pvp .pvp_enemy_medals {
 	width: 17px;
@@ -2349,6 +2402,7 @@ ABYSS FLEET
 	overflow: hidden;
 	text-overflow: ellipsis;
 	clear: both;
+	text-shadow:none;
 }
 .module.activity .activity_pvp .pvp_admiral .pvp_admiral_label {
 	width: 50%;
@@ -2384,6 +2438,7 @@ ABYSS FLEET
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	text-shadow:none;
 }
 .module.activity .activity_pvp .pvp_fleet_list {
 	width: 100%;
@@ -2413,6 +2468,9 @@ ABYSS FLEET
 .module.activity .activity_pvp .pvpFleetShip .pvp_fleet_ship_icon img {
 	width: 28px;
 	height: 28px;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .activity_pvp .pvpFleetShip .pvp_fleet_ship_name {
 	width: calc(100% - 31px);
@@ -2536,6 +2594,9 @@ ABYSS FLEET
 	width: 30px;
 	height: 30px;
 	margin: -1px 0px 0px -1px;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.activity .activity_remodel .remodel_scrollable {
 	width: 176px;
@@ -2636,6 +2697,7 @@ ABYSS FLEET
 	margin-top: 2px;
 	overflow-x: hidden;
 	overflow-y: auto;
+	text-shadow:none;
 }
 .module.activity .activity_remodel .remodelSlotItem .remodel_slot_reqs::-webkit-scrollbar {
 	width: 3px;
@@ -2751,31 +2813,28 @@ ABYSS FLEET
 
 }
 .module.quests .quest {
-	height:20px;
-	line-height:20px;
+	height:18px;
+	line-height:18px;
 }
-.module.quests  .quest.complete {
+.module.quests .quest.complete {
 	background:rgba(0,255,0,0.25);
 }
 
 .module.quests .quest_color {
 	width:14px;
 	height:14px;
-	margin:3px;
+	margin:2px;
 	background:#555;
 	float:left;
-	line-height:normal;
-	text-align:center;
 }
 .module.quests .quest.complete .quest_color {
-	width:16px;
-	height:16px;
+	width:14px;
+	height:14px;
 	line-height:12px;
 	font-size:10px;
 	margin:2px;
 	background:#555;
 	float:left;
-	line-height:normal;
 	text-align:center;
 	border:2px solid #0f0;
 	text-shadow:0px 0px 2px #fff, 0px 0px 2px #fff, 0px 0px 2px #fff;
@@ -2783,7 +2842,6 @@ ABYSS FLEET
 
 .module.quests .quest_text {
 	width:130px;
-	height:20px;
 	float:left;
 	font-size:11px;
 	white-space:nowrap;
@@ -2794,7 +2852,8 @@ ABYSS FLEET
 
 .module.quests .quest_track {
 	width:40px;
-	height:18px;
+	height:16px;
+	line-height:16px;
 	margin:1px 0px;
 	background:rgba(60,60,60,0.7);
 	font-size:12px;
@@ -3012,6 +3071,7 @@ ABYSS FLEET
 .module.fleet {
 	width:340px;
 	height:315px;
+	border-radius: 5px;
 }
 .module.fleet .shiplist {
 	width:340px;
@@ -3121,13 +3181,15 @@ ABYSS FLEET
 	margin:0px 5px 0px 0px;
 	border-radius:20px;
 	overflow:hidden;
-	border:1px solid #000;
 }
 .module.fleet .lship .ship_img img {
 	width:40px;
 	height:40px;
 	position:relative;
 	margin:-1px 0px 0px -1px;
+	object-fit: cover;
+	border-radius: 50%;
+	image-rendering: auto;
 }
 .module.fleet .lship .mvp_icon {
 	width:20px;
@@ -3616,6 +3678,7 @@ ABYSS FLEET
 .module.fleet .sship .ship_img img {
 	width:40px;
 	height:40px;
+	object-fit: cover;
 	position:relative;
 	margin:-1px 0px 0px -1px;
 }
@@ -4031,8 +4094,8 @@ ABYSS FLEET
 }
 .h .module.quests {
 	width:190px;
-	height:120px;
-	left:5px; top:325px;
+	height:126px;
+	left:5px; top:322px;
 }
 .h .module.quests .quest {
 	width:190px;
@@ -4128,6 +4191,10 @@ ABYSS FLEET
 	font-family:inherit;
 	font-size:12px;
 	background:#fff;
+}
+.ui-tooltip img {
+	object-fit: cover;
+	image-rendering: auto;
 }
 .ui-tooltip-content hr {
 	margin:3px 0px 3px 0px;

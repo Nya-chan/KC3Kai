@@ -271,7 +271,10 @@ Used by SortieManager
 	 * @param predictedFleets - result of predicted fleets.
 	 */
 	KC3Node.prototype.checkSortieSpecialAttacks = function(predictedFleets){
-		const checkSortieSpecialAttack = attacks => attacks.some(attack => (attack.cutin || attack.ncutin) >= 100);
+		const checkSortieSpecialAttack = attacks => attacks.some(
+			// special attacks ID ranged in [100, 200), >= 200 used by multi-angle attacks
+			attack => Number(attack.cutin || attack.ncutin).inside(100, 199)
+		);
 		const playerMain = predictedFleets.playerMain,
 			flagshipSpecialAttack = checkSortieSpecialAttack(playerMain[0].attacks);
 		if (flagshipSpecialAttack) {
@@ -2159,9 +2162,9 @@ Used by SortieManager
 							remainingAmmoModifier = 1,
 							armor = ((this.eParam[targetIndex] || [])[3] || 0) + eShipEquipArmor;
 
-						let power = time === 'Day' ? ship.shellingFirePower(combinedFleetFactor)
+						let power = time === 'Day' ? ship.shellingFirePower(combinedFleetFactor, isLand)
 							: !isLand ? ship.nightBattlePower(isNightContacted) :
-							ship.shellingFirePower(isNightContacted ? 0 : -5);
+							ship.shellingFirePower(isNightContacted ? 0 : -5, isLand);
 						if (warfareType === 'Antisub') { power = ship.antiSubWarfarePower(); }
 						if (time === 'Night' && ship.canCarrierNightAirAttack()) {
 							power = ship.nightAirAttackPower(isNightContacted);

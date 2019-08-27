@@ -6,11 +6,39 @@
 		Triggers translations into current page
 		-----------------------------------------*/
 		execute :function(){
+			this.lazyInitDateNames();
 			this.applyWords();
 			this.applyHTML();
 		},
-		
-		
+
+		/**
+		 * Initialize localized global weekday and month names via Date.prototype.toLocaleString
+		 */
+		lazyInitDateNames :function(lang){
+			if(dateFormat && dateFormat.l10n && !dateFormat.l10n.locale) {
+				const msPerMin = 60 * 1000, msPerDay = 24 * 60 * msPerMin;
+				const timezoneOffsetMs = new Date().getTimezoneOffset() * msPerMin;
+				const locale = this.getLocale(lang);
+				// The 4th day (1970-1-4 Sun) is chosen as the first Sunday sample
+				Array.numbers(3, 9).forEach((day, idx) => {
+					const dateObj = new Date(day * msPerDay + timezoneOffsetMs);
+					const weekdayShort = dateObj.toLocaleString(locale, {weekday: "short"}),
+						weekdayLong = dateObj.toLocaleString(locale, {weekday: "long"});
+					dateFormat.l10n.dayNames[idx] = weekdayShort || dateFormat.i18n.dayNames[idx];
+					dateFormat.l10n.dayNames[idx + 7] = weekdayLong || dateFormat.i18n.dayNames[idx + 7];
+				});
+				Array.numbers(1, 12).forEach((month, idx) => {
+					const dateObj = new Date(3 * msPerDay);
+					dateObj.setMonth(month - 1);
+					const monthShort = dateObj.toLocaleString(locale, {month: "short"}),
+						monthLong = dateObj.toLocaleString(locale, {month: "long"});
+					dateFormat.l10n.monthNames[idx] = monthShort || dateFormat.i18n.monthNames[idx];
+					dateFormat.l10n.monthNames[idx + 12] = monthLong || dateFormat.i18n.monthNames[idx + 12];
+				});
+				dateFormat.l10n.locale = locale;
+			}
+		},
+
 		/* APPLY WORDS
 		Change words inside visible DOM elements
 		-----------------------------------------*/
@@ -25,8 +53,7 @@
 				$(this).attr("title", KC3Meta.term( $(this).attr("title") ) );
 			});
 		},
-		
-		
+
 		/* APPLY HTML
 		Specialized Language HTML adjustments
 		-----------------------------------------*/
@@ -232,6 +259,9 @@
 			"Friend43(1)" : 143,
 			"Friend43(2)" : 243,
 			"Friend43(3)" : 343,
+			"Friend44(1)" : 144,
+			"Friend44(2)" : 244,
+			"Friend44(3)" : 344,
 
 			"H0000":30, "H0100":31, "H0200":32, "H0300":33,
 			"H0400":34, "H0500":35, "H0600":36, "H0700":37,
@@ -280,7 +310,7 @@
 			if (includeRepair && KC3Meta.specialReairVoiceShips.indexOf(masterId) > -1)
 				sortedVoiceNums.push(6);
 
-			// add special cut-in (Nelson Touch, Nagato/Mutsu Cutin) key
+			// add special cut-in (Nelson Touch, Nagato/Mutsu/Colorado Cutin) key
 			if (KC3Meta.specialCutinIds.indexOf(masterId) > -1)
 				sortedVoiceNums.push(900);
 			// add special cut-in voice keys for Nagato class combination
@@ -301,7 +331,7 @@
 
 			// add known friend support keys (last 2 digits seem be event world id)
 			if (includeFriend)
-				sortedVoiceNums.push(...[141, 241, 142, 242, 342, 143, 243, 343]);
+				sortedVoiceNums.push(...[141, 241, 142, 242, 342, 143, 243, 343, 144, 244, 344]);
 
 			return sortedVoiceNums;
 		},
