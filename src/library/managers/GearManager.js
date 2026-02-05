@@ -28,7 +28,7 @@ Saves and loads list to and from localStorage
 		airStrikeBomberType2Ids: [7,8,11,41,47,53,57,58,91],
 		aswAircraftType2Ids: [7,8,11,25,26,41,47,57,58,91],
 		aswDepthChargeIds: [226,227,378,439,488],
-		aswDepthChargeProjectorIds: [44,45,287,288,377,472],
+		aswDepthChargeProjectorIds: [44,45,287,288,377,472,569],
 		aswArmorPenetrationIds: [226,227,377,378,439,472,488],
 		interceptorsType3Ids: [38,44,56,57],
 		interceptorsType2Ids: [48],
