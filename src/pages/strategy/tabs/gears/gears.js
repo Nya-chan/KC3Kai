@@ -131,6 +131,8 @@
 			"t58": "dv",
 			// flying wing jet bomber
 			"t59": "dv",
+			// jet fighter
+			"t60": "aa",
 			// all types
 			"tall": "type",
 		},

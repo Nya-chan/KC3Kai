@@ -230,6 +230,8 @@
                     return 12;
                 case 1001: // Kirov
                     return 26;
+                case 196: // Hiryuu Kai Ni
+                    return 220;
                 default:
                     return this.isIgnoreDevMat(blueprint_count, ship_id_from)
                         || (steel < 4500) ? 0

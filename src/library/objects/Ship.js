@@ -583,6 +583,14 @@ KC3改 Ship Object
 			&& this.hasEquipmentType(2, 15);
 	};
 
+	/**
+	 * @return true if this ship is Hiryuu Kai 3 with any bomer/attacker and any ASW Patrol or Autogyro equipped
+	 */
+	KC3Ship.prototype.isHiryuuKai3WithAswPatrol = function(){
+		if(this.isDummy()) return false;
+		return this.masterId === 1031 && this.hasEquipmentType(2, [7, 8, 57]) && this.hasEquipmentType(2, [25, 26]);
+	};
+
 	/* REPAIR TIME
 	Get ship's docking and Akashi times
 	when optAfterHp is true, return repair time based on afterHp
@@ -3107,8 +3115,10 @@ KC3改 Ship Object
 		const isHayasuiKaiWithTorpedoBomber = this.isHayasuiKaiWithTorpedoBomber();
 		const isKagaK2Go = this.masterId === 646;
 		const isFusouClassKaiNi = [411, 412].includes(this.masterId);
-		// CAV, CVL, BBV, AV, LHA(*), CVL-like Hayasui Kai, Kaga Kai Ni Go, Yamashiomaru, Shimanemaru
-		const isAirAntiSubStype = this.isAirAntiSubStype() || isHayasuiKaiWithTorpedoBomber || isKagaK2Go || this.isYamashiomaruWithAircraft();
+		// CAV, CVL, BBV, AV, LHA(*), CVL-like Hayasui Kai, Kaga Kai Ni Go, Yamashiomaru, Shimanemaru, Hiryuu K3
+		const isAirAntiSubStype = this.isAirAntiSubStype()
+			|| isHayasuiKaiWithTorpedoBomber || isKagaK2Go
+			|| this.isYamashiomaruWithAircraft() || this.isHiryuuKai3WithAswPatrol();
 		if(isAirAntiSubStype) {
 			// CV Kaga Kai Ni Go implemented since 2020-08-27, can do ASW under uncertain conditions (using CVL's currently),
 			// but any CV form (converted back from K2Go) may ASW either if her asw modded > 0, fixed on the next day
@@ -3132,6 +3142,9 @@ KC3改 Ship Object
 			if(isCvlLike && this.isStriped()) return false;
 			// and if ASW plane equipped and its slot > 0
 			// or if Fusou-class K2/2nd Class Transporter equipped Depth Charge
+			// Hiryuu K3 implemented since 2026-02-13,
+			// can do ASW airattack when any (jet)bomber/attacker and patrol/autogyro equipped together,
+			// uncertain: should not CVL-like to include patrol/autogyro; no night asw attack?
 			return this.hasNonZeroSlotEquipmentFunc(g => g.isAswAircraft(isCvlLike))
 				|| (isFusouClassKaiNi && this.hasEquipmentType(2, 15));
 		}
@@ -3289,7 +3302,9 @@ KC3改 Ship Object
 		if(this.isDummy() || this.isAbsent()) { return false; }
 		// is this ship Nelson-class and not even Chuuha
 		// still okay even 3th and 5th ship are Taiha
-		if(KC3Meta.nelsonTouchShips.includes(this.masterId) && !this.isStriped()) {
+		// suspected no trigger if remaining ammo is zero:
+		// https://x.com/CC_jabberwock/status/2020912627766133161
+		if(KC3Meta.nelsonTouchShips.includes(this.masterId) && !this.isStriped() && this.ammo > 0) {
 			const [shipPos, shipCnt, fleetNum] = this.fleetPosition();
 			// Nelson is flagship of a fleet, which min 6 surface ships needed
 			// https://twitter.com/kurosg/status/1401491454732607492
@@ -3316,7 +3331,7 @@ KC3改 Ship Object
 	 * Most conditions are the same with Nelson Touch, except:
 	 * Flagship is healthy Nagato/Mutsu Kai Ni, Echelon (forward) formation selected.
 	 * 2nd ship is a battleship, Chuuha ok, Taiha no good.
-	 * No trigger found in battle of player CTF vs abyssal single fleet.
+	 * No trigger found in battle of player CTF vs abyssal single fleet. (fixed?)
 	 *
 	 * Additional ammo consumption for Nagato/Mutsu & 2nd battleship:
 	 *   + Math.ceil(total ammo cost of this battle (yasen may included) / 2)
@@ -3330,7 +3345,7 @@ KC3改 Ship Object
 	 */
 	KC3Ship.prototype.canDoNagatoClassCutin = function(flagShipIds = KC3Meta.nagatoClassCutinShips) {
 		if(this.isDummy() || this.isAbsent()) { return false; }
-		if(flagShipIds.includes(this.masterId) && !this.isStriped()) {
+		if(flagShipIds.includes(this.masterId) && !this.isStriped() && this.ammo > 0) {
 			const [shipPos, shipCnt, fleetNum] = this.fleetPosition();
 			if(fleetNum > 0 && shipPos === 0 && shipCnt >= 6
 				&& (!PlayerManager.combinedFleet || fleetNum !== 2)) {
@@ -3433,7 +3448,7 @@ KC3改 Ship Object
 	KC3Ship.prototype.canDoColoradoCutin = function() {
 		if(this.isDummy() || this.isAbsent()) { return false; }
 		// is this ship Colorado-class and not even Chuuha
-		if(KC3Meta.coloradoCutinShips.includes(this.masterId) && !this.isStriped()) {
+		if(KC3Meta.coloradoCutinShips.includes(this.masterId) && !this.isStriped() && this.ammo > 0) {
 			const [shipPos, shipCnt, fleetNum] = this.fleetPosition();
 			if(fleetNum > 0 && shipPos === 0 && shipCnt >= 6
 				&& (!PlayerManager.combinedFleet || fleetNum !== 2)) {
@@ -3533,7 +3548,7 @@ KC3改 Ship Object
 	KC3Ship.prototype.canDoKongouCutin = function() {
 		if(this.isDummy() || this.isAbsent()) { return false; }
 		// is this ship Kongou-class K2C(K2B) and not even Chuuha
-		if(KC3Meta.kongouCutinShips.includes(this.masterId) && !this.isStriped()) {
+		if(KC3Meta.kongouCutinShips.includes(this.masterId) && !this.isStriped() && this.ammo > 0) {
 			const [shipPos, shipCnt, fleetNum] = this.fleetPosition();
 			if(fleetNum > 0 && shipPos === 0 && shipCnt >= 5
 				&& (!PlayerManager.combinedFleet || fleetNum !== 1)) {
@@ -3650,7 +3665,7 @@ KC3改 Ship Object
 	KC3Ship.prototype.canDoYamatoClassCutin = function() {
 		if(this.isDummy() || this.isAbsent()) { return false; }
 		// is this ship healthy Musashi K2
-		if(KC3Meta.musashiCutinShips.includes(this.masterId) && !this.isStriped()) {
+		if(KC3Meta.musashiCutinShips.includes(this.masterId) && !this.isStriped() && this.ammo > 0) {
 			const [shipPos, shipCnt, fleetNum] = this.fleetPosition();
 			if(fleetNum > 0 && shipPos === 0 && shipCnt >= 6
 				&& (!PlayerManager.combinedFleet || fleetNum !== 2)) {
@@ -3767,7 +3782,7 @@ KC3改 Ship Object
 	 */
 	KC3Ship.prototype.canDoRichelieuClassCutin = function() {
 		if(this.isDummy() || this.isAbsent()) { return false; }
-		if(KC3Meta.richelieuClassCutinShips.includes(this.masterId) && !this.isStriped()) {
+		if(KC3Meta.richelieuClassCutinShips.includes(this.masterId) && !this.isStriped() && this.ammo > 0) {
 			const [shipPos, shipCnt, fleetNum] = this.fleetPosition();
 			if(fleetNum > 0 && shipPos === 0 && shipCnt >= 6
 				&& (!PlayerManager.combinedFleet || fleetNum !== 2)) {
@@ -3805,7 +3820,7 @@ KC3改 Ship Object
 
 	KC3Ship.prototype.canDoQueenElizabethClassCutin = function() {
 		if(this.isDummy() || this.isAbsent()) { return false; }
-		if(KC3Meta.queenElizabethClassCutinShips.includes(this.masterId) && !this.isStriped()) {
+		if(KC3Meta.queenElizabethClassCutinShips.includes(this.masterId) && !this.isStriped() && this.ammo > 0) {
 			const [shipPos, shipCnt, fleetNum] = this.fleetPosition();
 			if(fleetNum > 0 && shipPos === 0 && shipCnt >= 6
 				&& (!PlayerManager.combinedFleet || fleetNum !== 2)) {
@@ -4104,15 +4119,21 @@ KC3改 Ship Object
 			// http://wikiwiki.jp/kancolle/?%C0%EF%C6%AE%A4%CB%A4%C4%A4%A4%A4%C6#FAcutin
 			// https://twitter.com/_Kotoha07/status/907598964098080768
 			// https://twitter.com/arielugame/status/908343848459317249
-			const fighterCnt = this.countNonZeroSlotEquipmentType(2, 6);
+			const fighterCnt = this.countNonZeroSlotEquipmentType(2, [6, 56]);
 			const diveBomberCnt = this.countNonZeroSlotEquipmentType(2, 7);
 			const torpedoBomberCnt = this.countNonZeroSlotEquipmentType(2, 8);
+			const jetFighterCnt = this.countNonZeroSlotEquipmentType(2, 56);
+			const jetFighterbomberCnt = this.countNonZeroSlotEquipmentType(2, 57);
+			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 2)
+				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJBJB", 1.0));
 			if(diveBomberCnt >= 1 && torpedoBomberCnt >= 1 && fighterCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinFDBTB", 1.25));
 			if(diveBomberCnt >= 2 && torpedoBomberCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinDBDBTB", 1.2));
 			if(diveBomberCnt >= 1 && torpedoBomberCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinDBTB", 1.15));
+			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 1)
+				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJB", 1.0));
 		}
 		
 		// is target a land installation

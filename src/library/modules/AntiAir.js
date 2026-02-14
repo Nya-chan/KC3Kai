@@ -1353,6 +1353,8 @@ AntiAir: anti-air related calculations
 		)
 	);
 
+	// Hiryuu K3
+	// 53, 5, 1
 
 	// return a list of possible AACI APIs based on ship and her equipment
 	// - returns a list of **strings**, not numbers

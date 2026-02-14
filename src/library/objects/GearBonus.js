@@ -14094,8 +14094,8 @@
 					},
 					{
 						// Fast Group A, speed level up without Turbine
-						origins: [50, 516, 153, 110, 111, 70, 120, 124, 125, 71, 72, 885, 181],
-						excludes: [181, 316],
+						origins: [50, 516, 153, 110, 111, 70, 120, 124, 125, 71, 72, 885, 181, 91],
+						excludes: [181, 316, 91, 280, 196],
 						minStars: 7,
 						countCap: 2,
 						multiple: { "soku": 5 },
@@ -14113,9 +14113,9 @@
 				count: 0,
 				byShip: [
 					{
-						// Fast Group A: Shimakaze, Tashkent, Taihou, Shoukaku, Zuikaku, Mogami, Mikuma, Suzuya, Kumano, Tone, Chikuma, Victorious?, Amatsukaze Kai Ni
-						origins: [50, 516, 153, 110, 111, 70, 120, 124, 125, 71, 72, 885, 181],
-						excludes: [181, 316],
+						// Fast Group A: Shimakaze, Tashkent, Taihou, Shoukaku, Zuikaku, Mogami, Mikuma, Suzuya, Kumano, Tone, Chikuma, Victorious?, Amatsukaze Kai Ni, Hiryuu K3
+						origins: [50, 516, 153, 110, 111, 70, 120, 124, 125, 71, 72, 885, 181, 91],
+						excludes: [181, 316, 91, 280, 196],
 						speedCap: 10,
 						synergy: [
 							{
@@ -14138,7 +14138,7 @@
 					{
 						// Fast Group B1: Amatsukaze, Iowa, Souryuu, Hiryuu, Unryuu, Amagi, Kongou, Haruna, Kirishima, Hiei, Agano, Noshiro, Yahagi, Sakawa, Yamato Kai Ni
 						origins: [181, 440, 90, 91, 404, 331, 78, 79, 85, 86, 137, 138, 139, 140, 131],
-						excludes: [662, 131, 136, 916, 951],
+						excludes: [662, 131, 136, 916, 951, 1031],
 						speedCap: 10,
 						synergy: [
 							{
