@@ -687,11 +687,8 @@ KC3改 Ship Object
 			// Is Jet aircraft and left slot > 0
 			if(item.exists() && this.slots[i] > 0 &&
 				KC3GearManager.jetAircraftType2Ids.includes(item.master().api_type[2])) {
-				// Ho229 [jet fighter-bomber (II)] might be different cost
-				const jetBomber2RatioAdditive = KC3Master.equip_type_sp(item.masterId) === 91 ? 0.04 : 0;
 				consumedSteel = Math.round(
-					this.slots[i] * item.master().api_cost
-					* (KC3GearManager.jetBomberSteelCostRatioPerSlot + jetBomber2RatioAdditive)
+					this.slots[i] * item.master().api_cost * KC3Meta.jetSteelCostMods(item.masterId)
 				) || 0;
 				totalSteel += consumedSteel;
 				if(!!currentSortieId) {
@@ -1059,6 +1056,8 @@ KC3改 Ship Object
 				else if (flag.includes("skilledLookouts")) { return 32; }
 				else if (flag.includes("searchlight")) { return 24; }
 				else if (flag.includes("rotorcraft") || flag.includes("helicopter")) { return 21; }
+				else if (flag.includes("JetFighter")) { return 60; }
+				else if (flag.includes("CarrierFighter")) { return 6; }
 				else if (flag.includes("NightRecon")) { return 50; }
 				else if (flag.includes("Sonar")) { return 18; }
 				else if (flag.includes("Boiler") || flag.includes("Turbine")) { return 19; }
@@ -2625,11 +2624,14 @@ KC3改 Ship Object
 				// http://wikiwiki.jp/kancolle/?%C0%EF%C6%AE%A4%CB%A4%C4%A4%A4%A4%C6#FAcutin
 				// same modifier with regualr air attack for CVNCI
 				const allowedSlotType = (cutinType => {
-					// uncertain: jets counted? not counted since #estimateDayAttackType neither
+					// uncertain: jets counted? not counted since #estimateDayAttackType neither~~
+					// Jet Fighter implemented since 2026-02-13, should be counted
 					switch(cutinType) {
-						case "CutinFDBTB": return [6, 7, 8];
+						case "CutinFDBTB": return [6, 56, 7, 8];
 						case "CutinDBDBTB":
 						case "CutinDBTB": return [7, 8];
+						case "CutinJFJBJB":
+						case "CutinJFJB": return [56, 57];
 						default: return [];
 					}
 				})(daySpecialAttackType[2]);

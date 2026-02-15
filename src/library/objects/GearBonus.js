@@ -103,6 +103,10 @@
 				ru130mmB13SmallGunMountIds: [282],
 				ru10cm56GreenSecGunMount: 0,
 				ru10cm56GreenSecGunMountIds: [556],
+				shindenKai2CarrierFighter: 0,
+				shindenKai2CarrierFighterIds: [547],
+				shindenKai3JetFighter: 0,
+				shindenKai3JetFighterIds: [548],
 				skilledLookouts: 0,
 				skilledLookoutsIds: [129, 412],
 				searchlightSmall: 0,
@@ -213,6 +217,11 @@
 						ids: [594, 698, 646, 599, 610, 196, 197],
 						multiple: { "houg": 1, "houk": 1, "houm": 2 },
 					},
+					{
+						// Hiryuu K3
+						ids: [1031],
+						multiple: { "houg": 2, "houk": 1, "houm": 2 },
+					},
 				],
 			},
 			// Ryuusei Kai (CarDiv 1)
@@ -229,6 +238,11 @@
 					// Shoukaku Class Kai Ni+
 					"33": {
 						remodel: 2,
+						multiple: { "houg": 1 },
+					},
+					// Hiryuu Class Kai San
+					"25": {
+						remodel: 3,
 						multiple: { "houg": 1 },
 					},
 				},
@@ -261,6 +275,11 @@
 						remodel: 2,
 						multiple: { "houg": 1 },
 					},
+					// Hiryuu Class Kai San
+					"25": {
+						remodel: 3,
+						multiple: { "houg": 1 },
+					},
 				},
 				byShip: [
 					{
@@ -272,6 +291,51 @@
 						// extra +3 fp, +3 aa, +3 ev for Akagi Kai Ni E, Kaga K2E
 						ids: [599, 610],
 						multiple: { "houg": 3, "tyku": 3, "houk": 3 },
+					},
+				],
+			},
+			// Ryuusei Kai (Tomonaga Squadron)
+			"570": {
+				count: 0,
+				starsDist: [],
+				byShip: [
+					{
+						// Hiryuu Kai San
+						ids: [1031],
+						multiple: { "houg": 9, "tyku": 2, "houk": 2, "houm": 3 },
+					},
+					{
+						// Hiryuu Kai Ni
+						ids: [196],
+						multiple: { "houg": 8, "tyku": 1, "houk": 1, "houm": 2 },
+					},
+					{
+						// Souryuu Kai Ni, Hiryuu Kai, Hiryuu Base
+						ids: [197, 280, 91],
+						multiple: { "houg": 4, "tyku": 1, "houm": 1 },
+					},
+					{
+						// Souryuu Kai, Souryuu Base
+						ids: [279, 90],
+						multiple: { "houg": 3, "houm": 1 },
+					},
+					{
+						// All remodels of Akagi, Kaga, Shoukaku, Zuikaku, Taihou
+						origins: [83, 84, 110, 111, 153],
+						multiple: { "houg": 2, "houm": 1 },
+					},
+					// For all ships can equip it
+					{
+						minStars: 6,
+						multiple: { "houm": 1 },
+					},
+					{
+						minStars: 8,
+						multiple: { "houg": 1 },
+					},
+					{
+						minStars: 10,
+						multiple: { "houm": 1 },
 					},
 				],
 			},
@@ -385,15 +449,20 @@
 					],
 				},
 				byShip: [
-					// extra +1 fp for Shoukaku base and Kai
+					// totally +2 fp for Shoukaku base and Kai
 					{
 						ids: [110, 288],
 						single: { "houg": 1 },
 					},
-					// extra +2 fp for Shoukaku K2 and K2A
+					// totally +4 fp for Shoukaku K2 and K2A
 					{
 						ids: [461, 466],
-						single: { "houg": 2 },
+						single: { "houg": 1 },
+					},
+					{
+						// Hiryuu Kai San
+						ids: [1031],
+						single: { "houg": 1 },
 					},
 				],
 			},
@@ -592,8 +661,8 @@
 						multiple: { "houg": 1, "houm": 2, "houk": 1, "saku": 2 },
 					},
 					{
-						// Zuikaku K2+, Kaga K2Go
-						ids: [462, 467, 646],
+						// Zuikaku K2+, Kaga K2Go, Hiryuu K3
+						ids: [462, 467, 646, 1031],
 						multiple: { "houg": 1, "houm": 1, "saku": 1 },
 					},
 					{
@@ -1244,8 +1313,8 @@
 						multiple: { "houg": 2 },
 					},
 					{
-						// Hiryuu/Souryuu K2 +3 fp
-						ids: [196, 197],
+						// Hiryuu K2/K3, Souryuu K2 +3 fp
+						ids: [196, 1031, 197],
 						multiple: { "houg": 3 },
 					},
 					{
@@ -2358,6 +2427,7 @@
 			// Shinden Kai 2 (Carrier-based Fighter Model Kai 2)
 			"547": {
 				count: 0,
+				starsDist: [],
 				byShip: [
 					{
 						// Hiryuu Kai Ni
@@ -2365,9 +2435,57 @@
 						multiple: { "tyku": 1, "houk": 2, "houm": 1 },
 					},
 					{
+						// Hiryuu Kai San
+						ids: [1031],
+						multiple: { "houg": 1, "tyku": 3, "houk": 3, "houm": 2 },
+					},
+					{
 						// Shoukaku K2/K2A, Zuikaku K2/K2A
 						ids: [461, 466, 462, 467],
 						multiple: { "tyku": 1, "houk": 1 },
+					},
+					// For all ships can equip it
+					{
+						minStars: 6,
+						multiple: { "houm": 1 },
+					},
+					{
+						minStars: 8,
+						multiple: { "tyku": 1 },
+					},
+					{
+						minStars: 10,
+						multiple: { "houg": 1 },
+					},
+				],
+			},
+			// Shinden Kai 3 (Prototype Jet Shinden)
+			"548": {
+				count: 0,
+				starsDist: [],
+				byShip: [
+					{
+						// Hiryuu Kai San
+						ids: [1031],
+						multiple: { "houg": 3, "tyku": 4, "houk": 4, "houm": 3 },
+					},
+					{
+						// Shoukaku K2A, Zuikaku K2A
+						ids: [466, 467],
+						multiple: { "houg": 1, "tyku": 2, "houk": 2, "houm": 1 },
+					},
+					// For all ships can equip it
+					{
+						minStars: 6,
+						multiple: { "houm": 1 },
+					},
+					{
+						minStars: 8,
+						multiple: { "tyku": 1 },
+					},
+					{
+						minStars: 10,
+						multiple: { "houg": 1 },
 					},
 				],
 			},
@@ -2588,8 +2706,8 @@
 				count: 0,
 				byShip: [
 					{
-						// Hiryuu/Souryuu Kai Ni
-						ids: [196, 197],
+						// Hiryuu/Souryuu Kai Ni, Hiryuu K3
+						ids: [196, 197, 1031],
 						multiple: { "houg": 2, "tyku": 2, "houk": 3 },
 					},
 					{
@@ -7436,15 +7554,32 @@
 					// Conte di Cavour Class
 					"113": "6",
 				},
-				byShip: {
-					// Yamato K2+, Musashi K2, Haruna K2B+
-					ids: [911, 916, 546, 593, 954],
-					multiple: { "tyku": 2, "houk": 2 },
-					synergy: {
-						flags: [ "rangefinderKaiAirRadar" ],
-						single: { "houg": 2, "tyku": 2, "houk": 2, "houm": 3 },
+				byShip: [
+					{
+						// Yamato K2+, Musashi K2, Haruna K2B+
+						ids: [911, 916, 546, 593, 954],
+						multiple: { "tyku": 2, "houk": 2 },
+						synergy: {
+							flags: [ "rangefinderKaiAirRadar" ],
+							single: { "houg": 2, "tyku": 2, "houk": 2, "houm": 3 },
+						},
 					},
-				},
+					{
+						// Hiryuu K3
+						ids: [1031],
+						multiple: { "tyku": 3, "houk": 3 },
+						synergy: [
+							{
+								flags: [ "shindenKai2CarrierFighter" ],
+								single: { "houg": 2, "tyku": 2, "houk": 2, "houm": 2 },
+							},
+							{
+								flags: [ "shindenKai3JetFighter" ],
+								single: { "houg": 3, "tyku": 4, "houk": 4, "houm": 3 },
+							},
+						],
+					},
+				],
 			},
 			// 5inch Twin Gun Mount (Secondary Armament) Concentrated Deployment
 			"467": {
@@ -11139,14 +11274,33 @@
 						},
 					},
 					{
-						// Houshou K2+
-						ids: [894, 899],
+						// Hiryuu Kai San
+						ids: [1031],
+						multiple: { "houg": 1, "tyku": 3, "houk": 2 },
+						synergy: [
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 3, "houk": 3 },
+							},
+							{
+								flags: [ "shindenKai2CarrierFighter" ],
+								single: { "tyku": 1, "houk": 2, "houm": 1 },
+							},
+							{
+								flags: [ "shindenKai3JetFighter" ],
+								single: { "houg": 1, "tyku": 2, "houk": 3, "houm": 2 },
+							},
+						],
+					},
+					{
+						// Houshou K2+, Hiryuu K3
+						ids: [894, 899, 1031],
 						minStars: 7,
 						multiple: { "tyku": 1, "houk": 1 },
 					},
 					{
-						// Houshou K2+
-						ids: [894, 899],
+						// Houshou K2+, Hiryuu K3
+						ids: [894, 899, 1031],
 						minStars: 10,
 						multiple: { "houg": 1, "tyku": 1, "houm": 1 },
 					},

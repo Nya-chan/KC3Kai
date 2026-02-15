@@ -4030,11 +4030,11 @@
 	},
 	"5503": {
 		"api_id": 5503,
-		"api_name": "節分迅鯨改",
+		"api_name": "節分迅鯨",
 		"api_yomi": "じんげい",
 		"api_stype": 20,
 		"api_soku": 5,
-		"api_slot_num": 3
+		"api_slot_num": 2
 	},
 	"5504": {
 		"api_id": 5504,
@@ -9275,5 +9275,133 @@
 		"api_stype": 11,
 		"api_soku": 10,
 		"api_slot_num": 4
+	},
+	"6159": {
+		"api_id": 6159,
+		"api_name": "節分Littorio",
+		"api_yomi": "リットリオ・イタリア",
+		"api_stype": 8,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6160": {
+		"api_id": 6160,
+		"api_name": "節分Italia",
+		"api_yomi": "リットリオ・イタリア",
+		"api_stype": 8,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6161": {
+		"api_id": 6161,
+		"api_name": "節分Iowa",
+		"api_yomi": "アイオワ",
+		"api_stype": 8,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6162": {
+		"api_id": 6162,
+		"api_name": "節分Jean Bart",
+		"api_yomi": "ジャン・バール",
+		"api_stype": 8,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6163": {
+		"api_id": 6163,
+		"api_name": "節分Minneapolis",
+		"api_yomi": "ミネアポリス",
+		"api_stype": 5,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"6164": {
+		"api_id": 6164,
+		"api_name": "節分Minneapolis改",
+		"api_yomi": "ミネアポリス",
+		"api_stype": 5,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6165": {
+		"api_id": 6165,
+		"api_name": "節分神鷹改二",
+		"api_yomi": "しんよう",
+		"api_stype": 7,
+		"api_soku": 5,
+		"api_slot_num": 4
+	},
+	"6166": {
+		"api_id": 6166,
+		"api_name": "節分加古改二",
+		"api_yomi": "かこ",
+		"api_stype": 5,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6167": {
+		"api_id": 6167,
+		"api_name": "節分夕張改二",
+		"api_yomi": "ゆうばり",
+		"api_stype": 3,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6168": {
+		"api_id": 6168,
+		"api_name": "節分夕張改二特",
+		"api_yomi": "ゆうばり",
+		"api_stype": 3,
+		"api_soku": 5,
+		"api_slot_num": 4
+	},
+	"6169": {
+		"api_id": 6169,
+		"api_name": "節分夕張改二丁",
+		"api_yomi": "ゆうばり",
+		"api_stype": 3,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6170": {
+		"api_id": 6170,
+		"api_name": "節分如月改二",
+		"api_yomi": "きさらぎ",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"6171": {
+		"api_id": 6171,
+		"api_name": "節分朝霜改二",
+		"api_yomi": "あさしも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"6172": {
+		"api_id": 6172,
+		"api_name": "節分早霜改二",
+		"api_yomi": "はやしも",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"6173": {
+		"api_id": 6173,
+		"api_name": "節分迅鯨改",
+		"api_yomi": "じんげい",
+		"api_stype": 20,
+		"api_soku": 5,
+		"api_slot_num": 3
+	},
+	"6174": {
+		"api_id": 6174,
+		"api_name": "節分長鯨改",
+		"api_yomi": "ちょうげい",
+		"api_stype": 20,
+		"api_soku": 5,
+		"api_slot_num": 3
 	}
 }

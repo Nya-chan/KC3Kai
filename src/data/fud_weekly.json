@@ -12,6 +12,11 @@
 	"aswDepthChargeIds": [226, 227, 378, 439, 488],
 	"aswArmorPenetrationIds": [226, 227, 377, 378, 439, 472, 488],
 	"jetAircraftType2Ids": [56, 57, 58, 59, 91],
+	"jetSteelCostRatioPerSlotByType3Id": {
+		"39": 0.2, "40": 0.2,
+		"59": 0.24,
+		"60": 0.2
+	},
 	"nightAircraftType3Ids": [45, 46, 58],
 	"interceptorsType3Ids": [38, 44, 56, 57],
 	"interceptorsType2Ids": [48],

@@ -134,9 +134,7 @@ AntiAir: anti-air related calculations
 	// AA Radar
 	// Surface Radar are excluded by checking whether
 	// the equipment gives AA stat (api_tyku)
-	var isAARadar = predAllOf(isRadar, function(mst) {
-		return mst.api_tyku >= 2;
-	});
+	var isAARadar = isAARadarWithAtLeast(2);
 	// kind 47~51 need AA stat >= 4
 	function isAARadarWithAtLeast(aa) {
 		return predAllOf(isRadar, function(mst) {
@@ -193,9 +191,12 @@ AntiAir: anti-air related calculations
 	var isSeaplaneRecon = categoryEq(10);
 	var isLargeCaliberMainGun = categoryEq(3);
 
-	var isBuiltinHighAngleMount = predAllOf(isHighAngleMount, function(mst) {
-		return mst.api_tyku >= 8;
-	});
+	function isHighAngleMountWithAtLeast(aa) {
+		return predAllOf(isHighAngleMount, function(mst) {
+			return mst.api_tyku >= aa;
+		});
+	}
+	var isBuiltinHighAngleMount = isHighAngleMountWithAtLeast(8);
 	var isHighAngleMountNotBuiltinAAFD = predAllOf(isHighAngleMount, predNot(isBuiltinHighAngleMount));
 
 	// 10cm Twin High-angle Gun Mount Kai + Anti-Aircraft Fire Director Kai
@@ -213,6 +214,9 @@ AntiAir: anti-air related calculations
 	var is12cm30tubeRocketLauncherKai2 = masterIdEq(274);
 	// 10cm Twin High-angle Gun Mount Kai + Additional Machine
 	var is10cmTwinHighAngleMountKaiAMG = masterIdEq(275);
+	// 10cm Twin High-angle Gun Mount (Carriage)
+	// 8cm High-angle Gun Kai + Additional Machine Guns
+	var isCapableHighAngleMountAMG = masterIdIn([71, 220, 275]);
 
 	// 20-tube 7inch UP Rocket Launchers
 	var is20tube7inchUPRocketLaunchers = masterIdEq(301);
@@ -585,6 +589,7 @@ AntiAir: anti-air related calculations
 		harusameK2Icon = 975,
 		fujinamiK2Icon = 981,
 		shirayukiK2Icon = 986,
+		hiryuuK3Icon = 1031,
 		haMountIcon = 16,
 		radarIcon = 11,
 		aaFdIcon = 30,
@@ -643,6 +648,7 @@ AntiAir: anti-air related calculations
 	var isShirayukiKai2 = masterIdEq( shirayukiK2Icon );
 	var isHatsuyukiKai2 = masterIdEq( 987 );
 	var isFujinamiKai2AndTokugataKai2 = predAnyOf(isFujinamiKai2, isHayanamiKai2, isHamanamiKai2, isFubukiKai2, isShirayukiKai2, isHatsuyukiKai2);
+	var isHiryuuKai3 = masterIdEq( hiryuuK3Icon );
 
 	function isIseClassKai( mst ) {
 		return mst.api_ctype === 2
@@ -879,11 +885,12 @@ AntiAir: anti-air related calculations
 	);
 
 	// Maya K2
+	// Hiryuu K3 added since 2026-02-13
 	declareAACI(
 		10, 3, 6, 1.65, 60, 1900, // vita value
 		[mayaK2Icon, haMountIcon, cdmgIcon, radarIcon],
 		// Omitted slot num for kinds that ship and remodel specified, same below
-		predAllOf(isMayaK2),
+		predAnyOf(isMayaK2, isHiryuuKai3),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isHighAngleMount ),
@@ -894,7 +901,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		11, 2, 5, 1.5, 55, 1930, // vita value
 		[mayaK2Icon, haMountIcon, cdmgIcon],
-		predAllOf(isMayaK2),
+		predAnyOf(isMayaK2, isHiryuuKai3),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isHighAngleMount ),
@@ -1055,13 +1062,14 @@ AntiAir: anti-air related calculations
 
 	// Ooyodo Kai
 	// fixed 6->7 since 2025-5-12?
+	// Hiryuu K3 added since 2026-02-13
 	declareAACI(
 		27, 6, 1, 1.55, 55, 2230,
 		[ooyodoKaiIcon, haMountKaiAmg, aaGunK2RockeLaunIcon, radarIcon],
-		predAllOf(isOoyodoKai),
+		predAnyOf(isOoyodoKai, isHiryuuKai3),
 		withEquipmentMsts(
 			predAllOf(
-				hasSome( is10cmTwinHighAngleMountKaiAMG ),
+				hasSome( isCapableHighAngleMountAMG ),
 				hasSome( is12cm30tubeRocketLauncherKai2 ),
 				hasSome( isAARadar ))
 		)
@@ -1354,7 +1362,16 @@ AntiAir: anti-air related calculations
 	);
 
 	// Hiryuu K3
-	// 53, 5, 1
+	declareAACI(
+		53, 4, 1, 1.6, 50, 2265,
+		[hiryuuK3Icon, haMountCdIcon, radarIcon],
+		predAllOf(isHiryuuKai3),
+		withEquipmentMsts(
+			predAllOf(
+				hasSome( isHighAngleMountWithAtLeast(9) ),
+				hasSome( isAARadarWithAtLeast(4) ))
+		)
+	);
 
 	// return a list of possible AACI APIs based on ship and her equipment
 	// - returns a list of **strings**, not numbers

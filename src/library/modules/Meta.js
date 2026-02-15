@@ -970,6 +970,12 @@ Provides access to data on built-in JSON files
 			return (antiAirResistDef.modifiers || {})["level" + planeLevel] || [1, 1];
 		},
 		
+		jetSteelCostMods :function(planeMstId){
+			var jetSteelCostDef = this._dataColle.jetSteelCostRatioPerSlotByType3Id || {};
+			var type3Id = (KC3Master.slotitem(planeMstId) || {}).api_type[3] || 0;
+			return jetSteelCostDef[type3Id] || 0;
+		},
+		
 		akashiRemodelSuccessRate :function(akashiMstId, gearCurrentStars){
 			// Success rate data from KC Vita, supposed to be unchanged
 			// https://wikiwiki.jp/kancolle/%E6%94%B9%E4%BF%AE%E5%B7%A5%E5%BB%A0#notice
