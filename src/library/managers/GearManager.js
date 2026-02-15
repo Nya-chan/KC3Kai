@@ -50,12 +50,14 @@ Saves and loads list to and from localStorage
 		landBaseHeavyBomberType2Ids: [53],
 		landBaseHeavyBomberSortieFuelCostPerSlot: 2,
 		landBaseHeavyBomberSortieAmmoCostPerSlot: 2,
-		// Jet aircraft mechanism still in progress
 		jetAircraftType2Ids: [56,57,58,59,91],
+		// Jet aircraft mechanism still in progress
+		// steel_consumption for [57] = round(api_cost * current_slot * 0.2)
+		// [91] lb jet ho229 not 0.2, actual 60 =round(14*18*x), x=0.237~0.24?
+		// [56] jet fighter shinden neither, actual 53 =round(10*24*x), x=0.219~0.222?
+		// https://x.com/DjArpeggio/status/2022314062756073586
+		// so this fixed value deprecated, see Meta#jetSteelCostMods
 		jetBomberSteelCostRatioPerSlot: 0.2,
-		// steel_consumption = round(api_cost * current_slot * 0.2)
-		// ho229 not 0.2, actual 60 =round(14*18*x), x=0.237~0.24?
-		// then jet shinden?
 
 		getLandBaseSlotSize :function(type2Id) {
 			if(KC3GearManager.landBaseReconnType2Ids.includes(type2Id))
