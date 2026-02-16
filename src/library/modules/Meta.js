@@ -99,7 +99,7 @@ Provides access to data on built-in JSON files
 			135, 304, 543, // Naganami
 			136,           // Yamato Kai (Poke dupe)
 			145, 961,      // Shigure Kai Ni(San) (Event/Equip2 reuse)
-			196,           // Hiryuu Kai Ni
+			196, 1031,     // Hiryuu Kai Ni(San)
 			321,           // Ooyodo Kai (Friend50 cut)
 			412,           // Yamashiro Kai Ni (Poke dupe)
 			418,           // Satsuki Kai Ni
@@ -108,6 +108,7 @@ Provides access to data on built-in JSON files
 			498,           // Murasame Kai Ni
 			515,           // Ark Royal (Poke dupe)
 			522, 884,      // Yawatamaru (K2 Equip3 dupe), Unyou
+			528,           // Hayanami
 			549,           // Intrepid (Poke dupe)
 			568,           // Kuroshio Kai Ni (Poke dupe)
 			573,           // Mutsu Kai Ni (Poke dupe)

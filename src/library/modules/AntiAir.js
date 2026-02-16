@@ -1363,7 +1363,7 @@ AntiAir: anti-air related calculations
 
 	// Hiryuu K3
 	declareAACI(
-		53, 4, 1, 1.6, 50, 2265,
+		53, 4, 1, 1.6, 50, 2275,
 		[hiryuuK3Icon, haMountCdIcon, radarIcon],
 		predAllOf(isHiryuuKai3),
 		withEquipmentMsts(
