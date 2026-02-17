@@ -31,7 +31,45 @@
 	
 	window.KC3SortieLogs = function(tabCode) {
 		this.tabSelf        = KC3StrategyTabs[tabCode];
-		
+
+		this.worlds = [
+			{ id: 61, label: 'EventHistoryWorldTab61', tooltip: 'EventHistoryWorldTab61Tip' },
+			{ id: 60, label: 'EventHistoryWorldTab60', tooltip: 'EventHistoryWorldTab60Tip' },
+
+			{ id: 59, label: 'EventHistoryWorldTab59' },
+			{ id: 58, label: 'EventHistoryWorldTab58', tooltip: 'EventHistoryWorldTab58Tip' },
+			{ id: 57, label: 'EventHistoryWorldTab57' },
+			{ id: 56, label: 'EventHistoryWorldTab56', tooltip: 'EventHistoryWorldTab56Tip' },
+			{ id: 55, label: 'EventHistoryWorldTab55', tooltip: 'EventHistoryWorldTab55Tip' },
+			{ id: 54, label: 'EventHistoryWorldTab54' },
+			{ id: 53, label: 'EventHistoryWorldTab53' },
+			{ id: 52, label: 'EventHistoryWorldTab52', tooltip: 'EventHistoryWorldTab52Tip' },
+			{ id: 51, label: 'EventHistoryWorldTab51' },
+			{ id: 50, label: 'EventHistoryWorldTab50' },
+
+			{ id: 49, label: 'EventHistoryWorldTab49', tooltip: 'EventHistoryWorldTab49Tip' },
+			{ id: 48, label: 'EventHistoryWorldTab48', tooltip: 'EventHistoryWorldTab48Tip' },
+			{ id: 47, label: 'EventHistoryWorldTab47', tooltip: 'EventHistoryWorldTab47Tip' },
+			{ id: 46, label: 'EventHistoryWorldTab46' },
+			{ id: 45, label: 'EventHistoryWorldTab45' },
+			{ id: 44, label: 'EventHistoryWorldTab44' },
+			{ id: 43, label: 'EventHistoryWorldTab43' },
+			{ id: 42, label: 'EventHistoryWorldTab42', tooltip: 'EventHistoryWorldTab42Tip' },
+			{ id: 41, label: 'EventHistoryWorldTab41' },
+			{ id: 40, label: 'EventHistoryWorldTab40' },
+
+			{ id: 39, label: 'EventHistoryWorldTab39' },
+			{ id: 38, label: 'EventHistoryWorldTab38' },
+			{ id: 37, label: 'EventHistoryWorldTab37' },
+			{ id: 36, label: 'EventHistoryWorldTab36' },
+			{ id: 35, label: 'EventHistoryWorldTab35' },
+			{ id: 34, label: 'EventHistoryWorldTab34' },
+			{ id: 33, label: 'EventHistoryWorldTab33' },
+			{ id: 32, label: 'EventHistoryWorldTab32' },
+			{ id: 31, label: 'EventHistoryWorldTab31' },
+			{ id: 30, label: 'EventHistoryWorldTab30' },
+		];
+
 		this.maps           = {};
 		this.selectedWorld  = 0;
 		this.selectedMap    = 0;
@@ -66,7 +104,13 @@
 			const self = this;
 			this.scrollVars[tabCode] = this.scrollVars[tabCode] || {};
 			this.loadWorldsFromStorage();
-			
+			this.loadWorldSelect();
+
+			$(`.tab_${tabCode} .world-select`).on("change", (ev) => {
+				const world = ev.target.value;
+				KC3StrategyTabs.gotoTab(null, world);
+			});
+
 			// On-click world menus
 			$(".tab_"+tabCode+" .world_list .world_box").on("click", function(){
 				if(!$(".world_text",this).text().length) { return false; }
@@ -176,13 +220,38 @@
 				$(this).toggleClass("active", ConfigManager.sr_show_yasen_shipstate);
 				self.showMap();
 			}).toggleClass("active", ConfigManager.sr_show_yasen_shipstate);
-			
-			if(!!KC3StrategyTabs.pageParams[1]){
-				this.switchWorld(KC3StrategyTabs.pageParams[1], KC3StrategyTabs.pageParams[2]);
+
+			if (!!KC3StrategyTabs.pageParams[1]) {
+				const world = KC3StrategyTabs.pageParams[1];
+				const map = KC3StrategyTabs.pageParams[2];
+				this.switchWorld(world, map);
 			} else {
 				// Select default opened world
-				this.switchWorld($(".tab_"+tabCode+" .world_list .world_box.active").data("world_num"));
+				const world = $(`.tab_${tabCode} .world-select`).val()
+					|| $(".tab_" + tabCode + " .world_list .world_box.active").data("world_num");
+				this.switchWorld(world);
 			}
+		};
+
+		this.loadWorldSelect = () => {
+			const root = $('.world-select');
+			const baseOption = $('option', root);
+			baseOption.removeClass('l10n');
+			baseOption.addClass('i18n');
+			root.empty();
+
+			this.worlds.forEach((world) => {
+				const option = $(baseOption).clone();
+				option.val(world.id);
+				option.text(world.label);
+				if (world.tooltip) {
+					option.addClass('i18n_title');
+					option.attr('title', world.tooltip);
+				}
+				root.append(option);
+			});
+
+			KC3Translation.applyWords();
 		};
 
 		/**
@@ -267,10 +336,12 @@
 			self.selectedWorld = Number(worldNum);
 			$(".tab_"+tabCode+" .world_list .world_box").removeClass("active");
 			$(".tab_"+tabCode+" .world_list .world_box[data-world_num={0}]".format(self.selectedWorld)).addClass("active");
+			$(`.tab_${tabCode} .world-select`).val(worldNum);
 
 			$(".tab_"+tabCode+" .map_list").empty().css("width","").css("margin-left","");
 			$(".tab_"+tabCode+" .page_list").empty();
 			$(".tab_"+tabCode+" .sortie_list").empty();
+
 			var countWorlds = $(".tab_"+tabCode+" .world_list .world_box").length;
 			var maxDispWorlds = 6 + (tabCode === "maps" ? 2 : 0);
 			var worldOffset = self.scrollVars[tabCode].world_off;
