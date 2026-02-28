@@ -2334,7 +2334,7 @@ Previously known as "Reactor"
 				utcHour      = Date.toUTChours(headers.Date);
 			var lastSuccessRosterId = null, lastSuccessMasterId = null;
 			const devmatsBefore = PlayerManager.consumables.devmats;
-			const devmatsAfter = (materials && materials[6]) || devmatsBefore;
+			const devmatsAfter = (materials && materials[6]) || 0;
 			
 			if(Array.isArray(itemsCreated)) {
 				itemsCreated.forEach(item => {

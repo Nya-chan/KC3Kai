@@ -71,7 +71,11 @@
 				submarineBowTorpedoLateModelSkilled: 0,
 				submarineBowTorpedoLateModelSkilledIds: [461],
 				kamikazeTwinTorpedo: 0,
-				kamikazeTwinTorpedoIds: [174],
+				kamikazeTwinTorpedoIds: [174, 571],
+				kamikazeTwinTorpedoBase: 0,
+				kamikazeTwinTorpedoBaseIds: [174],
+				kamikazeTwinTorpedoKai: 0,
+				kamikazeTwinTorpedoKaiIds: [571],
 				tripleLargeGunMountK2: 0,
 				tripleLargeGunMountK2Nonexist: 1,
 				tripleLargeGunMountK2Ids: [290],
@@ -5020,16 +5024,27 @@
 					{
 						// Kongou Class K2B+
 						ids: [591, 592, 593, 954, 694],
-						synergy: {
-							flags: [ "kamikazeTwinTorpedo" ],
-							single: { "raig": 4 },
-							byStars: {
-								gearId: 174,
-								 "6": { "raig": 1 },
-								 "8": { "houm": 1 },
-								"10": { "houg": 1 },
-							}
-						},
+						synergy: [
+							{
+								flags: [ "kamikazeTwinTorpedoBase" ],
+								single: { "raig": 4 },
+								byStars: {
+									gearId: 174,
+									 "6": { "raig": 1 },
+									 "8": { "houm": 1 },
+									"10": { "houg": 1 },
+								}
+							},
+							{
+								flags: [ "kamikazeTwinTorpedoKai" ],
+								single: { "raig": 5 },
+								byStars: {
+									gearId: 571,
+									 "7": { "houm": 1 },
+									"10": { "houg": 1 },
+								}
+							},
+						],
 					},
 					{
 						// by stars for Haruna K2B+
@@ -5470,12 +5485,21 @@
 						ids: [591, 592, 593, 954, 694],
 						synergy: [
 							{
-								flags: [ "kamikazeTwinTorpedo" ],
+								flags: [ "kamikazeTwinTorpedoBase" ],
 								single: { "raig": 6 },
 								byStars: {
 									gearId: 174,
 									 "6": { "raig": 1 },
 									 "8": { "houm": 1 },
+									"10": { "houg": 1 },
+								},
+							},
+							{
+								flags: [ "kamikazeTwinTorpedoKai" ],
+								single: { "raig": 7 },
+								byStars: {
+									gearId: 571,
+									 "7": { "houm": 1 },
 									"10": { "houg": 1 },
 								},
 							},
@@ -7946,6 +7970,60 @@
 					},
 				],
 			},
+			// 53cm Twin Torpedo Mount Kai (Oxygen)
+			"571": {
+				count: 0,
+				starsDist: [],
+				byClass: {
+					// Kamikaze Class
+					"66": {
+						multiple: { "houg": 1, "raig": 7, "houk": 3, "houm": 2 },
+					},
+					// Kongou Class Kai Ni C
+					"6": {
+						remodel: 3,
+						multiple: { "houg": 1, "raig": 8, "houk": 4, "houm": 2 },
+					},
+					// Yuubari Kai Ni+
+					"34": {
+						remodel: 2,
+						multiple: { "houg": 3, "raig": 8, "houk": 6, "houm": 2 },
+					},
+				},
+				byShip: [
+					{
+						// Yura Kai Ni
+						ids: [488],
+						multiple: { "houg": 3, "raig": 8, "houk": 6, "houm": 2 },
+					},
+					{
+						// Haruna K2B
+						ids: [593],
+						multiple: { "houg": -1, "raig": -1, "houk": -1, "houm": -1 },
+					},
+					// For all ships can equip it
+					{
+						minStars: 6,
+						multiple: { "raig": 1 },
+					},
+					{
+						minStars: 7,
+						multiple: { "raig": 1 },
+					},
+					{
+						minStars: 8,
+						multiple: { "houm": 1 },
+					},
+					{
+						minStars: 9,
+						multiple: { "houk": 1 },
+					},
+					{
+						minStars: 10,
+						multiple: { "raig": 1 },
+					},
+				],
+			},
 			// 53cm Bow (Oxygen) Torpedo Mount
 			"67": {
 				count: 0,
@@ -8681,6 +8759,7 @@
 									"1": { "houg": 2, "raig": 4 },
 									"2": { "houg": 3, "raig": 7 },
 									"3": { "houg": 3, "raig": 7 },
+									"4": { "houg": 3, "raig": 7 },
 								},
 							},
 						],
