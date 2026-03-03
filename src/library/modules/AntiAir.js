@@ -649,6 +649,7 @@ AntiAir: anti-air related calculations
 	var isHatsuyukiKai2 = masterIdEq( 987 );
 	var isFujinamiKai2AndTokugataKai2 = predAnyOf(isFujinamiKai2, isHayanamiKai2, isHamanamiKai2, isFubukiKai2, isShirayukiKai2, isHatsuyukiKai2);
 	var isHiryuuKai3 = masterIdEq( hiryuuK3Icon );
+	var isNotHiryuuKai3 = predNot( isHiryuuKai3 );
 
 	function isIseClassKai( mst ) {
 		return mst.api_ctype === 2
@@ -875,7 +876,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		13, 1, 4, 1.35, 35, 2510, // vita value
 		[surfaceShipIcon, biHaMountIcon, cdmgIcon, radarIcon],
-		predAllOf(isNotSubmarine, isNotMayaK2, slotNumAtLeast(2)),
+		predAllOf(isNotSubmarine, isNotMayaK2, isNotHiryuuKai3, slotNumAtLeast(2)),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isBuiltinHighAngleMount ),

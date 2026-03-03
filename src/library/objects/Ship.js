@@ -4130,11 +4130,11 @@ KC3改 Ship Object
 			const jetFighterCnt = this.countNonZeroSlotEquipmentType(2, 56);
 			const jetFighterbomberCnt = this.countNonZeroSlotEquipmentType(2, 57);
 			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 2)
-				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJBJB", 1.3));
+				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJBJB", 1.35));
+			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 1)
+				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJB", 1.3));
 			if(jetFighterCnt >= 1 && diveBomberCnt >= 1 && torpedoBomberCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFDBTB", 1.25));
-			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 1)
-				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJB", 1.2));
 			if(diveBomberCnt >= 1 && torpedoBomberCnt >= 1 && fighterCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinFDBTB", 1.25));
 			if(diveBomberCnt >= 2 && torpedoBomberCnt >= 1)

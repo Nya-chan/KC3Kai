@@ -126,6 +126,7 @@ Provides access to data on built-in JSON files
 			983,           // Hamanami Kai Ni
 			986,           // Shirayuki Kai Ni
 			1001,          // Kirov
+			1005,          // Minneapolis
 		],
 		specialAbyssalIdVoicePrefixes: {
 			// Why do devs make wrong voice filename matching even for last event?
