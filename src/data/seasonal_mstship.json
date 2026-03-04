@@ -9403,5 +9403,389 @@
 		"api_stype": 20,
 		"api_soku": 5,
 		"api_slot_num": 3
+	},
+	"6175": {
+		"api_id": 6175,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6176": {
+		"api_id": 6176,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6177": {
+		"api_id": 6177,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6178": {
+		"api_id": 6178,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6179": {
+		"api_id": 6179,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6180": {
+		"api_id": 6180,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6181": {
+		"api_id": 6181,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6182": {
+		"api_id": 6182,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6183": {
+		"api_id": 6183,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6184": {
+		"api_id": 6184,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6185": {
+		"api_id": 6185,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6186": {
+		"api_id": 6186,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6187": {
+		"api_id": 6187,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6188": {
+		"api_id": 6188,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6189": {
+		"api_id": 6189,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6190": {
+		"api_id": 6190,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6191": {
+		"api_id": 6191,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6192": {
+		"api_id": 6192,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6193": {
+		"api_id": 6193,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6194": {
+		"api_id": 6194,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6195": {
+		"api_id": 6195,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6196": {
+		"api_id": 6196,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6197": {
+		"api_id": 6197,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6198": {
+		"api_id": 6198,
+		"api_name": "バレンタイン潮改二",
+		"api_yomi": "うしお",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"6199": {
+		"api_id": 6199,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6200": {
+		"api_id": 6200,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6201": {
+		"api_id": 6201,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6202": {
+		"api_id": 6202,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6203": {
+		"api_id": 6203,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6204": {
+		"api_id": 6204,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6205": {
+		"api_id": 6205,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6206": {
+		"api_id": 6206,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6207": {
+		"api_id": 6207,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6208": {
+		"api_id": 6208,
+		"api_name": "バレンタインGotland改",
+		"api_yomi": "ゴトランド",
+		"api_stype": 3,
+		"api_soku": 10,
+		"api_slot_num": 3
+	},
+	"6209": {
+		"api_id": 6209,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6210": {
+		"api_id": 6210,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6211": {
+		"api_id": 6211,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6212": {
+		"api_id": 6212,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6213": {
+		"api_id": 6213,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6214": {
+		"api_id": 6214,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6215": {
+		"api_id": 6215,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6216": {
+		"api_id": 6216,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6217": {
+		"api_id": 6217,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6218": {
+		"api_id": 6218,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6219": {
+		"api_id": 6219,
+		"api_name": "買い物榛名改二",
+		"api_yomi": "はるな",
+		"api_stype": 8,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6220": {
+		"api_id": 6220,
+		"api_name": "買い物榛名改二乙",
+		"api_yomi": "はるな",
+		"api_stype": 8,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6221": {
+		"api_id": 6221,
+		"api_name": "買い物榛名改二丙",
+		"api_yomi": "はるな",
+		"api_stype": 8,
+		"api_soku": 10,
+		"api_slot_num": 4
+	},
+	"6222": {
+		"api_id": 6222,
+		"api_name": "冬の私服Salmon改",
+		"api_yomi": "サーモン",
+		"api_stype": 13,
+		"api_soku": 5,
+		"api_slot_num": 2
 	}
 }
