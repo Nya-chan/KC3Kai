@@ -4126,7 +4126,8 @@ KC3改 Ship Object
 			const fighterCnt = this.countNonZeroSlotEquipmentType(2, [6, 56]);
 			const diveBomberCnt = this.countNonZeroSlotEquipmentType(2, 7);
 			const torpedoBomberCnt = this.countNonZeroSlotEquipmentType(2, 8);
-			// Jet fighter implemented since 2023-02-13, 3 new types added, mods unknown
+			// Jet fighter implemented since 2023-02-13, 3 new types added
+			// https://x.com/CC_jabberwock/status/2030343554779033680
 			const jetFighterCnt = this.countNonZeroSlotEquipmentType(2, 56);
 			const jetFighterbomberCnt = this.countNonZeroSlotEquipmentType(2, 57);
 			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 2)
@@ -4134,7 +4135,7 @@ KC3改 Ship Object
 			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJB", 1.3));
 			if(jetFighterCnt >= 1 && diveBomberCnt >= 1 && torpedoBomberCnt >= 1)
-				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFDBTB", 1.25));
+				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFDBTB", 1.27));
 			if(diveBomberCnt >= 1 && torpedoBomberCnt >= 1 && fighterCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinFDBTB", 1.25));
 			if(diveBomberCnt >= 2 && torpedoBomberCnt >= 1)
