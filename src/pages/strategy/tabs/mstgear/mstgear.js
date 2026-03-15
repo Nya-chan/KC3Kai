@@ -121,8 +121,10 @@
 				} else {
 					$(".tab_mstgear .gearInfo .ga_5, .tab_mstgear .gearInfo .ga_6").hide();
 				}
+				$(".tab_mstgear .gearInfo .equippable").show();
 				$(".tab_mstgear .gearInfo .gearAssets").show();
 			} else {
+				$(".tab_mstgear .gearInfo .equippable").hide();
 				// Map a abyssal gear to player gear for itemup image,
 				// see `SlotLoader.prototype.add` or `ResourceManager.prototype.getSlotitem`
 				const replacedId = KC3Meta.abyssalItemupReplace[gearId];
@@ -334,7 +336,8 @@
 			}
 			
 			// Index of ships with stock equipment including current gear
-			const stockShips = WhoCallsTheFleetDb.findShipsWithStockEquipment(gearId);
+			const stockShips = KC3Master.isAbyssalGear(gearId) ? [] :
+				WhoCallsTheFleetDb.findShipsWithStockEquipment(gearId);
 			if(stockShips.length) {
 				$(".tab_mstgear .gearInfo .stockequipment .ships").empty();
 				stockShips.sort(orderByRemodel).forEach(shipId => {
