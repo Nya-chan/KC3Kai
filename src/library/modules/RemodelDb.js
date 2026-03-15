@@ -119,6 +119,8 @@
                     return 77;
                 case 688: // Hayanami Kai
                     return 78;
+                case 718: // Tamanami Kai
+                    return 81;
                 case 202: // Shirayuki
                 case 208: // Shikinami
                 case 225: // Kagerou
