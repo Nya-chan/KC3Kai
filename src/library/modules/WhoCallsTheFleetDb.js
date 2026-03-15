@@ -67,6 +67,18 @@
 				}, 0) : false;
 		},
 
+		findShipsWithStockEquipment: function(gearId) {
+			const shipList = [];
+			$.each(this.db, (eid, entry) => {
+				if (eid.startsWith("s")) {
+					const stockArr = entry.equip || [];
+					if (stockArr.includes(Number(gearId)))
+						shipList.push(Number(eid.substr(1)));
+				}
+			});
+			return shipList;
+		},
+
 		getLoSInfo: function(shipId) {
 			return this.getStatBound(shipId, 'los');
 		},
