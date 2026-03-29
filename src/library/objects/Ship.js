@@ -2627,11 +2627,12 @@ KC3改 Ship Object
 					// uncertain: jets counted? not counted since #estimateDayAttackType neither~~
 					// Jet Fighter implemented since 2026-02-13, should be counted
 					switch(cutinType) {
-						case "CutinFDBTB": return [6, 56, 7, 8];
+						case "CutinFDBTB": return [6, 7, 8];
 						case "CutinDBDBTB":
 						case "CutinDBTB": return [7, 8];
 						case "CutinJFJBJB":
 						case "CutinJFJB": return [56, 57];
+						case "CutinJFDBTB": return [56, 7, 8];
 						default: return [];
 					}
 				})(daySpecialAttackType[2]);
@@ -3108,8 +3109,8 @@ KC3改 Ship Object
 	 */
 	KC3Ship.prototype.canDoASW = function(time = "Day") {
 		if(this.isDummy() || this.isAbsent()) { return false; }
-		// Since 2026-01-28, some Kai remodel of AR and AS possible to asw,
-		// only when equppied with Type 2 12cm Mortar Kai variants
+		// Since 2026-01-28, some Kai remodel of AR and AS possible to asw with depth charge,
+		// only when equppied with Type 2 12cm Mortar Kai variants (for now)
 		// https://x.com/KanColle_STAFF/status/2016477841656078794
 		// supposed to share conditions (including night asw) with LHA 2nd Class Transporter
 		if(this.isSpecificShipWithAswGear()) return true;
@@ -3117,7 +3118,7 @@ KC3改 Ship Object
 		const isHayasuiKaiWithTorpedoBomber = this.isHayasuiKaiWithTorpedoBomber();
 		const isKagaK2Go = this.masterId === 646;
 		const isFusouClassKaiNi = [411, 412].includes(this.masterId);
-		// CAV, CVL, BBV, AV, LHA(*), CVL-like Hayasui Kai, Kaga Kai Ni Go, Yamashiomaru, Shimanemaru, Hiryuu K3
+		// CAV, CVL, BBV, AV, LHA(*), CV(*): CVL-like Hayasui Kai, Kaga Kai Ni Go; Yamashiomaru, Shimanemaru, Hiryuu K3
 		const isAirAntiSubStype = this.isAirAntiSubStype()
 			|| isHayasuiKaiWithTorpedoBomber || isKagaK2Go
 			|| this.isYamashiomaruWithAircraft() || this.isHiryuuKai3WithAswPatrol();
@@ -3136,17 +3137,18 @@ KC3改 Ship Object
 			if(time === "Night") {
 				return isCvlLike && !this.isTaiha() && this.as[1] > 0;
 			}
-			// For day time, false if CVL or CVL-like chuuha
+			// For day time, false if CVL or CVL-like chuuha by day shelling condition,
+			// no necessary to limit it here, since non-CVL like
 			// Yamashiomaru can air attack even taiha, but power calc seems fall back to depth charge?
 			// https://twitter.com/yukicacoon/status/1505719117260550147
 			// If 0 asw stat dive bomber equipped, even no depth charge used
 			// https://twitter.com/CC_jabberwock/status/1650452631398256640
-			if(isCvlLike && this.isStriped()) return false;
+			//if(isCvlLike && this.isStriped()) return false;
 			// and if ASW plane equipped and its slot > 0
-			// or if Fusou-class K2/2nd Class Transporter equipped Depth Charge
-			// Hiryuu K3 implemented since 2026-02-13,
+			// or if Fusou-class K2/2nd Class Transporter equipped Depth Charge.
+			// CV Hiryuu K3 implemented since 2026-02-13,
 			// can do ASW airattack when any (jet)bomber/attacker and patrol/autogyro equipped together,
-			// uncertain: should not CVL-like to include patrol/autogyro; no night asw attack?
+			// should not set to CVL-like in order to include patrol/autogyro; and no night asw attack
 			return this.hasNonZeroSlotEquipmentFunc(g => g.isAswAircraft(isCvlLike))
 				|| (isFusouClassKaiNi && this.hasEquipmentType(2, 15));
 		}
@@ -4124,18 +4126,22 @@ KC3改 Ship Object
 			const fighterCnt = this.countNonZeroSlotEquipmentType(2, [6, 56]);
 			const diveBomberCnt = this.countNonZeroSlotEquipmentType(2, 7);
 			const torpedoBomberCnt = this.countNonZeroSlotEquipmentType(2, 8);
+			// Jet fighter implemented since 2023-02-13, 3 new types added
+			// https://x.com/CC_jabberwock/status/2030343554779033680
 			const jetFighterCnt = this.countNonZeroSlotEquipmentType(2, 56);
 			const jetFighterbomberCnt = this.countNonZeroSlotEquipmentType(2, 57);
 			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 2)
-				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJBJB", 1.0));
+				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJBJB", 1.35));
+			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 1)
+				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJB", 1.3));
+			if(jetFighterCnt >= 1 && diveBomberCnt >= 1 && torpedoBomberCnt >= 1)
+				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFDBTB", 1.27));
 			if(diveBomberCnt >= 1 && torpedoBomberCnt >= 1 && fighterCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinFDBTB", 1.25));
 			if(diveBomberCnt >= 2 && torpedoBomberCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinDBDBTB", 1.2));
 			if(diveBomberCnt >= 1 && torpedoBomberCnt >= 1)
 				results.push(KC3Ship.specialAttackTypeDay(7, "CutinDBTB", 1.15));
-			if(jetFighterCnt >= 1 && jetFighterbomberCnt >= 1)
-				results.push(KC3Ship.specialAttackTypeDay(7, "CutinJFJB", 1.0));
 		}
 		
 		// is target a land installation
@@ -4635,7 +4641,7 @@ KC3改 Ship Object
 		const equipLoS = this.equipmentTotalStats("saku", true, false);
 		const battleConds = this.collectBattleConditions();
 		// assume to best condition AS+ by default (for non-battle)
-		const airBattleId = battleConds.airBattleId == undefined ? 1 : battleConds.airBattleId;
+		const airBattleId = Object.nullishTo(battleConds.airBattleId, 1);
 		const baseValue = airBattleId === 1 ? adjLuck + 0.7 * (adjFleetLoS + 1.6 * equipLoS) + 10 :
 			airBattleId === 2 ? adjLuck + 0.6 * (adjFleetLoS + 1.2 * equipLoS) : 0;
 		return {
@@ -4819,6 +4825,9 @@ KC3改 Ship Object
 			5: 140, // MainApshell (main+sec+apshell)
 			6: 150, // MainMain (main+main+apshell)
 			7: ({
+				"CutinJFJBJB": 125, // placeholder
+				"CutinJFJB"  : 125,
+				"CutinJFDBTB": 115,
 				"CutinFDBTB" : 125,
 				"CutinDBDBTB": 140,
 				"CutinDBTB"  : 155,

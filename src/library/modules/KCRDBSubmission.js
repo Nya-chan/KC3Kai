@@ -24,7 +24,7 @@
     "637": "勲章x2消費：「鳳翔」秘書艦に練度max及び改修max「九六式艦戦」を搭載、熟練搭乗員を養成せよ！<br>(任務達成後、部隊は消滅します)",
     "1123": "旗艦「利根改二」または「由良改二」第一スロに最大改修「零式水上偵察機」。「九七式艦攻(九三一空)」<br>x2廃棄、ボーキ950、新型航空兵装資材x2、開発資材x35、熟練搭乗員x2を準備！",
   };
-  const akashiRecipesToIgnore = [101, 201, 301];
+  const akashiRecipesToIgnore = [101, 201, 301, 306];
 
   const apis = {
     "api_get_member/questlist": [processQuestList],

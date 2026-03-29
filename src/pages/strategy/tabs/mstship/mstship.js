@@ -1540,8 +1540,8 @@
 								// Compute adjusted anti-air power based on known slots
 								const adjShip = AntiAir.abyssalShipAdjustedAntiAir(abyssMaster.api_id);
 								const adjFleet = AntiAir.abyssalShipFleetAdjustedAntiAir(abyssMaster.api_id);
-								$(".ship_stat_min", statBox).text(adjShip === undefined ? "?" : adjShip);
-								$(".ship_stat_max span", statBox).text(adjFleet === undefined ? "?" : adjFleet);
+								$(".ship_stat_min", statBox).text(Object.nullishTo(adjShip, "?"));
+								$(".ship_stat_max span", statBox).text(Object.nullishTo(adjFleet, "?"));
 							} else if(stat[1] === "aaci"){
 								$(".ship_stat_min", statBox).text(abyssMaster.kc3_aaci || "-");
 								$(".ship_stat_max", statBox).hide();
@@ -1555,7 +1555,7 @@
 								$(".ship_stat_min", statBox).text(canOtorp);
 								$(".ship_stat_max", statBox).hide();
 							} else if(stat[1] === "oasw"){
-								$(".ship_stat_min", statBox).text(abyssMaster.kc3_oasw === undefined ? "?" : abyssMaster.kc3_oasw);
+								$(".ship_stat_min", statBox).text(Object.nullishTo(abyssMaster.kc3_oasw, "?"));
 								$(".ship_stat_max", statBox).hide();
 							} else if(stat[1] === "cvnb"){
 								const cvnbType = !abyssMaster.kc3_cvnb ? "-" : {

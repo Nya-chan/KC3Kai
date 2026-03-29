@@ -71,7 +71,11 @@
 				submarineBowTorpedoLateModelSkilled: 0,
 				submarineBowTorpedoLateModelSkilledIds: [461],
 				kamikazeTwinTorpedo: 0,
-				kamikazeTwinTorpedoIds: [174],
+				kamikazeTwinTorpedoIds: [174, 571],
+				kamikazeTwinTorpedoBase: 0,
+				kamikazeTwinTorpedoBaseIds: [174],
+				kamikazeTwinTorpedoKai: 0,
+				kamikazeTwinTorpedoKaiIds: [571],
 				tripleLargeGunMountK2: 0,
 				tripleLargeGunMountK2Nonexist: 1,
 				tripleLargeGunMountK2Ids: [290],
@@ -4161,8 +4165,9 @@
 							multiple: { "houk": 1 },
 						},
 						{
+							// ev+1 from 536/537 gun
 							minStars: 7,
-							multiple: { "houm": 1 },
+							multiple: { "houm": 1, "houk": 1 },
 						},
 						{
 							minStars: 8,
@@ -4170,7 +4175,8 @@
 						},
 						{
 							minStars: 9,
-							multiple: { "houk": 1 },
+							// acc+1 from 536/537 gun
+							multiple: { "houk": 1, "houm": 1 },
 						},
 						{
 							minStars: 10,
@@ -5020,16 +5026,27 @@
 					{
 						// Kongou Class K2B+
 						ids: [591, 592, 593, 954, 694],
-						synergy: {
-							flags: [ "kamikazeTwinTorpedo" ],
-							single: { "raig": 4 },
-							byStars: {
-								gearId: 174,
-								 "6": { "raig": 1 },
-								 "8": { "houm": 1 },
-								"10": { "houg": 1 },
-							}
-						},
+						synergy: [
+							{
+								flags: [ "kamikazeTwinTorpedoBase" ],
+								single: { "raig": 4 },
+								byStars: {
+									gearId: 174,
+									 "6": { "raig": 1 },
+									 "8": { "houm": 1 },
+									"10": { "houg": 1 },
+								}
+							},
+							{
+								flags: [ "kamikazeTwinTorpedoKai" ],
+								single: { "raig": 5 },
+								byStars: {
+									gearId: 571,
+									 "7": { "houm": 1 },
+									"10": { "houg": 1 },
+								}
+							},
+						],
 					},
 					{
 						// by stars for Haruna K2B+
@@ -5470,12 +5487,21 @@
 						ids: [591, 592, 593, 954, 694],
 						synergy: [
 							{
-								flags: [ "kamikazeTwinTorpedo" ],
+								flags: [ "kamikazeTwinTorpedoBase" ],
 								single: { "raig": 6 },
 								byStars: {
 									gearId: 174,
 									 "6": { "raig": 1 },
 									 "8": { "houm": 1 },
+									"10": { "houg": 1 },
+								},
+							},
+							{
+								flags: [ "kamikazeTwinTorpedoKai" ],
+								single: { "raig": 7 },
+								byStars: {
+									gearId: 571,
+									 "7": { "houm": 1 },
 									"10": { "houg": 1 },
 								},
 							},
@@ -6136,6 +6162,14 @@
 							minStars: 5,
 							multiple: { "houg": 1 },
 						},
+						{
+							minStars: 9,
+							multiple: { "houm": 1 },
+						},
+						{
+							minStars: 10,
+							multiple: { "houg": 1 },
+						},
 					],
 				},
 			},
@@ -6599,20 +6633,12 @@
 							multiple: { "houg": 1 },
 						},
 						{
-							minStars: 5,
-							multiple: { "houk": 1 },
-						},
-						{
 							minStars: 6,
 							multiple: { "houm": 1 },
 						},
 						{
 							minStars: 7,
 							multiple: { "houg": 1 },
-						},
-						{
-							minStars: 8,
-							multiple: { "houk": 1 },
 						},
 						{
 							minStars: 9,
@@ -6717,6 +6743,11 @@
 							countFlag: 0,
 							multiple: { "houk": 1, "houm": 1 },
 						},
+					},
+					// For all ships can equip it
+					{
+						minStars: 10,
+						multiple: { "houm": 1 },
 					},
 				],
 			},
@@ -7946,6 +7977,60 @@
 					},
 				],
 			},
+			// 53cm Twin Torpedo Mount Kai (Oxygen)
+			"571": {
+				count: 0,
+				starsDist: [],
+				byClass: {
+					// Kamikaze Class
+					"66": {
+						multiple: { "houg": 1, "raig": 7, "houk": 3, "houm": 2 },
+					},
+					// Kongou Class Kai Ni C
+					"6": {
+						remodel: 3,
+						multiple: { "houg": 1, "raig": 8, "houk": 4, "houm": 2 },
+					},
+					// Yuubari Kai Ni+
+					"34": {
+						remodel: 2,
+						multiple: { "houg": 3, "raig": 8, "houk": 6, "houm": 2 },
+					},
+				},
+				byShip: [
+					{
+						// Yura Kai Ni
+						ids: [488],
+						multiple: { "houg": 3, "raig": 8, "houk": 6, "houm": 2 },
+					},
+					{
+						// Haruna K2B
+						ids: [593],
+						multiple: { "houg": -1, "raig": -1, "houk": -1, "houm": -1 },
+					},
+					// For all ships can equip it
+					{
+						minStars: 6,
+						multiple: { "raig": 1 },
+					},
+					{
+						minStars: 7,
+						multiple: { "raig": 1 },
+					},
+					{
+						minStars: 8,
+						multiple: { "houm": 1 },
+					},
+					{
+						minStars: 9,
+						multiple: { "houk": 1 },
+					},
+					{
+						minStars: 10,
+						multiple: { "raig": 1 },
+					},
+				],
+			},
 			// 53cm Bow (Oxygen) Torpedo Mount
 			"67": {
 				count: 0,
@@ -8681,6 +8766,7 @@
 									"1": { "houg": 2, "raig": 4 },
 									"2": { "houg": 3, "raig": 7 },
 									"3": { "houg": 3, "raig": 7 },
+									"4": { "houg": 3, "raig": 7 },
 								},
 							},
 						],
@@ -8740,8 +8826,8 @@
 						multiple: { "houg": 1, "houm": 1, "houk": 1 },
 					},
 					{
-						// Fujinami Kai Ni, Hamanami Kai Ni, Hayanami Kai Ni
-						ids: [981, 983, 982],
+						// Fujinami Kai Ni, Hamanami Kai Ni, Hayanami Kai Ni, Tamanami Kai Ni
+						ids: [981, 983, 982, 1033],
 						multiple: { "houg": 1, "tyku": 1, "houk": 1 },
 					},
 				],
@@ -8801,27 +8887,27 @@
 						],
 					},
 					{
-						// Fujinami Kai Ni, Hamanami Kai Ni, Hayanami Kai Ni
-						ids: [981, 983, 982],
+						// Fujinami Kai Ni, Hamanami Kai Ni, Hayanami Kai Ni, Tamanami Kai Ni
+						ids: [981, 983, 982, 1033],
 						multiple: { "houg": 1, "tyku": 1, "houk": 1 },
 					},
 					{
-						ids: [981, 983, 982],
+						ids: [981, 983, 982, 1033],
 						minStars: 7,
 						multiple: { "tyku": 1 },
 					},
 					{
-						ids: [981, 983, 982],
+						ids: [981, 983, 982, 1033],
 						minStars: 8,
 						multiple: { "houk": 1 },
 					},
 					{
-						ids: [981, 983, 982],
+						ids: [981, 983, 982, 1033],
 						minStars: 9,
 						multiple: { "houm": 1 },
 					},
 					{
-						ids: [981, 983, 982],
+						ids: [981, 983, 982, 1033],
 						minStars: 10,
 						multiple: { "houg": 1 },
 					},
@@ -8912,27 +8998,27 @@
 						multiple: { "houg": 1 },
 					},
 					{
-						// Fujinami Kai Ni
-						ids: [981],
+						// Fujinami Kai Ni, Hamanami Kai Ni, Hayanami Kai Ni, Tamanami Kai Ni
+						ids: [981, 983, 982, 1033],
 						multiple: { "houg": 1, "tyku": 1, "houk": 1 },
 					},
 					{
-						ids: [981],
+						ids: [981, 983, 982, 1033],
 						minStars: 4,
 						multiple: { "tyku": 1 },
 					},
 					{
-						ids: [981],
+						ids: [981, 983, 982, 1033],
 						minStars: 6,
 						multiple: { "houk": 1 },
 					},
 					{
-						ids: [981],
+						ids: [981, 983, 982, 1033],
 						minStars: 8,
 						multiple: { "houm": 1 },
 					},
 					{
-						ids: [981],
+						ids: [981, 983, 982, 1033],
 						minStars: 10,
 						multiple: { "houg": 1 },
 					},
@@ -9002,32 +9088,32 @@
 						multiple: { "houg": 1, "houk": 1, "houm": 1 },
 					},
 					{
-						// Fujinami Kai Ni
-						ids: [981],
+						// Fujinami Kai Ni, Hamanami Kai Ni, Hayanami Kai Ni, Tamanami Kai Ni
+						ids: [981, 983, 982, 1033],
 						multiple: { "houg": 1, "tyku": 1, "houk": 1 },
 					},
 					{
-						ids: [981],
+						ids: [981, 983, 982, 1033],
 						minStars: 2,
 						multiple: { "tyku": 1 },
 					},
 					{
-						ids: [981],
+						ids: [981, 983, 982, 1033],
 						minStars: 4,
 						multiple: { "houg": 1 },
 					},
 					{
-						ids: [981],
+						ids: [981, 983, 982, 1033],
 						minStars: 6,
 						multiple: { "houm": 1 },
 					},
 					{
-						ids: [981],
+						ids: [981, 983, 982, 1033],
 						minStars: 8,
 						multiple: { "tyku": 1 },
 					},
 					{
-						ids: [981],
+						ids: [981, 983, 982, 1033],
 						minStars: 10,
 						multiple: { "houk": 1 },
 					},
@@ -9382,6 +9468,7 @@
 			// 12.7cm Twin High-angle Gun Mount Kai Ni
 			"380": {
 				count: 0,
+				starsDist: [],
 				byClass: {
 					// Tenyuu Class
 					"21": {
@@ -9394,7 +9481,7 @@
 					// Matsu Class
 					"101": [
 						{
-							single: { "houg": 2, "tyku": 2 },
+							single: { "houg": 2, "tyku": 2, "houk": 2 },
 							synergy: {
 								flags: [ "surfaceRadar" ],
 								single: { "houg": 4, "houk": 3 },
@@ -9402,7 +9489,7 @@
 						},
 						// Make another object in order to compatible with mstship's `.single || .multiple` handling
 						{
-							multiple: { "houg": 1, "tyku": 2 },
+							multiple: { "houg": 1, "tyku": 2, "houk": 1 },
 						},
 					],
 				},
@@ -9440,8 +9527,8 @@
 						multiple: { "tyku": 2 },
 					},
 					{
-						// Yura Kai, Isuzu K2, Naka K2, Kinu K2 extra +3 aa
-						ids: [220,   141,      160,     487],
+						// Yura Kai, Isuzu K2, Naka K2, Kinu K2, Fujinami K2, Tamanami K2 extra +3 aa
+						ids: [220,   141,      160,     487,     981,         1033],
 						multiple: { "tyku": 3 },
 					},
 					{
@@ -9463,8 +9550,8 @@
 						multiple: { "tais": 1 },
 					},
 					{
-						// Tenryuu K2, Tatsuta K2, Yuubari K2D extra +2 asw
-						ids: [477,     478,        624],
+						// Tenryuu K2, Tatsuta K2, Yuubari K2D, Tamanami K2 extra +2 asw
+						ids: [477,     478,        624,        1033],
 						multiple: { "tais": 2 },
 					},
 					{
@@ -9473,7 +9560,7 @@
 						multiple: { "tyku": 2 },
 					},
 					{
-						// Kuma K2,K2D
+						// Kuma K2/K2D
 						ids: [652, 657],
 						multiple: { "houg": 3 },
 					},
@@ -9483,7 +9570,7 @@
 						single: { "houg": 2 },
 					},
 					{
-						// Kiso K2, Tama K2, Kuma K2,K2D
+						// Kiso K2, Tama K2, Kuma K2/K2D
 						ids: [146,  547,     652, 657],
 						single: { "tyku": 2 },
 						synergy: {
@@ -9505,6 +9592,26 @@
 						// Ushio/Akebono K2
 						ids: [407, 665],
 						single: { "houg": 1, "tyku": 1, "houk": 2 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 2, "houk": 1 },
+							},
+							{
+								flags: [ "aaMachineGun" ],
+								single: { "houg": 1, "tyku": 2, "houk": 1 },
+							},
+						],
+					},
+					{
+						// Fujinami/Tamanami K2, Ooi/Kitakami K2
+						ids: [981, 1033,         119, 118],
+						multiple: { "houg": 2, "houk": 1 },
+					},
+					{
+						// Fujinami/Tamanami K2, Ooi/Kitakami K2
+						ids: [981, 1033,         119, 118],
+						single: { "houk": 1 },
 						synergy: [
 							{
 								flags: [ "surfaceRadar" ],
@@ -11879,8 +11986,8 @@
 						single: { "houg": 1, "houk": 2, "houm": 1, "saku": 1 },
 					},
 					{
-						// Fujinami K2, Hamanami K2, Hayanami K2
-						ids: [981, 983, 982],
+						// Fujinami K2, Hamanami K2, Hayanami K2, Tamanami K2
+						ids: [981, 983, 982, 1033],
 						single: { "houg": 1, "houk": 1, "houm": 1 },
 					},
 					{
@@ -12314,8 +12421,8 @@
 						single: { "houg": 1, "tyku": 1, "houk": 1 },
 					},
 					{
-						// Fujinami K2, Hamanami K2, Hyanami K2
-						ids: [981, 983, 982],
+						// Fujinami K2, Hamanami K2, Hyanami K2, Tamanami K2
+						ids: [981, 983, 982, 1033],
 						single: { "tyku": 1, "houk": 1 },
 						synergy: {
 							flags: [ "airRadar" ],
@@ -12378,8 +12485,8 @@
 						},
 					},
 					{
-						// Fujinami Kai Ni, Hamanami Kai Ni, Hayanami Kai Ni
-						ids: [981, 983, 982],
+						// Fujinami Kai Ni, Hamanami Kai Ni, Hayanami Kai Ni, Tamanami Kai Ni
+						ids: [981, 983, 982, 1033],
 						multiple: { "tyku": 1, "houk": 1 },
 						synergy: {
 							flags: [ "airRadar" ],
@@ -13044,8 +13151,8 @@
 				},
 				byShip: [
 					{
-						// Hayanami Kai Ni
-						ids: [982],
+						// Hayanami Kai Ni, Tamanami Kai Ni
+						ids: [982, 1033],
 						multiple: { "tais": 1, "houk": 1, "houm": 1 },
 					},
 					{
@@ -14104,8 +14211,8 @@
 						},
 					},
 					{
-						// Kiyoshimo K2/K2D, Hayashimo K2, Fujinami K2, Hamanami K2, Hayanami K2
-						ids: [955, 960, 956, 981, 983, 982],
+						// Kiyoshimo K2/K2D, Hayashimo K2, Fujinami K2, Hamanami K2, Hayanami K2, Tamanami K2
+						ids: [955, 960, 956, 981, 983, 982, 1033],
 						synergy: [
 							{
 								flags: [ "airRadar" ],
