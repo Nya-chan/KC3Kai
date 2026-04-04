@@ -32,7 +32,7 @@
 	window.KC3SortieLogs = function(tabCode) {
 		this.tabSelf        = KC3StrategyTabs[tabCode];
 
-		this.worlds = [
+		this.worldTermsMap = [
 			{ id: 61, label: 'EventHistoryWorldTab61', tooltip: 'EventHistoryWorldTab61Tip' },
 			{ id: 60, label: 'EventHistoryWorldTab60', tooltip: 'EventHistoryWorldTab60Tip' },
 
@@ -103,14 +103,15 @@
 		this.execute = function(){
 			const self = this;
 			this.scrollVars[tabCode] = this.scrollVars[tabCode] || {};
-			this.loadWorldsFromStorage();
 			this.loadWorldSelect();
-
+			this.loadWorldsFromStorage();
+			
+			// On-change world dropdown menus
 			$(`.tab_${tabCode} .world-select`).on("change", (ev) => {
 				const world = ev.target.value;
 				KC3StrategyTabs.gotoTab(null, world);
 			});
-
+			
 			// On-click world menus
 			$(".tab_"+tabCode+" .world_list .world_box").on("click", function(){
 				if(!$(".world_text",this).text().length) { return false; }
@@ -226,21 +227,23 @@
 				const map = KC3StrategyTabs.pageParams[2];
 				this.switchWorld(world, map);
 			} else {
-				// Select default opened world
-				const world = $(`.tab_${tabCode} .world-select`).val()
-					|| $(".tab_" + tabCode + " .world_list .world_box.active").data("world_num");
+				// Select default opened world (topmost for dropdown menu, otherwise `active` class for sidescroll menu)
+				const dropdownselect = $(`.tab_${tabCode} .world-select`);
+				const world = dropdownselect.length ? dropdownselect.val() :
+					$(".tab_" + tabCode + " .world_list .world_box.active").data("world_num");
 				this.switchWorld(world);
 			}
 		};
 
+		/**
+		 * Load known world info for dropdown select menu.
+		 */
 		this.loadWorldSelect = () => {
-			const root = $('.world-select');
-			const baseOption = $('option', root);
-			baseOption.removeClass('l10n');
-			baseOption.addClass('i18n');
+			const root = $(`.tab_${tabCode} .world-select`);
+			const baseOption = $('option', root).addClass('i18n');
 			root.empty();
 
-			this.worlds.forEach((world) => {
+			this.worldTermsMap.forEach((world) => {
 				const option = $(baseOption).clone();
 				option.val(world.id);
 				option.text(world.label);
@@ -260,6 +263,9 @@
 		this.loadWorldsFromStorage = function(){
 			var missingWorldCount = 0;
 			var lastWorldId = 0;
+			const sidescrollWorldselect = $(`.tab_${tabCode} .world_list`);
+			const dropdownWorldselect = $(`.tab_${tabCode} .world-select`);
+			const knownWorldIds = dropdownWorldselect.length ? this.worldTermsMap.map(o => o.id) : [];
 			Object.keys(this.maps).sort((id1, id2) => {
 					const m1 = id1.slice(-1), m2 = id2.slice(-1);
 					let w1 = id1.slice(1, -1), w2 = id2.slice(1, -1);
@@ -272,7 +278,7 @@
 				)).forEach(id => {
 					lastWorldId = id;
 					const worldBox = $(".tab_{0} .world_list .world_box[data-world_num={1}]".format(tabCode, id));
-					if(!worldBox.length) {
+					if(sidescrollWorldselect.length && !worldBox.length) {
 						missingWorldCount += 1;
 						const newWorldBox = $(".tab_{0} .factory .world_box".format(tabCode)).clone();
 						newWorldBox.attr("data-world_num", id);
@@ -280,13 +286,23 @@
 						$(".world_text", newWorldBox).text("World-" + id);
 						$(".tab_{0} .world_list .clear".format(tabCode)).before(newWorldBox);
 					}
+					if(dropdownWorldselect.length) {
+						if(!knownWorldIds.includes(id)) {
+							missingWorldCount += 1;
+							const newOption = $("<option />").attr("value", id)
+								.text((tabCode === "event" ? "Event " : "") + "World " + id);
+							dropdownWorldselect.prepend(newOption);
+						}
+					}
 				});
 			// Auto active latest event world if active is old
 			if(tabCode === "event") {
-				const oldActive = $(".tab_{0} .world_list .world_box.active".format(tabCode)).data("world_num");
-				if(!oldActive || lastWorldId > Number(oldActive)) {
-					$(".tab_{0} .world_list .world_box".format(tabCode)).removeClass("active");
-					$(".tab_{0} .world_list .world_box[data-world_num={1}]".format(tabCode, lastWorldId)).addClass("active");
+				if(sidescrollWorldselect.length) {
+					const oldActive = $(".tab_{0} .world_list .world_box.active".format(tabCode)).data("world_num");
+					if(!oldActive || lastWorldId > Number(oldActive)) {
+						$(".tab_{0} .world_list .world_box".format(tabCode)).removeClass("active");
+						$(".tab_{0} .world_list .world_box[data-world_num={1}]".format(tabCode, lastWorldId)).addClass("active");
+					}
 				}
 			}
 			return missingWorldCount;
