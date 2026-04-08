@@ -9790,83 +9790,83 @@
 	},
 	"6223": {
 		"api_id": 6223,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
-		"api_stype": 2,
+		"api_name": "桃節句Minneapolis",
+		"api_yomi": "ミネアポリス",
+		"api_stype": 5,
 		"api_soku": 10,
-		"api_slot_num": 2
+		"api_slot_num": 3
 	},
 	"6224": {
 		"api_id": 6224,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
-		"api_stype": 2,
+		"api_name": "桃節句Minneapolis改",
+		"api_yomi": "ミネアポリス",
+		"api_stype": 5,
 		"api_soku": 10,
-		"api_slot_num": 2
+		"api_slot_num": 4
 	},
 	"6225": {
 		"api_id": 6225,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
+		"api_name": "桃節句Samuel B.Roberts",
+		"api_yomi": "サミュエル・B・ロバーツ",
 		"api_stype": 2,
 		"api_soku": 10,
 		"api_slot_num": 2
 	},
 	"6226": {
 		"api_id": 6226,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
+		"api_name": "桃節句Samuel B.Roberts改",
+		"api_yomi": "サミュエル・B・ロバーツ",
 		"api_stype": 2,
 		"api_soku": 10,
-		"api_slot_num": 2
+		"api_slot_num": 3
 	},
 	"6227": {
 		"api_id": 6227,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
+		"api_name": "桃節句Samuel B.Roberts Mk.II",
+		"api_yomi": "サミュエル・B・ロバーツ",
 		"api_stype": 2,
 		"api_soku": 10,
-		"api_slot_num": 2
+		"api_slot_num": 3
 	},
 	"6228": {
 		"api_id": 6228,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
+		"api_name": "桃節句山風改二",
+		"api_yomi": "やまかぜ",
 		"api_stype": 2,
 		"api_soku": 10,
-		"api_slot_num": 2
+		"api_slot_num": 3
 	},
 	"6229": {
 		"api_id": 6229,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
+		"api_name": "桃節句山風改二丁",
+		"api_yomi": "やまかぜ",
 		"api_stype": 2,
 		"api_soku": 10,
-		"api_slot_num": 2
+		"api_slot_num": 3
 	},
 	"6230": {
 		"api_id": 6230,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
-		"api_stype": 2,
+		"api_name": "桃節句Gotland改",
+		"api_yomi": "ゴトランド",
+		"api_stype": 3,
 		"api_soku": 10,
-		"api_slot_num": 2
+		"api_slot_num": 3
 	},
 	"6231": {
 		"api_id": 6231,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
-		"api_stype": 2,
+		"api_name": "桃節句Gotland andra",
+		"api_yomi": "ゴトランド",
+		"api_stype": 3,
 		"api_soku": 10,
-		"api_slot_num": 2
+		"api_slot_num": 4
 	},
 	"6232": {
 		"api_id": 6232,
-		"api_name": "【保留】",
-		"api_yomi": "n/a",
+		"api_name": "桃節句夕雲改二",
+		"api_yomi": "ゆうぐも",
 		"api_stype": 2,
 		"api_soku": 10,
-		"api_slot_num": 2
+		"api_slot_num": 3
 	},
 	"6233": {
 		"api_id": 6233,
@@ -9918,6 +9918,30 @@
 	},
 	"6239": {
 		"api_id": 6239,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6240": {
+		"api_id": 6240,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6241": {
+		"api_id": 6241,
+		"api_name": "【保留】",
+		"api_yomi": "n/a",
+		"api_stype": 2,
+		"api_soku": 10,
+		"api_slot_num": 2
+	},
+	"6242": {
+		"api_id": 6242,
 		"api_name": "【保留】",
 		"api_yomi": "n/a",
 		"api_stype": 2,
