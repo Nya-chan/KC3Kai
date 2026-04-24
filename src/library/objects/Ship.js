@@ -2987,6 +2987,7 @@ KC3改 Ship Object
 				681, 920, // Samuel B.Roberts Kai and Mk.II
 				562, 689, 596, 692, 628, 629, 726, 737, // all remodels of Fletcher-class (except Heywood/Leary base)
 				624, // Yuubari Kai Ni D
+				1040, // Fubuki Kai San Go
 			].includes(this.masterId);
 	};
 
@@ -3523,8 +3524,8 @@ KC3改 Ship Object
 
 	/**
 	 * Most conditions are the same with Nelson Touch, except:
-	 * Flagship is healthy Kongou-class Kai Ni C, Line Ahead (battle) / Echelon (forward) formation selected, night battle only. (Echelon added since 2021-08-20)
-	 * 2nd ship is healthy one of the following:
+	 * Flagship is (healthy) Kongou-class Kai Ni C, Line Ahead (battle) / Echelon (forward) formation selected, night battle only. (Echelon added since 2021-08-20)
+	 * 2nd ship is (healthy) one of the following:
 	 *   * Kongou K2C flagship: Hiei K2C / Haruna K2+ (extended) / Kirishima K2C (extended) / Warspite / Valiant
 	 *   * Hiei K2C flagship: Kongou K2C / Kirishima K2+ (extended) / Haruna K2B/C (extended)
 	 *   * Haruna K2B/C flagship: Kongou K2C / Hiei K2C (added since 2023-05-01) / Kirishima K2C (extended)
@@ -3535,7 +3536,7 @@ KC3改 Ship Object
 	 * ~~And it's impossible to be triggered after any other daytime Big-7 special cutin,
 	 * because all ship-combined spcutins only trigger 1-time per sortie?~~
 	 * It's possible to be triggered after other daytime special cutins since 2021-08-04 update,
-	 * and it's allowed to be triggered twice per sortie, unlike other ones only once.
+	 * and it's allowed to be triggered twice (3 times since 2026-04-23) per sortie, unlike other ones only once.
 	 * Triggering counters & conditions of this one are separated from other cutins.
 	 *
 	 * The additional 30% ammo consumption, see:
@@ -3543,7 +3544,9 @@ KC3改 Ship Object
 	 *   * https://twitter.com/myteaGuard/status/1254048759559778305
 	 * Ammo consumption reduced to 20% since 2021-08-04:
 	 *   * https://twitter.com/yukicacoon/status/1422899332219502596
-	 * Power modifier increased since 2022-06-08
+	 * Consumptions reduced (to ?) again since 2026-04-23
+	 * Power modifier increased since 2022-06-08, and again since 2026-04-23
+	 * Possible to trigger on chuuha since 2026-04-23
 	 *
 	 * @return true if this ship (Kongou-class K2C) can do special cut-in attack.
 	 * @see https://kancolle.fandom.com/wiki/Kongou/Special_Cut-In
@@ -3551,8 +3554,8 @@ KC3改 Ship Object
 	 */
 	KC3Ship.prototype.canDoKongouCutin = function() {
 		if(this.isDummy() || this.isAbsent()) { return false; }
-		// is this ship Kongou-class K2C(K2B) and not even Chuuha
-		if(KC3Meta.kongouCutinShips.includes(this.masterId) && !this.isStriped() && this.ammo > 0) {
+		// is this ship Kongou-class K2C(K2B) and not ~~even Chuuha~~ Taiha
+		if(KC3Meta.kongouCutinShips.includes(this.masterId) && !this.isTaiha() && this.ammo > 0) {
 			const [shipPos, shipCnt, fleetNum] = this.fleetPosition();
 			if(fleetNum > 0 && shipPos === 0 && shipCnt >= 5
 				&& (!PlayerManager.combinedFleet || fleetNum !== 1)) {
@@ -3560,7 +3563,7 @@ KC3改 Ship Object
 					this.collectBattleConditions().formationId || ConfigManager.aaFormation
 				);
 				const fleetObj = PlayerManager.fleets[fleetNum - 1],
-					// 2nd ship is valid partner and not even Chuuha
+					// 2nd ship is valid partner and not ~~even Chuuha~~ Taiha
 					validCombinedShips = ({
 						// Kongou K2C: Hiei K2C, Haruna K2+, Kirishima K2C, Warspite, Valiant
 						"591": [592, 151, 593, 954, 694, 439, 364, 927, 733],
@@ -3573,7 +3576,7 @@ KC3改 Ship Object
 						// Kirishima K2C: Kongou K2C, Hiei K2C, Haruna K2B/C, South Dakota Kai
 						"694": [591, 592, 593, 954, 697],
 					}[this.masterId] || []).includes(fleetObj.ship(1).masterId)
-						&& !fleetObj.ship(1).isStriped(),
+						&& !fleetObj.ship(1).isTaiha(),
 					// no surface ship(s) sunk or retreated in mid-sortie?
 					hasFiveSurfaceShips = fleetObj.shipsUnescaped().filter(s => !s.isSubmarine()).length >= 5;
 				return isFormationAllowed && validCombinedShips && hasFiveSurfaceShips;

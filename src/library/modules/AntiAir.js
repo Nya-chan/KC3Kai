@@ -646,9 +646,11 @@ AntiAir: anti-air related calculations
 	var isHamanamiKai2 = masterIdEq( 983 );
 	var isTamanamiKai2 = masterIdEq( 1033 );
 	var isFubukiKai2 = masterIdEq( 426 );
+	var isFubukiKai3 = masterIdEq( 1035 );
+	var isFubukiKai3Go = masterIdEq( 1040 );
 	var isShirayukiKai2 = masterIdEq( shirayukiK2Icon );
 	var isHatsuyukiKai2 = masterIdEq( 987 );
-	var isFujinamiKai2AndTokugataKai2 = predAnyOf(isFujinamiKai2, isHayanamiKai2, isHamanamiKai2, isTamanamiKai2, isFubukiKai2, isShirayukiKai2, isHatsuyukiKai2);
+	var isFujinamiKai2AndTokugataKai2 = predAnyOf(isFujinamiKai2, isHayanamiKai2, isHamanamiKai2, isTamanamiKai2, isFubukiKai2, isFubukiKai3, isFubukiKai3Go, isShirayukiKai2, isHatsuyukiKai2);
 	var isHiryuuKai3 = masterIdEq( hiryuuK3Icon );
 	var isNotHiryuuKai3 = predNot( isHiryuuKai3 );
 
@@ -937,10 +939,11 @@ AntiAir: anti-air related calculations
 	);
 
 	// Kasumi K2B, Yuubari K2
+	// Fubuki K3 added since 2026-04-23
 	declareAACI(
 		16, 4, 1, 1.4, 62, 2280,
 		[kasumiK2BIcon, haMountIcon, aaGunIcon, radarIcon],
-		predAnyOf(isKasumiK2B, isYuubariK2),
+		predAnyOf(isKasumiK2B, isYuubariK2, isFubukiKai3),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isHighAngleMount ),
@@ -992,10 +995,11 @@ AntiAir: anti-air related calculations
 	);
 
 	// Yura K2
+	// Fubuki K3+ added since 2026-04-23
 	declareAACI(
 		21, 5, 1, 1.45, 60, 2260,
 		[yuraK2Icon, haMountIcon, radarIcon],
-		predAllOf(isYuraK2),
+		predAnyOf(isYuraK2, isFubukiKai3, isFubukiKai3Go),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isHighAngleMount ),
@@ -1153,10 +1157,11 @@ AntiAir: anti-air related calculations
 	);
 
 	// Fletcher-class all forms
+	// Fubuki K3Go added since 2026-04-23
 	declareAACI(
 		34, 7, 1, 1.6, 60, 2110, // rate -> 55?
 		[fletcherIcon, haMountKaiRadar, haMountKaiRadar],
-		predAllOf(isFletcherClass),
+		predAnyOf(isFletcherClass, isFubukiKai3Go),
 		withEquipmentMsts(
 			predAllOf(
 				hasAtLeast( is5inchSingleMountKaiWithGfcs, 2 ))
@@ -1165,7 +1170,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		35, 6, 1, 1.55, 55, 2210,
 		[fletcherIcon, haMountKaiRadar, haMountIcon],
-		predAllOf(isFletcherClass),
+		predAnyOf(isFletcherClass, isFubukiKai3Go),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( is5inchSingleMountOrKai ),
@@ -1175,8 +1180,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		36, 6, 1, 1.55, 55, 2220, // rate 50?
 		[fletcherIcon, haMountIcon, haMountIcon, radarIcon],
-		// there are enough slots for Kai only
-		predAllOf(isFletcherClass, slotNumAtLeast(3)),
+		predAnyOf(isFletcherClass, isFubukiKai3Go),
 		withEquipmentMsts(
 			predAllOf(
 				hasAtLeast( is5inchSingleMountOrKai, 2 ),
@@ -1314,6 +1318,7 @@ AntiAir: anti-air related calculations
 	// Fubuki/Shirayuki K2 added since 2025-1-28
 	// Hatsuyuki/Hamanami K2, Akizuki-class? added since 2025-5-12
 	// fixed 6->7?
+	// Fubuki K3+ added since 2026-04-23
 	declareAACI(
 		49, 6, 1, 1.5, 60, 2245,
 		[fujinamiK2Icon, biHaMountIcon, biHaMountIcon, radarIcon],
@@ -1324,7 +1329,7 @@ AntiAir: anti-air related calculations
 				hasSome( isAARadarWithAtLeast(4) ))
 		)
 	);
-	// Fubuki K2, Shirayuki K2, Fujinami K2, Akizuki-class Kai+
+	// Fubuki K2+, Shirayuki K2, Fujinami K2, Akizuki-class Kai+
 	// Hatsuyuki/Hamanami K2, Akizuki-class added since 2025-5-12
 	declareAACI(
 		50, 7, 1, 1.5, 60, 2244,

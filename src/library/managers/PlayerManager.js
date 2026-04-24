@@ -566,6 +566,7 @@ Does not include Ships and Gears which are managed by other Managers
 				"101": "nightSkilledCrew",
 				"102": "airUnitRation",
 				"103": "arsenalKey", // virtual payitem
+				"104": "arsenalMaterial",
 				"895": "rankPoints440", // virtual reward
 				"896": "rankPoints50",
 				"897": "rankPoints11",

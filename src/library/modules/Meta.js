@@ -115,9 +115,11 @@ Provides access to data on built-in JSON files
 			578,           // Asashimo Kai Ni
 			580,           // Maestrale Kai (Base Poke1 dupe)
 			591,           // Kongou K2C (Attack dupe)
+			651,           // Tang Yang
 			662,           // Noshiro Kai Ni (Poke dupe)
 			694,           // Kirishima K2C
 			942, 737,      // Richard P.Leary
+			935, 724,      // Jean Bart (Equip2 dupe?)
 			945,           // No.101 Transport Ship
 			951,           // Amatsukaze Kai Ni
 			955, 960,      // Kiyoshimo K2(D)
@@ -125,8 +127,10 @@ Provides access to data on built-in JSON files
 			975,           // Harusame Kai Ni
 			983,           // Hamanami Kai Ni
 			986,           // Shirayuki Kai Ni
+			997,           // Sugi Kai
 			1001,          // Kirov
 			1005,          // Minneapolis
+			1035, 1040,    // Fubuki K3(Go)
 		],
 		specialAbyssalIdVoicePrefixes: {
 			// Why do devs make wrong voice filename matching even for last event?
@@ -208,6 +212,8 @@ Provides access to data on built-in JSON files
 			988, // Hayanami Kai -> K2
 			196, // Hiryuu K2 -> K3
 			718, // Tamanami Kai -> K2
+			426, // Fubuki K2 -> K3
+			1035, // Fubuki K3 -> K3G(T6)
 		],
 		// all ships for special cut-in attacks
 		specialCutinIds: [541, 571, 572, 573, 576, 577, 591, 592, 593, 954, 694, 601, 1496, 913, 918, 184, 634, 635, 639, 640, 944, 949, 911, 916, 546, 392, 969, 724, 364, 733],

@@ -380,6 +380,7 @@ Previously known as "Reactor"
 					case 101:PlayerManager.consumables.nightSkilledCrew = thisItem.api_count; break;
 					case 102:PlayerManager.consumables.airUnitRation = thisItem.api_count; break;
 					case 103:PlayerManager.consumables.arsenalKey = thisItem.api_count; break;
+					case 104:PlayerManager.consumables.arsenalMaterial = thisItem.api_count; break;
 					// 901 virtual item, for 800 rank points as quest rewards
 					//     moved to 898 since 2025-08-27, then
 					//     for max gear slots extending card assets as quest rewards
@@ -3184,11 +3185,17 @@ Previously known as "Reactor"
 			// TODO update useitems if no /useitem call followed
 			PlayerManager.setConsumables();
 			KC3QuestManager.get(619).increment();
+			KC3QuestManager.get(1166).increment();
+			KC3QuestManager.get(1167).increment();
 			
 			KC3Network.trigger("GearRemodel", recipes);
 			KC3Network.trigger("Consumables");
 			KC3Network.trigger("GearSlots");
 			KC3Network.trigger("Quests");
+		},
+		/* Equipment Arsenal Improvement Removal
+		-------------------------------------------------------*/
+		"api_req_kousyou/remodel_slot_recover":function(params, response, headers){
 		},
 		
 		/* List current available musics in Jukebox
@@ -3366,6 +3373,11 @@ Previously known as "Reactor"
 					[975,2,[3,2], true, true], // By12: 3rd requirement: [W3-2] S-rank the boss node
 					[975,3,[5,3], true, true], // By12: 4th requirement: [W5-3] S-rank the boss node
 					[1012,0,[1,1], true, true], // By14: 1st requirement: [W1-1] S-rank the boss node 3 times
+					[1045,0,[7,5], true, true], // By16: 1st requirement: [W7-5-T] S-rank 3rd boss node
+					[1045,1,[5,1], true, true], // By16: 2nd requirement: [W5-1] S-rank the boss node
+					[1045,2,[5,3], true, true], // By16: 3rd requirement: [W5-3] S-rank the boss node
+					[1045,3,[5,4], true, true], // By16: 4th requirement: [W5-4] S-rank the boss node
+					[1045,4,[5,5], true, true], // By16: 5th requirement: [W5-5] S-rank the boss node
 				],
 				[ /* SS RANK */ ]
 			].slice(0, rankPt+1)

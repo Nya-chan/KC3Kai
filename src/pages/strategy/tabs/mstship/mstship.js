@@ -754,6 +754,7 @@
 								"airmat": KC3Meta.useitemIcon(77),
 								"armmat": KC3Meta.useitemIcon(94),
 								"techmat": KC3Meta.useitemIcon(100),
+								"arsenalmat": KC3Meta.useitemIcon(104),
 								"boiler": KC3Meta.useitemIcon(902),
 								"bucket": "/assets/img/client/bucket.png",
 								"devmat": "/assets/img/client/devmat.png",
