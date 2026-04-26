@@ -582,6 +582,7 @@ Does not include Ships and Gears which are managed by other Managers
 				"910": "gearSlots10",
 				"911": "gearSlots11",
 				"912": "gearSlots12",
+				"913": "gearSlots13",
 				"918": "gearSlots18",
 				"948": "gearSlots48",
 			};

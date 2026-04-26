@@ -600,19 +600,19 @@ Uses KC3Quest objects to play around with
 			this.resetLoop(this.getRepeatableIds('daily'));
 			
 			// Progress counter reset to 0 even if completed but reward not clicked in a day:
-			// Monthly PvP C8
+			// Monthly PvP Cm1
 			this.resetCounterLoop([311], true);
 			
 			// Progress counter reset to 0 only if progress not completed in a day:
-			// Quarterly PvP C29, C38, C42, C44
+			// Quarterly PvP Cq1, Cq2, Cq3, Cq4
 			this.resetCounterLoop([330, 337, 339, 342], false);
-			// Yearly PvP C49, C50, C53, C58, C60, C62, C65, C66, C72, Cy11, Cy12, Cy13, Cy14, Cy15, Cy16
-			this.resetCounterLoop([345, 346, 348, 353, 354, 355, 356, 357, 362, 368, 371, 372, 373, 375, 377], false);
+			// Yearly PvP Cy1, Cy2, Cy3, Cy4, Cy5, Cy6, Cy7, Cy8, Cy9, Cy10, Cy11, Cy12, Cy13, Cy14, Cy15, Cy16
+			this.resetCounterLoop([345, 346, 348, 350, 353, 354, 355, 356, 357, 362, 368, 371, 372, 373, 375, 377], false);
 			// Weekly Arsenal Fw5
 			this.resetCounterLoop([1167], false);
 			
 			// Progress counter not changed at all on daily reset:
-			// Monthly PvP C16
+			// Monthly PvP Cm2
 			//this.resetCounterLoop([318], false);
 			
 			this.save();

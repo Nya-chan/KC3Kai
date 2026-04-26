@@ -638,6 +638,7 @@ AntiAir: anti-air related calculations
 	var isHarunaK2B = masterIdEq( harunaK2BIcon );
 	// Shiratsuyu-class K2+ with max AA stat >= 70
 	var isShiratsuyuClassK2 = masterIdIn([145, 497, 498, 961, 975]);
+	var isShigureKai3 = masterIdEq( 961 );
 	var isInagiK2 = masterIdEq( 979 );
 	// Akizuki-class Kai+, KC3Master.find_ships(s => (s.api_ctype === 54 && s.kc3_model > 1)).map(o => o.api_id)
 	var isAkizukiClassKai = masterIdIn([330, 346, 357, 537, 538, 963, 968]);
@@ -754,35 +755,37 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		1, 3, 5, 1.7, 65, 2100, // vita value: [3.0, 5.0, 1.75]
 		[akizukiIcon, haMountIcon, haMountIcon, radarIcon],
-		predAllOf(isAkizukiClass, slotNumAtLeast(2)),
+		predAllOf(isAkizukiClass),
 		withEquipmentMsts(
 			predAllOf(
 				hasAtLeast( isHighAngleMount, 2 ),
 				hasSome( isRadar ))
 		)
 	);
+	// Fubuki K3Go added, equipment conditions changed since 2026-04-23
 	declareAACI(
 		2, 3, 4, 1.7, 58, 2200, // vita value
 		[akizukiIcon, haMountIcon, radarIcon],
-		predAllOf(isAkizukiClass, slotNumAtLeast(1)),
+		predAnyOf(isAkizukiClass, isFubukiKai3Go),
 		withEquipmentMsts(
 			predAllOf(
-				hasSome( isHighAngleMount ),
-				hasSome( isRadar ))
+				hasSome( isBuiltinHighAngleMount ),
+				hasSome( isAARadar ))
 		)
 	);
 	declareAACI(
 		3, 2, 3, 1.6, 50, 2300, // vita value
 		[akizukiIcon, haMountIcon, haMountIcon],
-		predAllOf(isAkizukiClass, slotNumAtLeast(2)),
+		predAllOf(isAkizukiClass),
 		withEquipmentMsts(
 			hasAtLeast( isHighAngleMount, 2 )
 		)
 	);
+	// Fubuki K3Go added since 2026-04-23
 	declareAACI(
 		48, 8, 1, 1.75, 65, 2000,
 		[hatsuzukiK2Icon, biHaMountIcon, biHaMountIcon, radarIcon],
-		predAllOf(isAkizukiClassKai, slotNumAtLeast(3)),
+		predAnyOf(isAkizukiClassKai, isFubukiKai3Go),
 		withEquipmentMsts(
 			predAllOf(
 				hasAtLeast( is10cmTwinHighAngleMountKaiAAFDKai, 2 ),
@@ -927,10 +930,11 @@ AntiAir: anti-air related calculations
 				hasSome( isAARadar ))
 		)
 	);
+	// Fubuki/Shigure K3 added since 2026-04-23
 	declareAACI(
 		15, 3, 1, 1.3, 55, 2590,
 		[isuzuK2Icon, haMountIcon, aaGunIcon],
-		predAllOf(isIsuzuK2),
+		predAnyOf(isIsuzuK2, isFubukiKai3, isShigureKai3),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isHighAngleMount ),
@@ -939,11 +943,11 @@ AntiAir: anti-air related calculations
 	);
 
 	// Kasumi K2B, Yuubari K2
-	// Fubuki K3 added since 2026-04-23
+	// Fubuki/Shigure K3 added since 2026-04-23
 	declareAACI(
 		16, 4, 1, 1.4, 62, 2280,
 		[kasumiK2BIcon, haMountIcon, aaGunIcon, radarIcon],
-		predAnyOf(isKasumiK2B, isYuubariK2, isFubukiKai3),
+		predAnyOf(isKasumiK2B, isYuubariK2, isFubukiKai3, isShigureKai3),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isHighAngleMount ),
@@ -1028,10 +1032,11 @@ AntiAir: anti-air related calculations
 	);
 
 	// Tenryuu K2, Tatsuta K2
+	// Fubuki/Shigure K3 added since 2026-04-23
 	declareAACI(
 		24, 3, 1, 1.25, 55, 2620, // rate 62?
 		[tatsutaK2Icon, haMountIcon, aaGunNotCdIcon],
-		predAnyOf(isTenryuuK2, isTatsutaK2),
+		predAnyOf(isTenryuuK2, isTatsutaK2, isFubukiKai3, isShigureKai3),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( isHighAngleMount ),
@@ -1043,7 +1048,7 @@ AntiAir: anti-air related calculations
 	declareAACI(
 		25, 7, 1, 1.55, 60, 1950,
 		[iseIcon, aaGunK2RockeLaunIcon, radarIcon, type3ShellIcon],
-		predAllOf(isIseClassKai, slotNumAtLeast(2)),
+		predAllOf(isIseClassKai),
 		withEquipmentMsts(
 			predAllOf(
 				hasSome( is12cm30tubeRocketLauncherKai2 ),
@@ -1157,7 +1162,7 @@ AntiAir: anti-air related calculations
 	);
 
 	// Fletcher-class all forms
-	// Fubuki K3Go added since 2026-04-23
+	// Fubuki K3Go added for 34~36 since 2026-04-23
 	declareAACI(
 		34, 7, 1, 1.6, 60, 2110, // rate -> 55?
 		[fletcherIcon, haMountKaiRadar, haMountKaiRadar],

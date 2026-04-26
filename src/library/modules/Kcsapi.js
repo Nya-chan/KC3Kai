@@ -3182,6 +3182,10 @@ Previously known as "Reactor"
 			PlayerManager.setResources(hour * 3600, result.api_after_material.slice(0, 4));
 			PlayerManager.consumables.devmats = result.api_after_material[6];
 			PlayerManager.consumables.screws = result.api_after_material[7];
+			if(recipe.api_req_useitem_id == 104)
+				PlayerManager.consumables.arsenalMaterial -= recipe.api_req_useitem_num || 0;
+			if(recipe.api_req_useitem_id2 == 104)
+				PlayerManager.consumables.arsenalMaterial -= recipe.api_req_useitem_num2 || 0;
 			// TODO update useitems if no /useitem call followed
 			PlayerManager.setConsumables();
 			KC3QuestManager.get(619).increment();
@@ -3196,6 +3200,17 @@ Previously known as "Reactor"
 		/* Equipment Arsenal Improvement Removal
 		-------------------------------------------------------*/
 		"api_req_kousyou/remodel_slot_recover":function(params, response, headers){
+			const result = response.api_data;
+			const success = !!result && result.api_recover_flag == 1;
+			const usedDevmats = parseInt(params.api_dev_num);
+			if(success && result.api_after_slot){
+				KC3GearManager.set([ result.api_after_slot ]);
+				PlayerManager.consumables.devmats -= usedDevmats || 1;
+			}
+			PlayerManager.consumables.arsenalMaterial -= 1;
+			PlayerManager.setConsumables();
+			KC3Network.trigger("Consumables");
+			console.log("Improvement removal", (success ? "succeeded" : "failed"), params.api_menu_id, params.api_slot_id, usedDevmats);
 		},
 		
 		/* List current available musics in Jukebox
@@ -3373,7 +3388,7 @@ Previously known as "Reactor"
 					[975,2,[3,2], true, true], // By12: 3rd requirement: [W3-2] S-rank the boss node
 					[975,3,[5,3], true, true], // By12: 4th requirement: [W5-3] S-rank the boss node
 					[1012,0,[1,1], true, true], // By14: 1st requirement: [W1-1] S-rank the boss node 3 times
-					[1045,0,[7,5], true, true], // By16: 1st requirement: [W7-5-T] S-rank 3rd boss node
+					[1045,0,[7,5], true, true, [24,25]], // By16: 1st requirement: [W7-5-T] S-rank 3rd boss node
 					[1045,1,[5,1], true, true], // By16: 2nd requirement: [W5-1] S-rank the boss node
 					[1045,2,[5,3], true, true], // By16: 3rd requirement: [W5-3] S-rank the boss node
 					[1045,3,[5,4], true, true], // By16: 4th requirement: [W5-4] S-rank the boss node

@@ -1621,7 +1621,7 @@
 				if(slotitem) amount = slotitem.amount;
 				$(`.consumable_display .count_${attrName}`).text(amount).parent().attr("title", KC3Meta.useItemName(useitemId));
 			};
-			[4, 10, 11, 12, 50, 51, 52, 54, 56, 59, 57, 58, 60, 61, 62, 64, 65, 66, 67, 68, 69, 70, 71, 74, 75, 76, 77, 78, 90, 91, 92, 94, 95, 96, 97, 98, 99, 100, 101, 102].forEach(updateCountByUseitemId);
+			[4, 10, 11, 12, 50, 51, 52, 54, 56, 59, 57, 58, 60, 61, 62, 64, 65, 66, 67, 68, 69, 70, 71, 74, 75, 76, 77, 78, 90, 91, 92, 94, 95, 96, 97, 98, 99, 100, 101, 102, 104].forEach(updateCountByUseitemId);
 			$(".count_sumScrews").text(
 				(PlayerManager.getConsumableById(4) || 0) +    // screws
 				(PlayerManager.getConsumableById(60) || 0) +   // 1 present box => 1 screw
@@ -4224,6 +4224,7 @@
 						tabPath: "akashi"
 					})).execute();
 				});
+			$(".remodel_footer .owned_arsenal span", remodelListBox).text(PlayerManager.consumables.arsenalMaterial || 0);
 			$(".remodel_footer .owned_devmats span", remodelListBox).text(PlayerManager.consumables.devmats);
 			$(".remodel_footer .owned_screws span", remodelListBox).text(PlayerManager.consumables.screws);
 			$(".remodel_slotlist", remodelListBox).empty();
@@ -4257,6 +4258,7 @@
 						tabPath: "akashi"
 					})).execute();
 				});
+			$(".remodel_footer .owned_arsenal span", remodelDetailBox).text(PlayerManager.consumables.arsenalMaterial || 0);
 			$(".remodel_footer .owned_devmats span", remodelDetailBox).text(PlayerManager.consumables.devmats);
 			$(".remodel_footer .owned_screws span", remodelDetailBox).text(PlayerManager.consumables.screws);
 			const recipeDetail = data.cachedRecipes[data.recipeId];
@@ -4398,6 +4400,7 @@
 						tabPath: "akashi"
 					})).execute();
 				});
+			$(".remodel_footer .owned_arsenal span", remodelResultBox).text(PlayerManager.consumables.arsenalMaterial || 0);
 			$(".remodel_footer .owned_devmats span", remodelResultBox).text(PlayerManager.consumables.devmats);
 			$(".remodel_footer .owned_screws span", remodelResultBox).text(PlayerManager.consumables.screws);
 			const recipeDetail = data.cachedRecipes[data.recipeId];

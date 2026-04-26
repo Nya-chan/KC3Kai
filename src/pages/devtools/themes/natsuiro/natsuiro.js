@@ -1570,10 +1570,11 @@
 					PlayerManager.consumables.irako || 0, KC3Meta.useItemName(59),
 					PlayerManager.consumables.airUnitRation || 0, KC3Meta.useItemName(102)
 				));
-			$(".count_newTechMats").text((PlayerManager.consumables.nEngine || 0) + (PlayerManager.consumables.overseaTechMaterial || 0))
-				.parent().attr("title", "x{0} {1} +\nx{2} {3}".format(
+			$(".count_newTechMats").text((PlayerManager.consumables.nEngine || 0) + (PlayerManager.consumables.overseaTechMaterial || 0) + (PlayerManager.consumables.arsenalMaterial || 0))
+				.parent().attr("title", "x{0} {1} +\nx{2} {3} +\nx{4} {5}".format(
 					PlayerManager.consumables.nEngine || 0, KC3Meta.useItemName(71),
-					PlayerManager.consumables.overseaTechMaterial || 0, KC3Meta.useItemName(100)
+					PlayerManager.consumables.overseaTechMaterial || 0, KC3Meta.useItemName(100),
+					PlayerManager.consumables.arsenalMaterial || 0, KC3Meta.useItemName(104)
 				));
 			$(".count_allBlueprints").text((PlayerManager.consumables.blueprints || 0) + (PlayerManager.consumables.newAircraftBlueprint || 0))
 				.parent().attr("title", "x{0} {1} +\nx{2} {3}".format(
@@ -4118,6 +4119,7 @@
 						tabPath: "akashi"
 					})).execute();
 				});
+			$(".remodel_footer .owned_arsenal span", remodelListBox).text(PlayerManager.consumables.arsenalMaterial || 0);
 			$(".remodel_footer .owned_devmats span", remodelListBox).text(PlayerManager.consumables.devmats);
 			$(".remodel_footer .owned_screws span", remodelListBox).text(PlayerManager.consumables.screws);
 			$(".remodel_slotlist", remodelListBox).empty();
@@ -4151,6 +4153,7 @@
 						tabPath: "akashi"
 					})).execute();
 				});
+			$(".remodel_footer .owned_arsenal span", remodelDetailBox).text(PlayerManager.consumables.arsenalMaterial || 0);
 			$(".remodel_footer .owned_devmats span", remodelDetailBox).text(PlayerManager.consumables.devmats);
 			$(".remodel_footer .owned_screws span", remodelDetailBox).text(PlayerManager.consumables.screws);
 			const recipeDetail = data.cachedRecipes[data.recipeId];
@@ -4292,6 +4295,7 @@
 						tabPath: "akashi"
 					})).execute();
 				});
+			$(".remodel_footer .owned_arsenal span", remodelResultBox).text(PlayerManager.consumables.arsenalMaterial || 0);
 			$(".remodel_footer .owned_devmats span", remodelResultBox).text(PlayerManager.consumables.devmats);
 			$(".remodel_footer .owned_screws span", remodelResultBox).text(PlayerManager.consumables.screws);
 			const recipeDetail = data.cachedRecipes[data.recipeId];

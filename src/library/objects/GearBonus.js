@@ -34,13 +34,13 @@
 				surfaceRadar: 0,
 				// Array constants used instead for faster executions:
 				// surfaceRadarIds: KC3Master.find_slotitems(g => g.api_type[1] == 8 && g.api_saku >= 5 && g.api_id <= KC3Master.abyssalGearIdFrom).map(g => g.api_id)
-				surfaceRadarIds: [28, 29, 31, 32, 88, 89, 124, 141, 142, 240, 278, 279, 307, 315, 410, 411, 450, 456, 460, 506, 517, 527, 528],
+				surfaceRadarIds: [28, 29, 31, 32, 88, 89, 124, 141, 142, 240, 278, 279, 307, 315, 410, 411, 450, 456, 460, 506, 517, 527, 528, 573],
 				airRadar: 0,
 				// airRadarIds: KC3Master.find_slotitems(g => g.api_type[1] == 8 && g.api_tyku >= 2 && g.api_id <= KC3Master.abyssalGearIdFrom).map(g => g.api_id)
-				airRadarIds: [27, 30, 32, 89, 106, 124, 142, 278, 279, 307, 315, 410, 411, 450, 456, 460, 506, 527, 528],
+				airRadarIds: [27, 30, 32, 89, 106, 124, 142, 278, 279, 307, 315, 410, 411, 450, 456, 460, 506, 527, 528, 573, 574],
 				highAccuracyRadar: 0,
 				// highAccuracyRadarIds: KC3Master.find_slotitems(g => g.api_type[1] == 8 && g.api_houm >= 8 && g.api_id <= KC3Master.abyssalGearIdFrom).map(g => g.api_id)
-				highAccuracyRadarIds: [31, 88, 124, 141, 142, 240, 307, 315, 411, 456, 460, 517, 528],
+				highAccuracyRadarIds: [31, 88, 124, 141, 142, 240, 307, 315, 411, 456, 460, 517, 528, 573],
 				aaMachineGun: 0,
 				// aaMachineGunIds: KC3Master.find_slotitems(g => g.api_type[2] == 21 && g.api_id <= KC3Master.abyssalGearIdFrom).map(g => g.api_id)
 				aaMachineGunIds: [37, 38, 39, 40, 49, 51, 84, 85, 92, 131, 173, 191, 274, 301, 505],
@@ -131,6 +131,14 @@
 				usNavySurfaceRadarIds: [279, 307, 315, 456],
 				usNavyAirRadar: 0,
 				usNavyAirRadarIds: [278, 279],
+				prototypeType23RadarK3: 0,
+				prototypeType23RadarK3Ids: [573],
+				kaiScRadar: 0,
+				kaiScRadarIds: [574],
+				lateModelSgRadar: 0,
+				lateModelSgRadarIds: [456],
+				initialModelSgRadar: 0,
+				initialModelSgRadarIds: [315],
 				frenchYellowSecGunMount: 0,
 				frenchYellowSecGunMountIds: [247],
 				frenchNightRecon: 0,
@@ -7805,37 +7813,142 @@
 			// SK Radar
 			"278": {
 				count: 0,
+				starsDist: [],
 				byNation: {
-					"UnitedStates": {
-						single: { "tyku": 1, "houk": 3, "saku": 1 },
-					},
-					"UnitedKingdom": {
-						single: { "tyku": 1, "houk": 2 },
-					},
+					"UnitedStates": [
+						{
+							single: { "tyku": 1, "houk": 3, "saku": 1 },
+						},
+						{
+							minStars: 6,
+							single: { "tyku": 1 },
+						},
+						{
+							minStars: 7,
+							single: { "houk": 1 },
+						},
+						{
+							minStars: 8,
+							single: { "tyku": 1 },
+						},
+						{
+							minStars: 9,
+							single: { "houm": 1 },
+						},
+						{
+							minStars: 10,
+							single: { "houg": 1 },
+						},
+					],
+					"UnitedKingdom": [
+						{
+							single: { "tyku": 1, "houk": 2 },
+						},
+						{
+							minStars: 7,
+							single: { "tyku": 1 },
+						},
+						{
+							minStars: 8,
+							single: { "houk": 1 },
+						},
+						{
+							minStars: 9,
+							single: { "houm": 1 },
+						},
+						{
+							minStars: 10,
+							single: { "houg": 1 },
+						},
+					],
 				},
 				byClass: {
 					// Perth Class
-					"96": {
-						single: { "tyku": 1, "houk": 1 },
-					},
+					"96": [
+						{
+							single: { "tyku": 1, "houk": 1 },
+						},
+						{
+							minStars: 7,
+							single: { "tyku": 1 },
+						},
+						{
+							minStars: 8,
+							single: { "houk": 1 },
+						},
+						{
+							minStars: 9,
+							single: { "houm": 1 },
+						},
+						{
+							minStars: 10,
+							single: { "houg": 1 },
+						},
+					],
 				},
 			},
 			// SK + SG Radar
 			"279": {
 				count: 0,
 				byNation: {
-					"UnitedStates": {
-						single: { "houg": 2, "tyku": 2, "houk": 3, "saku": 2 },
-					},
-					"UnitedKingdom": {
-						single: { "houg": 1, "tyku": 1, "houk": 2, "saku": 1 },
-					},
+					"UnitedStates": [
+						{
+							single: { "houg": 2, "tyku": 2, "houk": 3, "saku": 2 },
+						},
+						{
+							minStars: 7,
+							single: { "houk": 1 },
+						},
+						{
+							minStars: 8,
+							single: { "tyku": 1 },
+						},
+						{
+							minStars: 9,
+							single: { "houm": 1 },
+						},
+						{
+							minStars: 10,
+							single: { "houg": 1 },
+						},
+					],
+					"UnitedKingdom": [
+						{
+							single: { "houg": 1, "tyku": 1, "houk": 2, "saku": 1 },
+						},
+						{
+							minStars: 8,
+							single: { "tyku": 1 },
+						},
+						{
+							minStars: 9,
+							single: { "houm": 1 },
+						},
+						{
+							minStars: 10,
+							single: { "houg": 1 },
+						},
+					],
 				},
 				byClass: {
 					// Perth Class
-					"96": {
-						single: { "houg": 1, "tyku": 1, "houk": 1 },
-					},
+					"96": [
+						{
+							single: { "houg": 1, "tyku": 1, "houk": 1 },
+						},
+						{
+							minStars: 8,
+							single: { "tyku": 1 },
+						},
+						{
+							minStars: 9,
+							single: { "houm": 1 },
+						},
+						{
+							minStars: 10,
+							single: { "houg": 1 },
+						},
+					],
 				},
 			},
 			// Type281 Radar
@@ -8115,7 +8228,7 @@
 					"5": "1",
 					// Hatsuharu Class K2: Hatsuharu K2, Hatsushimo K2
 					"10": "1",
-					// Fubuki Class K2: Fubuki K2, Murakumo K2, Uranami K2, Isonami K2, Shirayuki K2, Hatsuyuki K2
+					// Fubuki Class K2: Fubuki K2+, Murakumo K2, Uranami K2, Isonami K2, Shirayuki K2, Hatsuyuki K2
 					"12": "1",
 				},
 				byShip: [
@@ -8197,6 +8310,19 @@
 					],
 				},
 				byShip: [
+					{
+						// Fubuki Kai San Go
+						ids: [1040],
+						multiple: { "raig": 2, "houk": 1 },
+						countCap: 2,
+					},
+					{
+						// Fubuki Kai San Go
+						ids: [1040],
+						minStars: 10,
+						multiple: { "houg": 1 },
+						countCap: 2,
+					},
 					{
 						// All remodels of Matsu Class Take
 						origins: [642],
@@ -8871,8 +8997,8 @@
 						multiple: { "houg": 1, "houm": 1, "houk": 1 },
 					},
 					{
-						// Yukikaze Kai Ni
-						ids: [656],
+						// Yukikaze Kai Ni, Shigure K3, Fubuki K3+
+						ids: [656, 961, 1035, 1040],
 						minStars: 4,
 						multiple: { "houg": 5, "tyku": 3, "houk": 2 },
 						synergy: [
@@ -9023,29 +9149,45 @@
 						multiple: { "houg": 1 },
 					},
 					{
-						// Fubuki Kai Ni, Shirayuki Kai Ni, Hatsuyuki Kai Ni
-						ids: [426, 986, 987],
+						// Fubuki Kai Ni, Shirayuki Kai Ni, Hatsuyuki Kai Ni, Fubuki K3+
+						ids: [426, 986, 987, 1035, 1040],
 						multiple: { "houg": 1, "tyku": 1 },
 					},
 					{
-						ids: [426, 986, 987],
+						ids: [426, 986, 987, 1035, 1040],
 						minStars: 4,
 						multiple: { "tyku": 1 },
 					},
 					{
-						ids: [426, 986, 987],
+						ids: [426, 986, 987, 1035, 1040],
 						minStars: 6,
 						multiple: { "houk": 1 },
 					},
 					{
-						ids: [426, 986, 987],
+						ids: [426, 986, 987, 1035, 1040],
 						minStars: 8,
 						multiple: { "houm": 1 },
 					},
 					{
-						ids: [426, 986, 987],
+						ids: [426, 986, 987, 1035, 1040],
 						minStars: 10,
 						multiple: { "houg": 1 },
+					},
+					{
+						// Yukikaze Kai Ni, Shigure K3, Fubuki K3+
+						ids: [656, 961, 1035, 1040],
+						minStars: 4,
+						multiple: { "houg": 5, "tyku": 3, "houk": 2 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 4, "houk": 3 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 4, "houk": 3 },
+							},
+						],
 					},
 				]
 			},
@@ -9118,27 +9260,27 @@
 						multiple: { "houk": 1 },
 					},
 					{
-						// Fubuki Kai Ni, Shirayuki Kai Ni, Hatsuyuki Kai Ni
-						ids: [426, 986, 987],
+						// Fubuki Kai Ni, Shirayuki Kai Ni, Hatsuyuki Kai Ni, Fubuki K3+
+						ids: [426, 986, 987, 1035, 1040],
 						multiple: { "houg": 1, "tyku": 1 },
 					},
 					{
-						ids: [426, 986, 987],
+						ids: [426, 986, 987, 1035, 1040],
 						minStars: 4,
 						multiple: { "tyku": 1 },
 					},
 					{
-						ids: [426, 986, 987],
+						ids: [426, 986, 987, 1035, 1040],
 						minStars: 6,
 						multiple: { "houk": 1 },
 					},
 					{
-						ids: [426, 986, 987],
+						ids: [426, 986, 987, 1035, 1040],
 						minStars: 8,
 						multiple: { "houm": 1 },
 					},
 					{
-						ids: [426, 986, 987],
+						ids: [426, 986, 987, 1035, 1040],
 						minStars: 10,
 						multiple: { "houg": 1 },
 					},
@@ -9172,6 +9314,36 @@
 							flags: [ "surfaceRadar" ],
 							single: { "houg": 3, "houk": 3 },
 						},
+					},
+					{
+						ids: [651, 656],
+						minStars: 5,
+						multiple: { "tyku": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 6,
+						multiple: { "houm": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 7,
+						multiple: { "houk": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 8,
+						multiple: { "houg": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 9,
+						multiple: { "tyku": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 10,
+						multiple: { "houm": 1 },
 					},
 				]
 			},
@@ -9216,6 +9388,36 @@
 							},
 						],
 					},
+					{
+						ids: [651, 656],
+						minStars: 5,
+						multiple: { "houm": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 6,
+						multiple: { "tyku": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 7,
+						multiple: { "houg": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 8,
+						multiple: { "houk": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 9,
+						multiple: { "houm": 1 },
+					},
+					{
+						ids: [651, 656],
+						minStars: 10,
+						multiple: { "houg": 1 },
+					},
 				]
 			},
 			// 12.7cm Single High-angle Gun Mount (Late Model)
@@ -9252,30 +9454,61 @@
 				},
 				byShip: [
 					{
-						// All DE
-						stypes: [1],
+						// Yukikaze Kai Ni
+						ids: [656],
+						multiple: { "houg": 2, "tyku": 3, "tais": 2 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 5, "houk": 4 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 3, "houk": 2 },
+							},
+						],
+					},
+					{
+						// Yura Kai Ni
+						ids: [488],
 						minStars: 7,
-						multiple: { "houg": 1, "tyku": 1 },
+						multiple: { "tyku": 3 },
 						synergy: {
 							flags: [ "surfaceRadar" ],
-							single: { "houg": 1, "houk": 4 },
+							single: { "houg": 3, "houk": 2 },
 						},
 					},
 					{
-						// All remodels of: Naka, Kinu
-						origins: [56, 113],
+						// Yura Kai, Yukikaze Kai Ni, Shigure Kai San, Fubuki Kai San+
+						ids: [220, 656, 961, 1035, 1040],
+						minStars: 7,
+						multiple: { "tyku": 2 },
+					},
+					{
+						// Yukikaze Kai Ni
+						ids: [656],
+						minStars: 7,
+						multiple: { "houg": 1 },
+					},
+					{
+						// Shigure Kai San, Fubuki Kai San, Fubuki Kai San Go
+						ids: [961, 1035, 1040],
+						minStars: 7,
+						multiple: { "houg": 1 },
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 3, "houk": 2 },
+						},
+					},
+					{
+						// All remodels of: Yura, Naka, Kinu
+						origins: [23, 56, 113],
 						minStars: 7,
 						multiple: { "houg": 2 },
 					},
 					{
-						// All remodels of: Yura
-						origins: [23],
-						minStars: 7,
-						multiple: { "houg": 2, "tyku": 1 },
-					},
-					{
-						// Yura Kai, Naka Kai, Kinu Kai
-						ids: [220, 224, 289],
+						// Yura, Naka Kai, Kinu Kai
+						ids: [23, 224, 289],
 						minStars: 7,
 						multiple: { "tyku": 1 },
 					},
@@ -9290,25 +9523,21 @@
 						},
 					},
 					{
-						// Yukikaze Kai Ni
-						ids: [656],
-						multiple: { "houg": 2, "tyku": 3, "tais": 2 },
-						synergy: [
-							{
-								flags: [ "surfaceRadar" ],
-								single: { "houg": 2, "houk": 2 },
-							},
-							{
-								flags: [ "airRadar" ],
-								single: { "tyku": 3, "houk": 2 },
-							},
-						],
+						// All DE
+						stypes: [1],
+						minStars: 7,
+						multiple: { "houg": 1, "tyku": 1 },
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 1, "houk": 4 },
+						},
 					},
 				],
 			},
 			// 12.7cm Single High-angle Gun Mount Kai Ni
 			"379": {
 				count: 0,
+				starsDist: [],
 				byClass: {
 					// Mutsuki Class
 					"28": {
@@ -9404,7 +9633,7 @@
 						multiple: { "tyku": 4 },
 						synergy: {
 							flags: [ "surfaceRadar" ],
-							single: { "houg": 2, "houk": 2 },
+							single: { "houg": 2, "houk": 2, "houm": 2 },
 						},
 					},
 					{
@@ -9414,6 +9643,16 @@
 							flags: [ "surfaceRadar" ],
 							single: { "houg": 1, "houk": 1 },
 						},
+					},
+					{
+						// Ooi/Kitakami K2, Yura K2, Naka K2
+						ids: [119, 118,     488, 160],
+						multiple: { "houk": 1 },
+					},
+					{
+						// Ooi/Kitakami K2, Yura K2
+						ids: [119, 118,     488],
+						single: { "houk": 1 },
 					},
 					{
 						// Yura K2, Isuzu K2, Naka K2, Kinu K2 extra +1 asw
@@ -9440,28 +9679,311 @@
 						},
 					},
 					{
+						// Fujinami K2, Tamanami K2
+						ids: [981, 1033],
+						multiple: { "houg": 1, "tais": 1, "houk": 1 },
+					},
+					{
 						// Tan Yang
 						ids: [651],
 						multiple: { "houg": 3, "tyku": 3 },
-						synergy: {
-							flags: [ "surfaceRadar" ],
-							single: { "houg": 2, "houk": 2 },
-						},
-					},
-					{
-						// Yukikaze K2
-						ids: [656],
-						multiple: { "houg": 3, "tyku": 3, "tais": 2, "houk": 3 },
 						synergy: [
 							{
 								flags: [ "surfaceRadar" ],
-								single: { "houg": 2, "houk": 2 },
+								single: { "houg": 2, "houk": 2, "houm": 2 },
 							},
 							{
 								flags: [ "airRadar" ],
 								single: { "tyku": 3, "houk": 2 },
 							},
 						],
+					},
+					{
+						// Yukikaze K2, Shigure K3
+						ids: [656, 961],
+						multiple: { "houg": 3, "tyku": 3, "tais": 2, "houk": 3 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 2, "houk": 2, "houm": 2 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 3, "houk": 2 },
+							},
+						],
+					},
+					{
+						// Fubuki K3+
+						ids: [1035, 1040],
+						multiple: { "houg": 3, "tyku": 4, "tais": 2, "houk": 3 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 2, "houk": 2, "houm": 2 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 3, "houk": 2 },
+							},
+						],
+					},
+					{
+						minStars: 7,
+						single: { "tyku": 1 },
+					},
+					{
+						minStars: 8,
+						single: { "houg": 1 },
+					},
+					{
+						minStars: 9,
+						single: { "houk": 1 },
+					},
+					{
+						minStars: 10,
+						single: { "houm": 1 },
+					},
+					{
+						synergy: {
+							flags: ["prototypeType23RadarK3"],
+							byStars: {
+								gearId: 573,
+								 "4": { "houk": 1 },
+								 "6": { "houm": 1 },
+								 "8": { "houk": 1 },
+								"10": { "houm": 1 },
+							},
+						},
+					},
+				],
+			},
+			// 12.7cm Single High-angle Gun Mount Kai 3
+			"572": {
+				count: 0,
+				starsDist: [],
+				byClass: {
+					// Mutsuki Class
+					"28": {
+						multiple: { "houg": 1, "tyku": 2 },
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 2, "houk": 3 },
+						},
+					},
+					// Kamikaze Class
+					"66": "28",
+					// Tenyuu Class
+					"21": {
+						multiple: { "houg": 1 },
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 2, "houk": 3 },
+						},
+					},
+					// Yuubari Class
+					"34": {
+						multiple: { "houg": 1, "tais": 1 },
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 2, "houk": 3 },
+						},
+					},
+					// Matsu Class
+					"101": [
+						{
+							single: { "houg": 2, "tyku": 2 },
+							synergy: {
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 4, "houk": 3 },
+							},
+						},
+						// Make another object in order to compatible with mstship's `.single || .multiple` handling
+						{
+							multiple: { "houg": 1, "tyku": 2 },
+						},
+					]
+				},
+				byShip: [
+					{
+						// All DE
+						stypes: [1],
+						multiple: { "houg": 1, "tyku": 2 },
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 1, "houk": 4 },
+						},
+					},
+					{
+						// All AV/CT
+						stypes: [16, 21],
+						multiple: { "houg": 1, "tyku": 1 },
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 1, "houk": 2 },
+						},
+					},
+					{
+						// Synergy only for all CL/CLT
+						stypes: [3, 4],
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 1, "houk": 2 },
+						},
+					},
+					{
+						// All remodels of: Isuzu, Yura, Naka, Kinu
+						origins: [22, 23, 56, 113],
+						multiple: { "houg": 2, "tais": 1 },
+					},
+					{
+						// All remodels of: Ooi, Kitakami
+						origins: [24, 25],
+						multiple: { "houg": 2, "tyku": 2 },
+					},
+					{
+						// Yura base, Isuzu base,Kai, Naka base,Kai, Kinu base,Kai extra +2 aa
+						ids: [23,     22, 219,        56, 224,       113, 289],
+						multiple: { "tyku": 2 },
+					},
+					{
+						// Yura Kai, Isuzu K2, Naka K2, Kinu K2 extra +3 aa
+						ids: [220,   141,      160,     487],
+						multiple: { "tyku": 3 },
+					},
+					{
+						// Yura Kai Ni extra +4 aa and synergy
+						ids: [488],
+						multiple: { "tyku": 4 },
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 2, "houk": 2, "houm": 2 },
+						},
+					},
+					{
+						// Ooi K2,Kitakami K2, Isuzu K2, Naka K2, Kinu K2 extra synergy
+						ids: [118, 119,        141,      160,     487],
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 1, "houk": 1 },
+						},
+					},
+					{
+						// Ooi/Kitakami K2, Yura K2, Naka K2
+						ids: [119, 118,     488, 160],
+						multiple: { "houk": 1 },
+					},
+					{
+						// Ooi/Kitakami K2, Yura K2
+						ids: [119, 118,     488],
+						single: { "houk": 1 },
+					},
+					{
+						// Yura K2, Isuzu K2, Naka K2, Kinu K2 extra +1 asw
+						ids: [488,  141,      160,     487],
+						multiple: { "tais": 1 },
+					},
+					{
+						// Tenryuu K2, Tatsuta K2, Yuubari K2D extra +2 asw
+						ids: [477,     478,        624],
+						multiple: { "tais": 2 },
+					},
+					{
+						// Tenryuu K2, Tatsuta K2, Yuubari K2,K2D extra +2 aa
+						ids: [477,     478,        622, 624],
+						multiple: { "tyku": 2 },
+					},
+					{
+						// Kiso K2, Tama K2, Kuma K2,K2D
+						ids: [146,  547,     652, 657],
+						single: { "houg": 2, "tyku": 2 },
+						synergy: {
+							flags: [ "surfaceRadar" ],
+							single: { "houg": 1, "houk": 1 },
+						},
+					},
+					{
+						// Fujinami K2, Tamanami K2
+						ids: [981, 1033],
+						multiple: { "houg": 1, "tais": 1, "houk": 1 },
+					},
+					{
+						// Tan Yang
+						ids: [651],
+						multiple: { "houg": 3, "tyku": 3 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 2, "houk": 2, "houm": 2 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 3, "houk": 2 },
+							},
+						],
+					},
+					{
+						// Yukikaze K2, Shigure K3
+						ids: [656, 961],
+						multiple: { "houg": 3, "tyku": 3, "tais": 2, "houk": 3 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 2, "houk": 2, "houm": 2 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 3, "houk": 2 },
+							},
+						],
+					},
+					{
+						// Fubuki K3+
+						ids: [1035, 1040],
+						multiple: { "houg": 3, "tyku": 4, "tais": 2, "houk": 3 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 2, "houk": 2, "houm": 2 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 3, "houk": 2 },
+							},
+						],
+					},
+					{
+						// Shigure K3, Fubuki K3+
+						ids: [961, 1035, 1040],
+						multiple: { "houg": 2, "tyku": 1, "houk": 1, "houm": 2 },
+					},
+					{
+						minStars: 7,
+						multiple: { "tyku": 1 },
+					},
+					{
+						minStars: 8,
+						multiple: { "houg": 1 },
+					},
+					{
+						minStars: 9,
+						multiple: { "houk": 1 },
+					},
+					{
+						minStars: 10,
+						multiple: { "houm": 1 },
+					},
+					{
+						synergy: {
+							flags: ["prototypeType23RadarK3"],
+							byStars: {
+								gearId: 573,
+								 "4": { "houk": 1 },
+								 "6": { "houm": 1 },
+								 "8": { "houk": 1 },
+								"10": { "houm": 1 },
+							},
+						},
 					},
 				],
 			},
@@ -9482,10 +10004,16 @@
 					"101": [
 						{
 							single: { "houg": 2, "tyku": 2, "houk": 2 },
-							synergy: {
-								flags: [ "surfaceRadar" ],
-								single: { "houg": 4, "houk": 3 },
-							},
+							synergy: [
+								{
+									flags: [ "surfaceRadar" ],
+									single: { "houg": 4, "houk": 3, "houm": 2 },
+								},
+								{
+									flags: [ "airRadar" ],
+									single: { "tyku": 1, "houk": 2 },
+								},
+							],
 						},
 						// Make another object in order to compatible with mstship's `.single || .multiple` handling
 						{
@@ -9498,18 +10026,30 @@
 						// All AV/CT
 						stypes: [16, 21],
 						multiple: { "houg": 1, "tyku": 2 },
-						synergy: {
-							flags: [ "surfaceRadar" ],
-							single: { "houg": 2, "houk": 1 },
-						},
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 2, "houk": 1, "houm": 1 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 2, "houk": 1 },
+							},
+						],
 					},
 					{
 						// Synergy only for all CL/CLT
 						stypes: [3, 4],
-						synergy: {
-							flags: [ "surfaceRadar" ],
-							single: { "houg": 2, "houk": 1 },
-						},
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 2, "houk": 1, "houm": 1 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 2, "houk": 1 },
+							},
+						],
 					},
 					{
 						// All remodels of: Isuzu, Yura, Naka, Kinu
@@ -9537,12 +10077,18 @@
 						multiple: { "tyku": 4 },
 					},
 					{
-						// Ooi K2,Kitakami K2, Isuzu K2, Naka K2, Kinu K2, Yura K2, Tan Yang, Yukikaze K2 extra synergy
-						ids: [118, 119,        141,      160,     487,     488,     651,      656],
-						synergy: {
-							flags: [ "surfaceRadar" ],
-							single: { "houg": 1, "houk": 2 },
-						},
+						// Isuzu K2, Naka K2, Kinu K2, Yura K2 extra synergy
+						ids: [141,   160,     487,     488],
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 1, "houk": 2, "houm": 1 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 3, "houk": 1 },
+							},
+						],
 					},
 					{
 						// Yura K2, Isuzu K2, Naka K2, Kinu K2 extra +1 asw
@@ -9573,15 +10119,35 @@
 						// Kiso K2, Tama K2, Kuma K2/K2D
 						ids: [146,  547,     652, 657],
 						single: { "tyku": 2 },
-						synergy: {
-							flags: [ "surfaceRadar" ],
-							single: { "houg": 1, "houk": 3 },
-						},
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 1, "houk": 3, "houm": 1 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 1, "houk": 2 },
+							},
+						],
 					},
 					{
 						// Tan Yang/Yukikaze K2
 						ids: [651, 656],
 						multiple: { "houg": 3, "tyku": 3 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 2, "houk": 2, "houm": 2 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 2, "houk": 2 },
+							},
+							{
+								flags: [ "aaMachineGun" ],
+								single: { "houg": 1, "tyku": 2, "houk": 1 },
+							},
+						],
 					},
 					{
 						// Ushio/Akebono K2
@@ -9595,7 +10161,11 @@
 						synergy: [
 							{
 								flags: [ "surfaceRadar" ],
-								single: { "houg": 2, "houk": 1 },
+								single: { "houg": 2, "houk": 1, "houm": 2 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 2, "houk": 2 },
 							},
 							{
 								flags: [ "aaMachineGun" ],
@@ -9604,18 +10174,41 @@
 						],
 					},
 					{
-						// Fujinami/Tamanami K2, Ooi/Kitakami K2
-						ids: [981, 1033,         119, 118],
+						// Ooi/Kitakami K2
+						ids: [119, 118],
+						multiple: { "houg": 2, "houk": 1 },
+						synergy: [
+							{
+								flags: [ "surfaceRadar" ],
+								single: { "houg": 3, "houk": 3, "houm": 2 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 2, "houk": 2 },
+							},
+							{
+								flags: [ "aaMachineGun" ],
+								single: { "houg": 1, "tyku": 2, "houk": 1 },
+							},
+						],
+					},
+					{
+						// Fujinami/Tamanami K2, Shigure K3, Fubuki K3+
+						ids: [981, 1033,         961, 1035, 1040],
 						multiple: { "houg": 2, "houk": 1 },
 					},
 					{
-						// Fujinami/Tamanami K2, Ooi/Kitakami K2
-						ids: [981, 1033,         119, 118],
+						// Fujinami/Tamanami K2, Shigure K3, Fubuki K3+
+						ids: [981, 1033,         961, 1035, 1040],
 						single: { "houk": 1 },
 						synergy: [
 							{
 								flags: [ "surfaceRadar" ],
-								single: { "houg": 2, "houk": 1 },
+								single: { "houg": 2, "houk": 1, "houm": 2 },
+							},
+							{
+								flags: [ "airRadar" ],
+								single: { "tyku": 2, "houk": 2 },
 							},
 							{
 								flags: [ "aaMachineGun" ],
@@ -11133,6 +11726,7 @@
 			// 5inch Single Gun Mount Mk.30 Kai
 			"313": {
 				count: 0,
+				starsDist: [],
 				byClass: {
 					// John C. Butler Class
 					"87": {
@@ -11141,15 +11735,48 @@
 					// Fletcher Class
 					"91": "87",
 				},
-				byShip: {
-					// Tan Yang/Yukikaze K2
-					ids: [651, 656],
-					multiple: { "houg": 2, "tyku": 2, "souk": 1, "houk": 1 },
-				},
+				byShip: [
+					{
+						// Tan Yang/Yukikaze K2, Fubuki K3Go
+						ids: [651, 656, 1040],
+						multiple: { "houg": 2, "tyku": 2, "souk": 1, "houk": 1 },
+					},
+					{
+						// Fubuki K3Go, Fletcher Mk.II
+						ids: [1040, 629],
+						multiple: { "houg": 1, "tyku": 1, "houm": 1 },
+					},
+					{
+						ids: [1040, 629],
+						minStars: 2,
+						multiple: { "houg": 1 },
+					},
+					{
+						ids: [1040, 629],
+						minStars: 4,
+						multiple: { "tyku": 1 },
+					},
+					{
+						ids: [1040, 629],
+						minStars: 6,
+						multiple: { "houm": 1 },
+					},
+					{
+						ids: [1040, 629],
+						minStars: 8,
+						multiple: { "tyku": 1 },
+					},
+					{
+						ids: [1040, 629],
+						minStars: 10,
+						multiple: { "houg": 1 },
+					},
+				],
 			},
 			// 5inch Single Gun Mount Mk.30 Kai + GFCS Mk.37
 			"308": {
 				count: 0,
+				starsDist: [],
 				byNation: {
 					"UnitedStates": {
 						multiple: { "houg": 1, "tyku": 1, "houk": 1 },
@@ -11170,6 +11797,40 @@
 						// Tan Yang/Yukikaze K2
 						ids: [651, 656],
 						multiple: { "houg": 1, "tyku": 1, "houk": 1 },
+					},
+					{
+						// Fubuki K3Go
+						ids: [1040],
+						multiple: { "houg": 2, "tyku": 2, "houk": 1, "souk": 1, "houm": 1 },
+					},
+					{
+						// Fletcher Mk.II
+						ids: [629],
+						multiple: { "houg": 1, "tyku": 1, "houk": 1, "houm": 1 },
+					},
+					{
+						// All remodels of: Ariake, Yuugure
+						origins: [632, 633],
+						multiple: { "houg": 1, "tyku": 1, "houk": 1, "houm": 1 },
+					},
+					// For all ships can equip it
+					{
+						minStars: 4,
+						multiple: { "houg": 1, "tyku": 1, "houm": 1 },
+						synergy: [
+							{
+								flags: [ "kaiScRadar" ],
+								multiple: { "houg": 2, "tyku": 2, "houk": 2, "houm": 2 },
+							},
+							{
+								flags: [ "lateModelSgRadar" ],
+								multiple: { "houg": 2, "houk": 1, "houm": 2 },
+							},
+							{
+								flags: [ "initialModelSgRadar" ],
+								multiple: { "houg": 1, "houk": 1, "houm": 1 },
+							},
+						],
 					},
 				],
 			},
@@ -11660,6 +12321,11 @@
 						multiple: { "houg": 1, "tyku": 1, "houk": 1 },
 					},
 				},
+				byShip: {
+					// Fletcher Mk.II, Fubuki Kai San Go
+					ids: [629, 1040],
+					multiple: { "houk": 1, "houm": 1 },
+				},
 			},
 			// SG Radar (Initial Model)
 			"315": {
@@ -11683,8 +12349,8 @@
 					"91": "87",
 				},
 				byShip: {
-					// Tan Yang/Yukikaze K2
-					ids: [651, 656],
+					// Tan Yang/Yukikaze K2, Fubuki K3Go
+					ids: [651, 656, 1040],
 					single: { "houg": 2, "houk": 2, "saku": 3, "leng": 1 },
 				},
 			},
@@ -11724,10 +12390,163 @@
 					"91": "87",
 				},
 				byShip: {
-					// Tan Yang/Yukikaze K2
-					ids: [651, 656],
+					// Tan Yang/Yukikaze K2, Fubuki K3Go
+					ids: [651, 656, 1040],
 					single: { "houg": 2, "houk": 2, "saku": 3, "houm": 2, "leng": 1 },
 				},
+			},
+			// Prototype Type 23 Radar Kai 3
+			"573": {
+				count: 0,
+				starsDist: [],
+				byShip: [
+					{
+						// Tang Yang/Yukikaze K2, Shigure K3, Fubuki K3Go, Inagi K2
+						ids: [651, 656, 961, 1035, 1040, 979],
+						single: { "houg": 2, "houm": 3 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040, 979],
+						minStars: 7,
+						single: { "houk": 1 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040, 979],
+						minStars: 8,
+						single: { "houm": 1 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040, 979],
+						minStars: 9,
+						single: { "houg": 1 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040, 979],
+						minStars: 10,
+						single: { "houm": 1 },
+					},
+				],
+			},
+			// SC Radar Kai (Calibrated Late Model)
+			"574": {
+				count: 0,
+				starsDist: [],
+				byClass: {
+					// Fletcher Class
+					"91": [
+						{
+							single: { "houg": 1, "tyku": 3, "houk": 3, "houm": 2 },
+						},
+						{
+							minStars: 5,
+							single: { "houm": 1 },
+						},
+						{
+							minStars: 6,
+							single: { "houg": 1 },
+						},
+						{
+							minStars: 7,
+							single: { "tyku": 1 },
+						},
+						{
+							minStars: 8,
+							single: { "houg": 1 },
+						},
+						{
+							minStars: 9,
+							single: { "houk": 1 },
+						},
+						{
+							minStars: 10,
+							single: { "houm": 1 },
+						},
+					],
+					// John C. Butler Class
+					"87": "91",
+				},
+				byShip: [
+					{
+						// Fletcher Kai Mod.2
+						ids: [628],
+						single: { "houk": 1 },
+					},
+					{
+						// Fletcher Mk.II
+						ids: [629],
+						single: { "houm": 1 },
+					},
+					{
+						// Tang Yang/Yukikaze K2, Shigure K3, Fubuki K3+
+						ids: [651, 656, 961, 1035, 1040],
+						single: { "houg": 2, "tyku": 4, "houk": 4, "houm": 3 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040],
+						minStars: 5,
+						single: { "houm": 1 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040],
+						minStars: 6,
+						single: { "houg": 1 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040],
+						minStars: 7,
+						single: { "tyku": 1 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040],
+						minStars: 8,
+						single: { "houg": 1 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040],
+						minStars: 9,
+						single: { "houk": 1 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040],
+						minStars: 10,
+						single: { "houm": 1 },
+					},
+					{
+						// All remodels of: Ariake, Yuugure
+						origins: [632, 633],
+						single: { "houg": 2, "tyku": 4, "houk": 4, "houm": 3 },
+					},
+					{
+						origins: [632, 633],
+						minStars: 5,
+						single: { "houm": 1 },
+					},
+					{
+						origins: [632, 633],
+						minStars: 6,
+						single: { "houg": 1 },
+					},
+					{
+						origins: [632, 633],
+						minStars: 7,
+						single: { "tyku": 1 },
+					},
+					{
+						origins: [632, 633],
+						minStars: 8,
+						single: { "houg": 1 },
+					},
+					{
+						origins: [632, 633],
+						minStars: 9,
+						single: { "houk": 1 },
+					},
+					{
+						origins: [632, 633],
+						minStars: 10,
+						single: { "houm": 1 },
+					},
+				],
 			},
 			// Type 13 Air Radar Kai
 			"106": {
@@ -11807,6 +12626,22 @@
 						ids: [668],
 						distinctGears: [106, 450],
 						single: { "tyku": 1, "houk": 1 },
+					},
+					{
+						// Tang Yang, Yukikaze K2, Shigure K3, Fubuki K3/K3Go
+						ids: [651, 656, 961, 1035, 1040],
+						minStars: 4,
+						single: { "houg": 1, "tyku": 2, "houk": 3 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040],
+						minStars: 8,
+						single: { "tyku": 1 },
+					},
+					{
+						ids: [651, 656, 961, 1035, 1040],
+						minStars: 10,
+						single: { "houm": 1 },
 					},
 				],
 			},
@@ -11981,8 +12816,8 @@
 						single: { "houg": 2, "houk": 3, "houm": 1, "saku": 2 },
 					},
 					{
-						// Hibiki/Kai, Ushio K2, Hatsushimo K2, Kasumi K2/K2B, Yukikaze K2, Shigure K3, Asashimo K2, Kiyoshimo K2, Harusame K2
-						ids: [147, 235, 407, 419, 464, 470, 656, 961, 578, 955, 975],
+						// Hibiki/Kai, Ushio K2, Hatsushimo K2, Kasumi K2/K2B, Yukikaze K2, Shigure K3, Asashimo K2, Kiyoshimo K2, Harusame K2, Fubuki K3+
+						ids: [147, 235, 407, 419, 464, 470, 656, 961, 578, 955, 975, 1035, 1040],
 						single: { "houg": 1, "houk": 2, "houm": 1, "saku": 1 },
 					},
 					{
@@ -12392,8 +13227,8 @@
 						multiple: { "tyku": 1, "houk": 1 },
 					},
 					{
-						// Shigure K3
-						ids: [961],
+						// Shigure K3, Fubuki K3+
+						ids: [961, 1035, 1040],
 						single: { "houg": 2, "tyku": 3, "houk": 4 },
 						synergy: {
 							flags: [ "airRadar" ],
@@ -13097,6 +13932,7 @@
 			// Prototype 15cm 9-tube ASW Rocket Launcher
 			"288": {
 				count: 0,
+				starsDist: [],
 				byClass: {
 					// Katori Class
 					"56": {
@@ -13110,14 +13946,53 @@
 						multiple: { "houk": 1, "tais": 2 },
 					},
 					{
+						ids: [141, 160, 488, 656],
+						minStars: 9,
+						multiple: { "houk": 1 },
+					},
+					{
+						ids: [141, 160, 488, 656],
+						minStars: 10,
+						multiple: { "tais": 1 },
+					},
+					{
 						// Yuubari K2D
 						ids: [624],
 						multiple: { "houg": 1, "houk": 2, "tais": 3 },
 					},
 					{
-						// Noshiro K2, Shigure K3
-						ids: [662, 961],
+						ids: [624],
+						minStars: 9,
+						multiple: { "houk": 1 },
+					},
+					{
+						ids: [624],
+						minStars: 10,
+						multiple: { "tais": 2 },
+					},
+					{
+						// Noshiro K2, Shigure K3, Fubuki K3Go
+						ids: [662, 961, 1040],
 						multiple: { "tais": 4, "houk": 1 },
+					},
+					{
+						ids: [662, 961, 1040],
+						minStars: 9,
+						multiple: { "houk": 1 },
+					},
+					{
+						ids: [662, 961, 1040],
+						minStars: 10,
+						multiple: { "tais": 1 },
+					},
+					// For all ships can equip it
+					{
+						minStars: 9,
+						multiple: { "tais": 1 },
+					},
+					{
+						minStars: 10,
+						multiple: { "houm": 1 },
 					},
 				],
 			},
@@ -13151,8 +14026,8 @@
 				},
 				byShip: [
 					{
-						// Hayanami Kai Ni, Tamanami Kai Ni
-						ids: [982, 1033],
+						// Hayanami Kai Ni, Tamanami Kai Ni, Shigure K3, Fubuki K3+
+						ids: [982, 1033, 961, 1035, 1040],
 						multiple: { "tais": 1, "houk": 1, "houm": 1 },
 					},
 					{
@@ -13328,8 +14203,8 @@
 						single: { "houk": 2, "tais": 1 },
 					},
 					{
-						// Tan Yang/Yukikaze K2
-						ids: [651, 656],
+						// Tan Yang/Yukikaze K2, Fubuki K3Go
+						ids: [651, 656, 1040],
 						single: { "houk": 2, "tais": 1 },
 					},
 				],
@@ -13358,8 +14233,8 @@
 						single: { "houk": 1, "tais": 1 },
 					},
 					{
-						// Tan Yang/Yukikaze K2
-						ids: [651, 656],
+						// Tan Yang/Yukikaze K2, Fubuki K3Go
+						ids: [651, 656, 1040],
 						single: { "houk": 1, "tais": 1 },
 					},
 				],
@@ -13408,6 +14283,11 @@
 						// All DE
 						stypes: [1],
 						multiple: { "houk": 1 },
+					},
+					{
+						// Fubuki K3Go
+						ids: [1040],
+						single: { "houk": 3, "tais": 3, "houm": 1 },
 					},
 					{
 						// Samuel B.Roberts Mk.II
@@ -14203,8 +15083,8 @@
 				count: 0,
 				byShip: [
 					{
-						// Okinami K2, Akigumo K2, Shigure K3, Amatsukaze K2 with Air Radar
-						ids: [569, 648, 961, 951],
+						// Okinami K2, Akigumo K2, Shigure K3, Amatsukaze K2, Yukikaze K2, Fubuki K3+ with Air Radar
+						ids: [569, 648, 961, 951, 656, 1035, 1040],
 						synergy: {
 							flags: [ "airRadar" ],
 							single: { "houg": 1, "tyku": 2, "houk": 3 },
@@ -14355,8 +15235,8 @@
 					},
 					{
 						// Fast Group A, speed level up without Turbine
-						origins: [50, 516, 153, 110, 111, 70, 120, 124, 125, 71, 72, 885, 181, 91],
-						excludes: [181, 316, 91, 280, 196],
+						origins: [50, 516, 153, 110, 111, 70, 120, 124, 125, 71, 72, 885, 181, 91, 9],
+						excludes: [181, 316, 91, 280, 196, 9, 201, 426, 1035],
 						minStars: 7,
 						countCap: 2,
 						multiple: { "soku": 5 },
@@ -14374,9 +15254,9 @@
 				count: 0,
 				byShip: [
 					{
-						// Fast Group A: Shimakaze, Tashkent, Taihou, Shoukaku, Zuikaku, Mogami, Mikuma, Suzuya, Kumano, Tone, Chikuma, Victorious?, Amatsukaze Kai Ni, Hiryuu K3, Fubuki K3Go?
-						origins: [50, 516, 153, 110, 111, 70, 120, 124, 125, 71, 72, 885, 181, 91],
-						excludes: [181, 316, 91, 280, 196],
+						// Fast Group A: Shimakaze, Tashkent, Taihou, Shoukaku, Zuikaku, Mogami, Mikuma, Suzuya, Kumano, Tone, Chikuma, Victorious?, Amatsukaze Kai Ni, Hiryuu K3, Fubuki K3Go
+						origins: [50, 516, 153, 110, 111, 70, 120, 124, 125, 71, 72, 885, 181, 91, 9],
+						excludes: [181, 316, 91, 280, 196, 9, 201, 426, 1035],
 						speedCap: 10,
 						synergy: [
 							{
@@ -14397,9 +15277,9 @@
 						],
 					},
 					{
-						// Fast Group B1: Amatsukaze, Iowa, Souryuu, Hiryuu, Unryuu, Amagi, Kongou, Haruna, Kirishima, Hiei, Agano, Noshiro, Yahagi, Sakawa, Yamato Kai Ni, Fubuki Kai San?
-						origins: [181, 440, 90, 91, 404, 331, 78, 79, 85, 86, 137, 138, 139, 140, 131],
-						excludes: [662, 131, 136, 916, 951, 1031],
+						// Fast Group B1: Amatsukaze, Iowa, Souryuu, Hiryuu, Unryuu, Amagi, Kongou, Haruna, Kirishima, Hiei, Agano, Noshiro, Yahagi, Sakawa, Yamato Kai Ni, Fubuki Kai San
+						origins: [181, 440, 90, 91, 404, 331, 78, 79, 85, 86, 137, 138, 139, 140, 131, 9],
+						excludes: [662, 131, 136, 916, 951, 1031, 9, 201, 426, 1040],
 						speedCap: 10,
 						synergy: [
 							{
@@ -14465,8 +15345,8 @@
 						// Fast Group B2 for all fast DDs
 						stypes: [2],
 						// Except slow DDs(see Slow Group B special below) and DDs in other groups:
-						//   Samuel B.Roberts, Shimakaze, Tashkent, Amatsukaze
-						excludes: [561, 681, 920, 50, 229, 516, 395, 181, 316, 951],
+						//   Samuel B.Roberts, Shimakaze, Tashkent, Amatsukaze, Fubuki K3+
+						excludes: [561, 681, 920, 50, 229, 516, 395, 181, 316, 951, 1035, 1040],
 						speedCap: 10,
 						synergy: [
 							{

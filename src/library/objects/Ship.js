@@ -3524,8 +3524,8 @@ KC3改 Ship Object
 
 	/**
 	 * Most conditions are the same with Nelson Touch, except:
-	 * Flagship is (healthy) Kongou-class Kai Ni C, Line Ahead (battle) / Echelon (forward) formation selected, night battle only. (Echelon added since 2021-08-20)
-	 * 2nd ship is (healthy) one of the following:
+	 * Flagship is ~~healthy~~ Kongou-class Kai Ni C, Line Ahead (battle) / Echelon (forward) formation selected, night battle only. (Echelon added since 2021-08-20)
+	 * 2nd ship is ~~healthy~~ one of the following:
 	 *   * Kongou K2C flagship: Hiei K2C / Haruna K2+ (extended) / Kirishima K2C (extended) / Warspite / Valiant
 	 *   * Hiei K2C flagship: Kongou K2C / Kirishima K2+ (extended) / Haruna K2B/C (extended)
 	 *   * Haruna K2B/C flagship: Kongou K2C / Hiei K2C (added since 2023-05-01) / Kirishima K2C (extended)
@@ -3544,7 +3544,7 @@ KC3改 Ship Object
 	 *   * https://twitter.com/myteaGuard/status/1254048759559778305
 	 * Ammo consumption reduced to 20% since 2021-08-04:
 	 *   * https://twitter.com/yukicacoon/status/1422899332219502596
-	 * Consumptions reduced (to ?) again since 2026-04-23
+	 * Ammo again reduced to 10% since 2026-04-23
 	 * Power modifier increased since 2022-06-08, and again since 2026-04-23
 	 * Possible to trigger on chuuha since 2026-04-23
 	 *
@@ -3595,6 +3595,7 @@ KC3改 Ship Object
 	 * Buffed again to 2.6~2.7 since 2024-09-24: https://x.com/hedgehog_hasira/status/1838951859605983678
 	 *  * K2 & K3 Dazzle added since 2024-09-24: https://x.com/yukicacoon/status/1839959049791778912
 	 *  * thread of verifications: https://x.com/CC_jabberwock/status/1842239909274534271
+	 * Buffed again additional x1.06 since 2026-04-23: https://x.com/hedgehog_hasira/status/2047906206652813322
 	 */
 	KC3Ship.prototype.estimateKongouCutinModifier = function(forShipPos = 0) {
 		const locatedFleet = PlayerManager.fleets[this.onFleet() - 1];
@@ -3604,7 +3605,7 @@ KC3改 Ship Object
 
 		// All capable ships applied, including K2, K2B and Warspite, despite only K2C mentioned by announcement
 		const targetShip = locatedFleet.ship(forShipPos);
-		const baseModifier = forShipPos === 0 ? 2.6 : 2.7;
+		const baseModifier = (forShipPos === 0 ? 2.6 : 2.7) * 1.06;
 		const twin356Group1Count = targetShip.countEquipment([329 /* K2 */, 502 /* K3 Dazzle */]),
 			twin356Group2Count = targetShip.countEquipment([503 /* K4 */, 530 /* K3C */]);
 		const twin356gunsMod1 = [1, 1.05, 1.08][twin356Group1Count] || 1.08;
