@@ -33,6 +33,7 @@
     "api_req_kousyou/remodel_slotlist": [processRemodelSlotList],
     "api_req_kousyou/remodel_slotlist_detail": [processRemodelSlotListDetail],
     "api_req_kousyou/remodel_slot": [processRemodelSlot],
+    "api_req_kousyou/remodel_slot_recover": [processRemodelSlotRecover],
   };
 
   let prevQuestIdList = [], prevAllQuestsHash = false, alterQuestDetected = false;
@@ -207,6 +208,22 @@
     if (item.flag_ship_id && item.helper_ship_id && har.response.api_data && gearObj.exists()
       && !akashiRecipesToIgnore.includes(item.api_id) && isSuccess) {
       postData("remodel_slot", item);
+    }
+  }
+
+  /**
+   * On akashi improvement stars removal procceeded
+   */
+  function processRemodelSlotRecover(har) {
+    const item = prepareRemodelBasicInfo(har);
+    item.api_id = Number(har.params.api_menu_id);
+    const gearObj = KC3GearManager.get(har.params.api_slot_id);
+    item.api_slot_id = gearObj.masterId;
+    item.api_slot_level = gearObj.stars || 0;
+    item.api_dev_num = Number(har.params.api_dev_num);
+    item.api_recover_flag = (har.response.api_data || {}).api_recover_flag || 0;
+    if (item.flag_ship_id && item.helper_ship_id && har.response.api_data && gearObj.exists()) {
+      postData("remodel_slot_recover", item);
     }
   }
 
