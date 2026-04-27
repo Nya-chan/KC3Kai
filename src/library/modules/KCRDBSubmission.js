@@ -219,12 +219,12 @@
     item.api_id = Number(har.params.api_menu_id);
     const gearObj = KC3GearManager.get(har.params.api_slot_id);
     item.api_slot_id = gearObj.masterId;
-    // Have to get previous stars from another place since submissions run after KC3GearManager's update
+    // Have to get previous stars from cached value since submissions run after KC3GearManager's update
     item.api_slot_level = gearObj.stars || Kcsapi.remodelRecipes.lastStars || 0;
     item.api_dev_num = Number(har.params.api_dev_num);
     item.api_recover_flag = (har.response.api_data || {}).api_recover_flag || 0;
     // Does not skip submission on akashi-only recipes, main purpose to investigate success rate
-    if (item.flag_ship_id && har.response.api_data && gearObj.exists()) {
+    if (item.flag_ship_id && item.api_slot_level && har.response.api_data && gearObj.exists()) {
       postData("remodel_slot_recover", item);
     }
   }
