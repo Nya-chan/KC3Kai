@@ -3204,13 +3204,22 @@ Previously known as "Reactor"
 			const success = !!result && result.api_recover_flag == 1;
 			const usedDevmats = parseInt(params.api_dev_num);
 			if(success && result.api_after_slot){
-				KC3GearManager.set([ result.api_after_slot ]);
+				// Do not update gear manager at once,
+				// in order to keep stars for later display and data submission
+				// KC3GearManager.set([ result.api_after_slot ]);
 				PlayerManager.consumables.devmats -= usedDevmats || 1;
 			}
 			PlayerManager.consumables.arsenalMaterial -= 1;
 			PlayerManager.setConsumables();
 			KC3Network.trigger("Consumables");
-			console.log("Improvement removal", (success ? "succeeded" : "failed"), params.api_menu_id, params.api_slot_id, usedDevmats);
+			const data = {
+				recipeId: parseInt(params.api_menu_id),
+				rosterId: parseInt(params.api_slot_id),
+				devmats: usedDevmats,
+				result: result
+			};
+			console.log("Improvement removal", (success ? "succeeded" : "failed"), data);
+			KC3Network.trigger("GearRemodelReset", data);
 		},
 		
 		/* List current available musics in Jukebox
