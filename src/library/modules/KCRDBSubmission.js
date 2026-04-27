@@ -191,7 +191,7 @@
     const isSuccess = !!item.data.api_remodel_flag;
     if (isSuccess) {
       const [idBefore, idAfter] = item.data.api_remodel_id;
-      // Fix item id and stars pre-improvement, since submission run after KC3GearManager's update
+      // Fix item id and stars pre-improvement, since submissions run after KC3GearManager's update
       item.api_slot_id = idBefore;
       item.api_slot_level = idBefore !== idAfter ? 10 : item.data.api_after_slot.api_level - 1;
       // Remove item member IDs, lock state, and aircraft proficiency
@@ -219,7 +219,8 @@
     item.api_id = Number(har.params.api_menu_id);
     const gearObj = KC3GearManager.get(har.params.api_slot_id);
     item.api_slot_id = gearObj.masterId;
-    item.api_slot_level = gearObj.stars || 0;
+    // Have to get previous stars from another place since submissions run after KC3GearManager's update
+    item.api_slot_level = gearObj.stars || Kcsapi.remodelRecipes.lastStars || 0;
     item.api_dev_num = Number(har.params.api_dev_num);
     item.api_recover_flag = (har.response.api_data || {}).api_recover_flag || 0;
     // Does not skip submission on akashi-only recipes, main purpose to investigate success rate

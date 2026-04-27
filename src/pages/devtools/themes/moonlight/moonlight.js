@@ -4444,8 +4444,8 @@
 
 		GearRemodelReset: function(data){
 			const remodelResultBox = $(".activity_remodel .remodelResult");
-			const result = data.result;
-			const shipId = PlayerManager.fleets[0].ship(1).masterId || PlayerManager.fleets[0].ship(0).masterId;
+			const result = data.currentResult;
+			const shipId = data.shipId || PlayerManager.fleets[0].ship(0).masterId;
 			$(".remodel_header .result_title", remodelResultBox).html(KC3Meta.term(
 				!result.api_recover_flag ? "RemodelItemResetFailure" : "RemodelItemResetSuccess"
 			)).toggleClass("failure", !result.api_recover_flag);
@@ -4475,11 +4475,11 @@
 					$(".remodel_upgrade_to", remodelResultBox).hide();
 				}
 			} else {
-				const beforeRemodelSlot = KC3GearManager.get(data.rosterId);
+				const gearObj = KC3GearManager.get(data.rosterId);
 				const beforeItemBox = $("#factory .remodelSlotItem").clone();
 				fillRemodelSlotItemBox(this, beforeItemBox, {
-					api_slot_id: beforeRemodelSlot.masterId, noReqs: true
-				}, undefined, beforeRemodelSlot.stars);
+					api_slot_id: gearObj.masterId, noReqs: true
+				}, undefined, data.lastStars);
 				$(".remodel_upgrade_title", remodelResultBox).hide();
 				$(".remodel_upgrade_to", remodelResultBox).empty().append(beforeItemBox).show();
 			}

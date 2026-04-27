@@ -3200,26 +3200,28 @@ Previously known as "Reactor"
 		/* Equipment Arsenal Improvement Removal
 		-------------------------------------------------------*/
 		"api_req_kousyou/remodel_slot_recover":function(params, response, headers){
-			const result = response.api_data;
+			const recipes = this.remodelRecipes,
+				recipeId = parseInt(params.api_menu_id),
+				rosterId = parseInt(params.api_slot_id),
+				devmats = parseInt(params.api_dev_num),
+				result = response.api_data;
+			const gear = KC3GearManager.get(rosterId);
+			recipes.currentResult = result;
+			recipes.recipeId = recipeId;
+			recipes.rosterId = rosterId;
+			recipes.devmats = devmats;
+			recipes.lastStars = gear.stars;
 			const success = !!result && result.api_recover_flag == 1;
-			const usedDevmats = parseInt(params.api_dev_num);
 			if(success && result.api_after_slot){
-				// Do not update gear manager at once,
-				// in order to keep stars for later display and data submission
-				// KC3GearManager.set([ result.api_after_slot ]);
-				PlayerManager.consumables.devmats -= usedDevmats || 1;
+				// Afterthen gear.stars will be 0, lastStars should be used if needed
+				KC3GearManager.set([ result.api_after_slot ]);
+				PlayerManager.consumables.devmats -= devmats || 1;
 			}
+			console.log("Improvement removal", (success ? "succeeded" : "failed"), recipeId, rosterId, recipes.lastStars, devmats);
 			PlayerManager.consumables.arsenalMaterial -= 1;
 			PlayerManager.setConsumables();
+			KC3Network.trigger("GearRemodelReset", recipes);
 			KC3Network.trigger("Consumables");
-			const data = {
-				recipeId: parseInt(params.api_menu_id),
-				rosterId: parseInt(params.api_slot_id),
-				devmats: usedDevmats,
-				result: result
-			};
-			console.log("Improvement removal", (success ? "succeeded" : "failed"), data);
-			KC3Network.trigger("GearRemodelReset", data);
 		},
 		
 		/* List current available musics in Jukebox
