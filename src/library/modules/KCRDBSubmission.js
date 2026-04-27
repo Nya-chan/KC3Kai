@@ -222,7 +222,8 @@
     item.api_slot_level = gearObj.stars || 0;
     item.api_dev_num = Number(har.params.api_dev_num);
     item.api_recover_flag = (har.response.api_data || {}).api_recover_flag || 0;
-    if (item.flag_ship_id && item.helper_ship_id && har.response.api_data && gearObj.exists()) {
+    // Does not skip submission on akashi-only recipes, main purpose to investigate success rate
+    if (item.flag_ship_id && har.response.api_data && gearObj.exists()) {
       postData("remodel_slot_recover", item);
     }
   }
