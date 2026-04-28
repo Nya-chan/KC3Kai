@@ -21,7 +21,8 @@
 .kc3 #factory,
 .kc3 #root header,
 .kc3 #root footer,
-.kc3 #root aside {
+.kc3 #root aside,
+.kc3 #root footer + * + ul {
 	display:none;
 }
 
